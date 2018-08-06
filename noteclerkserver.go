@@ -8,7 +8,7 @@ import (
 	"github.com/geekmdio/ehrprotorepo/goproto"
 	"net"
 	"github.com/pkg/errors"
-)
+	)
 
 type NoteClerkServer struct {
 	mockContext []ehrpb.Note
@@ -113,9 +113,9 @@ func (n *NoteClerkServer) FindNote(ctx context.Context, request *ehrpb.FindNoteR
 }
 
 func (n *NoteClerkServer) UpdateNote(ctx context.Context, request *ehrpb.UpdateNoteRequest) (*ehrpb.UpdateNoteResponse, error) {
-	for _, note := range n.mockContext {
+	for k, note := range n.mockContext {
 		if note.Id == request.Note.Id {
-			note = *request.Note
+			n.mockContext[k] = *request.Note
 		}
 	}
 
@@ -125,6 +125,7 @@ func (n *NoteClerkServer) UpdateNote(ctx context.Context, request *ehrpb.UpdateN
 			Message:              ehrpb.StatusCodes_OK.String(),
 		},
 	}
+
 	return res, nil
 }
 
