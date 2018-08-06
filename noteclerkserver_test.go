@@ -8,11 +8,9 @@ import (
 	)
 
 func TestNoteClerkServer_NewNote(t *testing.T) {
-	ctx := context.Background()
 	s := &NoteClerkServer{}
-
 	req := genNoteRequest()
-	res, err := s.NewNote(ctx, req)
+	res, err := s.NewNote(context.Background(), req)
 	if err != nil {
 		t.Fatalf("Failed to create a new note, with error: %v", err)
 	}
@@ -24,17 +22,15 @@ func TestNoteClerkServer_NewNote(t *testing.T) {
 }
 
 func TestNoteClerkServer_DeleteNote(t *testing.T) {
-	ctx := context.Background()
 	s := &NoteClerkServer{}
-
-	s.NewNote(ctx, genNoteRequest())
+	s.NewNote(context.Background(), genNoteRequest())
 	beforeLen := len(s.mockContext)
 
 	req := ehrpb.DeleteNoteRequest{
 		Id:                   1,
 	}
 
-	_, err := s.DeleteNote(ctx, &req)
+	_, err := s.DeleteNote(context.Background(), &req)
 	if err != nil {
 		t.Fatalf("Failed to delete note, with error: %v", err)
 	}
@@ -48,7 +44,25 @@ func TestNoteClerkServer_DeleteNote(t *testing.T) {
 }
 
 func TestNoteClerkServer_FindNote(t *testing.T) {
-	t.Fatal("Not implemented")
+	ctx := context.Background()
+	s := &NoteClerkServer{}
+	s.NewNote(ctx, genNoteRequest())
+
+	findReq := ehrpb.FindNoteRequest{
+		SearchTerms:          "diabetes",
+		AuthorGuid:           "",
+		PatientGuid:          "",
+		VisitGuid:            "",
+	}
+	res, err := s.FindNote(ctx, &findReq)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.Status.HttpCode != 300 {
+		t.Fatalf("Expected status code 300, got %v", res.Status.HttpCode)
+	}
 }
 
 func TestNoteClerkServer_Initialize(t *testing.T) {
