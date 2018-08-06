@@ -15,7 +15,10 @@ func TestNoteClerkServer_NewNote(t *testing.T) {
 		t.Fatalf("Failed to create a new note, with error: %v", err)
 	}
 
-	valid := res.Note.GetId() == 1 && req.Note.GetId() == 1 && res.Note.GetDateCreated().Nanos == req.Note.GetDateCreated().Nanos
+	valid := res.Note.GetId() == 1 && req.Note.GetId() == 1 &&
+		res.Note.GetDateCreated().Nanos == req.Note.GetDateCreated().Nanos &&
+		res.Status.HttpCode == ehrpb.StatusCodes_OK
+
 	if !valid {
 		t.Fatalf("The returned note is invalid.")
 	}
@@ -60,21 +63,67 @@ func TestNoteClerkServer_FindNote(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if res.Status.HttpCode != 300 {
-		t.Fatalf("Expected status code 300, got %v", res.Status.HttpCode)
+	if res.Status.GetHttpCode() != ehrpb.StatusCodes_OK {
+		t.Fatalf("Expected status code %v, got %v", ehrpb.StatusCodes_OK, res.Status.GetHttpCode())
 	}
 }
 
-func TestNoteClerkServer_Initialize(t *testing.T) {
-	t.Fatal("Not implemented")
-}
-
 func TestNoteClerkServer_RetrieveNote(t *testing.T) {
-	t.Fatal("Not implemented")
+	ctx := context.Background()
+	s := &NoteClerkServer{}
+	s.NewNote(ctx, genNoteRequest())
+
+	retrieveReq := &ehrpb.RetrieveNoteRequest{
+		Id:                   1,
+	}
+	res, err := s.RetrieveNote(ctx, retrieveReq)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.Status.GetHttpCode() != ehrpb.StatusCodes_OK {
+		t.Fatalf("Expected status code %v, got %v", ehrpb.StatusCodes_OK, res.Status.GetHttpCode())
+	}
 }
 
 func TestNoteClerkServer_UpdateNote(t *testing.T) {
-	t.Fatal("Not implemented")
+	ctx := context.Background()
+	s := &NoteClerkServer{}
+	s.NewNote(ctx, genNoteRequest())
+	initialType := s.mockContext[0].Type
+
+	updateReq := &ehrpb.UpdateNoteRequest{
+		Id: 1,
+		Note: &ehrpb.Note{
+			Id: 1,
+			DateCreated: &timestamp.Timestamp{
+				Seconds: 1354231,
+				Nanos:   324234,
+			},
+			NoteGuid:    "000000000",
+			VisitGuid:   "000000000",
+			AuthorGuid:  "000000000",
+			PatientGuid: "000000000",
+			Type:        ehrpb.NoteType_CONTINUED_CARE_DOCUMENTATION,
+		},
+	}
+	res, err := s.UpdateNote(ctx, updateReq)
+	updatedType := s.mockContext[0].Type
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.Status.GetHttpCode() != ehrpb.StatusCodes_OK {
+		t.Fatalf("Expected status code %v, got %v", ehrpb.StatusCodes_OK, res.Status.GetHttpCode())
+	}
+
+	ok := initialType != updatedType && updatedType == ehrpb.NoteType_CONTINUED_CARE_DOCUMENTATION
+	if !ok {
+		t.Fatalf("Expected type %v and actual type %v.", ehrpb.NoteType_CONTINUED_CARE_DOCUMENTATION, updatedType)
+	}
+
 }
 
 func genNoteRequest() *ehrpb.CreateNoteRequest {
