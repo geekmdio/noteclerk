@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-		"google.golang.org/grpc"
+	"net"
+
+	"google.golang.org/grpc"
 
 	"github.com/geekmdio/ehrprotorepo/goproto"
-	"net"
 	"github.com/pkg/errors"
 	)
 
