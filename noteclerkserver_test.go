@@ -10,6 +10,8 @@ import (
 
 func TestNoteClerkServer_NewNote(t *testing.T) {
 	s := &NoteClerkServer{}
+	s.db = &MockDb{}
+	s.db.Init()
 	c := context.Background()
 	cnr := &ehrpb.CreateNoteRequest{
 		Note: &ehrpb.Note{

@@ -9,6 +9,9 @@ import (
 	"github.com/geekmdio/ehrprotorepo/goproto"
 	"github.com/pkg/errors"
 	"context"
+	"time"
+	"github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/google/uuid"
 )
 
 type NoteClerkServer struct {
@@ -20,9 +23,33 @@ type NoteClerkServer struct {
 	server   *grpc.Server
 }
 
-func (n *NoteClerkServer) NewNote(context.Context, *ehrpb.CreateNoteRequest) (*ehrpb.CreateNoteResponse, error) {
-	panic("implement me")
+func (n *NoteClerkServer) NewNote(ctx context.Context, nr *ehrpb.CreateNoteRequest) (*ehrpb.CreateNoteResponse, error) {
+
+	noteToAdd := nr.Note
+	noteToAdd.NoteGuid = uuid.New().String()
+	noteToAdd.DateCreated = timestampNow()
+
+	id, err := n.db.AddNote(nr.Note)
+	cnr := &ehrpb.CreateNoteResponse{
+		Status: &ehrpb.NoteServiceResponseStatus{},
+	}
+	if err != nil {
+		pdi.Log.Fatalf("Failed to create new note. Error: %v", err)
+		cnr.Status.HttpCode = ehrpb.StatusCodes_NOT_MODIFIED
+		cnr.Status.Message = fmt.Sprintf("Could not add note. Error: %v", err)
+		cnr.Note = nil
+		return nil, err
+	}
+
+	cnr.Note = noteToAdd
+	cnr.Note.Id = id
+	cnr.Status.HttpCode = ehrpb.StatusCodes_OK
+	cnr.Status.Message = "Successfully submit new note."
+
+	return cnr, nil
 }
+
+
 
 func (n *NoteClerkServer) DeleteNote(context.Context, *ehrpb.DeleteNoteRequest) (*ehrpb.DeleteNoteResponse, error) {
 	panic("implement me")
@@ -93,4 +120,11 @@ func (n *NoteClerkServer) getConnectionAddr() string {
 	return n.connAddr
 }
 
-
+func timestampNow() *timestamp.Timestamp {
+	now := time.Now()
+	ts := &timestamp.Timestamp{
+		Seconds: now.Unix(),
+		Nanos:   int32(now.UnixNano()),
+	}
+	return ts
+}

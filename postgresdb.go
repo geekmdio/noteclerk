@@ -41,9 +41,9 @@ func (da *DbPostgres) Init() (*sql.DB, error) {
 	return db, nil
 }
 
-func (da *DbPostgres) AddNote(n *ehrpb.Note) (id int32, guid string, err error) {
+func (da *DbPostgres) AddNote(n *ehrpb.Note) (id int32, err error) {
 	pdi.Log.Fatal("Not implemented.")
-	return 0, "",nil
+	return 0,nil
 }
 
 func (da *DbPostgres) UpdateNote(n *ehrpb.Note) error {

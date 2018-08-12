@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"github.com/geekmdio/ehrprotorepo/goproto"
 	"github.com/golang/protobuf/ptypes/timestamp"
+	"sort"
 )
 
 type MockDb struct {
@@ -19,8 +20,24 @@ func (m *MockDb) Init() (*sql.DB, error) {
 	return nil, nil
 }
 
-func (*MockDb) AddNote(note *ehrpb.Note) (id int32, guid string, err error) {
-	panic("implement me")
+func (m *MockDb) AddNote(note *ehrpb.Note) (id int32, err error) {
+	generatedId := m.generateUniqueId()
+
+	m.db = append(m.db, note)
+
+	return generatedId, nil
+}
+
+func (m *MockDb) generateUniqueId() int32 {
+	var idList []int
+	for _, v := range m.db {
+		idList = append(idList, int(v.Id))
+	}
+	sort.Ints(idList)
+	listLen := len(idList) - 1
+	max := idList[listLen]
+	generatedId := int32(max + 1)
+	return generatedId
 }
 
 func (*MockDb) UpdateNote(note *ehrpb.Note) error {
