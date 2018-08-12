@@ -12,8 +12,12 @@ import (
 )
 
 type NoteClerkServer struct {
-	Context DbAccessor
-	server  *grpc.Server
+	db       DbAccessor
+	ip       string
+	port     string
+	protocol string
+	connAddr string
+	server   *grpc.Server
 }
 
 func (n *NoteClerkServer) NewNote(context.Context, *ehrpb.CreateNoteRequest) (*ehrpb.CreateNoteResponse, error) {
@@ -37,26 +41,53 @@ func (n *NoteClerkServer) UpdateNote(context.Context, *ehrpb.UpdateNoteRequest) 
 }
 
 func (n *NoteClerkServer) Initialize(protocol string, ip string, port string) error {
-	n.Context = &NotedContextPostgres{}
+	n.constructor(protocol, ip, port)
 
-	connAddr := fmt.Sprintf("%v:%v", ip, port)
-
-	lis, err := net.Listen(protocol, connAddr)
-	if err != nil {
-		return errors.Errorf("Failed to listen on %v. Caught error: %v", connAddr, err)
-	}
-
-	n.server = grpc.NewServer()
 	ehrpb.RegisterNoteServiceServer(n.server, n)
 
+	lis, err := net.Listen(n.getProtocol(), n.getConnectionAddr())
+	if err != nil {
+		return errors.Errorf("Failed to listen on %v.", n.connAddr)
+	}
+
 	if err = n.server.Serve(lis); err != nil {
-		return errors.Errorf("Failed to serve: %v", err)
+		return errors.Errorf("Failed to serve on the listener.")
 	}
 
 	return nil
 }
 
-func (n *NoteClerkServer) Stop() {
-	n.server.GracefulStop()
-	n.server.Stop()
+func (n *NoteClerkServer) constructor(protocol string, ip string, port string) {
+	n.ip = ip
+	n.port = port
+	n.protocol = protocol
+	n.connAddr = fmt.Sprintf("%v:%v", n.getIp(), n.getPort())
+
+	n.db = dependencies.DB
+	n.db.Init()
+
+	n.server = grpc.NewServer()
 }
+
+
+func (n *NoteClerkServer) getDb() DbAccessor {
+	return n.db
+}
+
+func (n *NoteClerkServer) getIp() string {
+	return n.ip
+}
+
+func (n *NoteClerkServer) getPort() string {
+	return n.port
+}
+
+func (n *NoteClerkServer) getProtocol() string {
+	return n.protocol
+}
+
+func (n *NoteClerkServer) getConnectionAddr() string {
+	return n.connAddr
+}
+
+
