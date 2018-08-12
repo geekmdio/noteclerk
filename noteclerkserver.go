@@ -9,6 +9,7 @@ import (
 	"github.com/geekmdio/ehrprotorepo/goproto"
 	"github.com/pkg/errors"
 	"context"
+	"log"
 )
 
 type NoteClerkServer struct {
@@ -64,7 +65,10 @@ func (n *NoteClerkServer) constructor(protocol string, ip string, port string) {
 	n.connAddr = fmt.Sprintf("%v:%v", n.getIp(), n.getPort())
 
 	n.db = dependencies.DB
-	n.db.Init()
+	_, err := n.db.Init()
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
 
 	n.server = grpc.NewServer()
 }
