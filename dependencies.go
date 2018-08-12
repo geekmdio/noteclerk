@@ -1,9 +1,16 @@
 package main
 
+import "log"
+
+// Pure dependency injection.
 type Dependencies struct {
-	DB DbAccessor
+	DB  DbAccessor
+	Log log.Logger
 }
 
-var dependencies = Dependencies {
-	DB: &DbPostgres{},
+// Pure dependency injection vector.
+var pdi = Dependencies {
+	DB:  &DbPostgres{},
+	Log: log.Logger{},
 }
+

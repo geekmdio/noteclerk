@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 )
 
 func main() {
@@ -12,6 +11,6 @@ func main() {
 	s := &NoteClerkServer{}
 	err := s.Initialize("tcp", "0.0.0.0", "50051")
 	if err != nil {
-		log.Fatal(err)
+		pdi.Log.Fatal(err)
 	}
 }
