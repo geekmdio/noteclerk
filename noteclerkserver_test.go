@@ -10,8 +10,7 @@ import (
 
 func TestNoteClerkServer_NewNote(t *testing.T) {
 	s := &NoteClerkServer{}
-	s.db = &MockDb{}
-	s.db.Init()
+	s.Initialize("", "", "", pdi.MockDB)
 	c := context.Background()
 	cnr := &ehrpb.CreateNoteRequest{
 		Note: &ehrpb.Note{
@@ -65,17 +64,16 @@ func TestNoteClerkServer_NewNote(t *testing.T) {
 
 func TestNoteClerkServer_NewNote_WithFragmentsRetainsFragments(t *testing.T) {
 	s := &NoteClerkServer{}
+	s.Initialize("", "", "", pdi.MockDB)
+
 	c := context.Background()
 	cnr := &ehrpb.CreateNoteRequest{
-		Note: &ehrpb.Note{
-			DateCreated: &timestamp.Timestamp{},
-			Fragments:            []*ehrpb.NoteFragment{},
-			Tags: make([]string, 0),
-		},
+		Note: pdi.Note,
 	}
 	expectedFragId := int32(44)
 	cnr.Note.Fragments = append(cnr.Note.Fragments, &ehrpb.NoteFragment{
 		Id: expectedFragId,
+
 	})
 	res, err := s.NewNote(c, cnr)
 	if err != nil {
@@ -94,9 +92,12 @@ func TestNoteClerkServer_NewNote_WithFragmentsRetainsFragments(t *testing.T) {
 
 func TestNoteClerkServer_NewNote_WithTagsRetainsTags(t *testing.T) {
 	s := &NoteClerkServer{}
+	s.Initialize("", "", "", pdi.MockDB)
 	c := context.Background()
 	expectedTag := "mytag"
-	cnr := &ehrpb.CreateNoteRequest{}
+	cnr := &ehrpb.CreateNoteRequest{
+		Note: pdi.Note,
+	}
 	cnr.Note.Tags = append(cnr.Note.Tags, expectedTag)
 
 	res, err := s.NewNote(c, cnr)

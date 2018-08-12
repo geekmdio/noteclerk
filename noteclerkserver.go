@@ -24,12 +24,12 @@ type NoteClerkServer struct {
 }
 
 func (n *NoteClerkServer) NewNote(ctx context.Context, nr *ehrpb.CreateNoteRequest) (*ehrpb.CreateNoteResponse, error) {
+	n.testInitialization()
 
 	noteToAdd := nr.Note
 	noteToAdd.NoteGuid = uuid.New().String()
 	noteToAdd.DateCreated = timestampNow()
 
-	// this is for a test commit
 	id, err := n.db.AddNote(noteToAdd)
 	cnr := &ehrpb.CreateNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{},
@@ -50,34 +50,48 @@ func (n *NoteClerkServer) NewNote(ctx context.Context, nr *ehrpb.CreateNoteReque
 	return cnr, nil
 }
 
-
-
 func (n *NoteClerkServer) DeleteNote(context.Context, *ehrpb.DeleteNoteRequest) (*ehrpb.DeleteNoteResponse, error) {
+	n.testInitialization()
 	panic("implement me")
 }
 
 func (n *NoteClerkServer) RetrieveNote(context.Context, *ehrpb.RetrieveNoteRequest) (*ehrpb.RetrieveNoteResponse, error) {
+	n.testInitialization()
 	panic("implement me")
 }
 
 func (n *NoteClerkServer) FindNote(context.Context, *ehrpb.FindNoteRequest) (*ehrpb.FindNoteResponse, error) {
+	n.testInitialization()
 	panic("implement me")
 }
 
 func (n *NoteClerkServer) UpdateNote(context.Context, *ehrpb.UpdateNoteRequest) (*ehrpb.UpdateNoteResponse, error) {
+	n.testInitialization()
 	panic("implement me")
 }
 
-func (n *NoteClerkServer) Initialize(protocol string, ip string, port string) error {
-	n.constructor(protocol, ip, port)
+func (n *NoteClerkServer) Initialize(protocol string, ip string, port string, db DbAccessor) error {
+	// Build up the server's fields
+	n.constructor(protocol, ip, port, db)
 
+	// Initialize server database
+	_, err := n.db.Init()
+	if err != nil {
+		panic("Failed to initialize database.")
+	}
+
+	// Create and register GRPC server
+	n.server = grpc.NewServer()
 	ehrpb.RegisterNoteServiceServer(n.server, n)
 
+
+	// Create listener
 	lis, err := net.Listen(n.getProtocol(), n.getConnectionAddr())
 	if err != nil {
 		return errors.Errorf("Failed to listen on %v.", n.connAddr)
 	}
 
+	// Serve
 	if err = n.server.Serve(lis); err != nil {
 		return errors.Errorf("Failed to serve on the listener.")
 	}
@@ -85,19 +99,12 @@ func (n *NoteClerkServer) Initialize(protocol string, ip string, port string) er
 	return nil
 }
 
-func (n *NoteClerkServer) constructor(protocol string, ip string, port string) {
+func (n *NoteClerkServer) constructor(protocol string, ip string, port string, db DbAccessor) {
 	n.ip = ip
 	n.port = port
 	n.protocol = protocol
 	n.connAddr = fmt.Sprintf("%v:%v", n.getIp(), n.getPort())
-
-	n.db = pdi.DB
-	_, err := n.db.Init()
-	if err != nil {
-		pdi.Log.Fatalf("%v", err)
-	}
-
-	n.server = grpc.NewServer()
+	n.db = db
 }
 
 
@@ -128,4 +135,9 @@ func timestampNow() *timestamp.Timestamp {
 		Nanos:   int32(now.UnixNano()),
 	}
 	return ts
+}
+func (n *NoteClerkServer) testInitialization() {
+	if n.db == nil {
+		panic("NoteClerkServer's database was not initialized.")
+	}
 }

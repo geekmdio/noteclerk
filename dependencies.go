@@ -11,6 +11,7 @@ import (
 // Pure dependency injection.
 type Dependencies struct {
 	DB  DbAccessor
+	MockDB DbAccessor
 	Log log.Logger
 	Note *ehrpb.Note
 	NoteFragment *ehrpb.NoteFragment
@@ -20,6 +21,7 @@ type Dependencies struct {
 // Pure dependency injection vector.
 var pdi = Dependencies {
 	DB:  &DbPostgres{},
+	MockDB: &MockDb{},
 	Log: log.Logger{},
 	Timestamp:TimestampNow(),
 	Note: NewNoteEmpty(),
@@ -51,21 +53,22 @@ func NoteFragmentEmpty() *ehrpb.NoteFragment {
 		Id: 0,
 		DateCreated: TimestampNow(),
 		NoteFragmentGuid:     uuid.New().String(),
-		IssueGuid:            "",
-		Icd_10Code:           "",
-		Icd_10Long:           "",
-		Description:          "",
-		Status:               0,
-		Priority:             0,
-		Topic:                0,
-		MarkdownContent:      "",
-		Tags:                 nil,
+		IssueGuid:            "IssueGuid not set",
+		Icd_10Code:           "Icd_10Code not set",
+		Icd_10Long:           "Icd_10Long not set",
+		Description:          "Description not set",
+		Status:               ehrpb.NoteFragmentStatus_INCOMPLETE,
+		Priority:             ehrpb.FragmentPriority_NO_PRIORITY,
+		Topic:                ehrpb.FragmentTopic_NO_TOPIC,
+		MarkdownContent:      "MarkdownContent not set",
+		Tags:                 make([]string,0),
 	}
 }
 
-func NoteFragment(noteGuid string) *ehrpb.NoteFragment {
+func NoteFragment(noteGuid string, issueGuid string) *ehrpb.NoteFragment {
 	noteFragment := NoteFragmentEmpty()
 	noteFragment.NoteGuid = noteGuid
+	noteFragment.IssueGuid = issueGuid
 	return noteFragment
 }
 
