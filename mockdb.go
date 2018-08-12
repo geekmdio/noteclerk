@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"github.com/geekmdio/ehrprotorepo/goproto"
 	"github.com/golang/protobuf/ptypes/timestamp"
-	"github.com/google/uuid"
 )
 
 type MockDb struct {
@@ -68,7 +67,6 @@ func (*MockDb) FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.NoteFr
 	panic("implement me")
 }
 
-
 func buildNote1() *ehrpb.Note {
 	note1 := &ehrpb.Note{
 		Id: 0,
@@ -76,10 +74,10 @@ func buildNote1() *ehrpb.Note {
 			Seconds: 1235114,
 			Nanos:   323,
 		},
-		NoteGuid:    uuid.New().String(),
-		VisitGuid:   uuid.New().String(),
-		AuthorGuid:  uuid.New().String(),
-		PatientGuid: uuid.New().String(),
+		NoteGuid:    "7218e354-9e55-11e8-98d0-529269fb1459",
+		VisitGuid:   "7218e7b4-9e55-11e8-98d0-529269fb1459",
+		AuthorGuid:  "7218ea84-9e55-11e8-98d0-529269fb1459",
+		PatientGuid: "7218eebc-9e55-11e8-98d0-529269fb1459",
 		Type:        ehrpb.NoteType_HISTORY_AND_PHYSICAL,
 		Fragments:   nil,
 		Tags:        nil,
@@ -91,9 +89,9 @@ func buildNote1() *ehrpb.Note {
 			Seconds: note1.DateCreated.Seconds + 500,
 			Nanos:   note1.DateCreated.Nanos + 550,
 		},
-		NoteFragmentGuid: uuid.New().String(),
+		NoteFragmentGuid: "c2af597e-9e55-11e8-98d0-529269fb1459",
 		NoteGuid:         note1.GetNoteGuid(),
-		IssueGuid:        uuid.New().String(),
+		IssueGuid:        "7218f15a-9e55-11e8-98d0-529269fb1459",
 		Icd_10Code:       "ICD10_Code",
 		Icd_10Long:       "ICD10 Long Description",
 		Description:      "My consumable description.",
@@ -113,10 +111,10 @@ func buildNote2() *ehrpb.Note {
 			Seconds: 1435114,
 			Nanos:   523,
 		},
-		NoteGuid:    uuid.New().String(),
-		VisitGuid:   uuid.New().String(),
-		AuthorGuid:  uuid.New().String(),
-		PatientGuid: uuid.New().String(),
+		NoteGuid:    "a0ceabfc-9e55-11e8-98d0-529269fb1459",
+		VisitGuid:   "a0ceb25a-9e55-11e8-98d0-529269fb1459",
+		AuthorGuid:  "a0ceb502-9e55-11e8-98d0-529269fb1459",
+		PatientGuid: "a0ceba84-9e55-11e8-98d0-529269fb1459",
 		Type:        ehrpb.NoteType_HISTORY_AND_PHYSICAL,
 		Fragments:   nil,
 		Tags:        nil,
@@ -128,9 +126,9 @@ func buildNote2() *ehrpb.Note {
 			Seconds: note1.DateCreated.Seconds + 500,
 			Nanos:   note1.DateCreated.Nanos + 550,
 		},
-		NoteFragmentGuid: uuid.New().String(),
+		NoteFragmentGuid: "c2af5c80-9e55-11e8-98d0-529269fb1459",
 		NoteGuid:         note1.GetNoteGuid(),
-		IssueGuid:        uuid.New().String(),
+		IssueGuid:        "a0cebd04-9e55-11e8-98d0-529269fb1459",
 		Icd_10Code:       "ICD10_Code",
 		Icd_10Long:       "ICD10 Long Description",
 		Description:      "My consumable description.",

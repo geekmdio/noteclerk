@@ -157,7 +157,44 @@ func TestNoteClerkServer_RetrieveNote(t *testing.T) {
 }
 
 func TestNoteClerkServer_FindNote(t *testing.T) {
-	panic("implement me")
+	mockDb := &MockDb{}
+	_, err := mockDb.Init()
+	if err != nil {
+		t.Fatalf("Failed to initialize mock database.")
+	}
+
+	firstNote := mockDb.db[0]
+
+	filter := &NoteFindFilter{
+		VisitGuid:   firstNote.VisitGuid,
+	}
+
+	findReq := &ehrpb.FindNoteRequest{
+		VisitGuid:            filter.VisitGuid,
+	}
+
+	s := &NoteClerkServer{}
+	s.db = mockDb
+	res, err := s.FindNote(context.Background(), findReq)
+	if err != nil {
+		t.Fatalf("Failed to find note.")
+	}
+
+	if res.Status.HttpCode != ehrpb.StatusCodes_OK {
+		t.Fatalf("Should result with status OK.")
+	}
+
+	found := false
+	for _, n := range res.Note {
+		if n.GetVisitGuid() == filter.VisitGuid {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("Failed to find a note associted with visit GUID %v", filter.VisitGuid)
+	}
+
 }
 
 func TestNoteClerkServer_UpdateNote(t *testing.T) {
