@@ -198,9 +198,41 @@ func TestNoteClerkServer_FindNote(t *testing.T) {
 }
 
 func TestNoteClerkServer_UpdateNote(t *testing.T) {
-	panic("implement me")
+	mockDb := &MockDb{}
+	_, err := mockDb.Init()
+	if err != nil {
+		t.Fatalf("Failed to initialize mock database.")
+	}
+
+	firstNote := mockDb.db[0]
+
+	retReq := &ehrpb.RetrieveNoteRequest{
+		Id:                   firstNote.Id,
+	}
+
+	s := &NoteClerkServer{}
+	s.db = mockDb
+	res, _ := s.RetrieveNote(context.Background(), retReq)
+
+	noteToUpdate := res.Note
+	noteToUpdate.Tags = append(noteToUpdate.Tags, "appendedTag")
+
+	updateReq := &ehrpb.UpdateNoteRequest{
+		Id: 0,
+		Note: noteToUpdate,
+	}
+	updateRes, updateErr := s.UpdateNote(context.Background(), updateReq)
+	if updateErr != nil {
+		t.Fatalf("Failed to update note")
+	}
+
+	if updateRes.Status.HttpCode != ehrpb.StatusCodes_OK {
+		t.Fatalf("Status should return OK.")
+	}
+
 }
 
-func TestNoteClerkServer_Initialize(t *testing.T) {
-	panic("implement me")
-}
+// Skip??
+//func TestNoteClerkServer_Initialize(t *testing.T) {
+//	panic("implement me")
+//}
