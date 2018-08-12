@@ -29,7 +29,7 @@ func (n *NoteClerkServer) NewNote(ctx context.Context, nr *ehrpb.CreateNoteReque
 	noteToAdd.NoteGuid = uuid.New().String()
 	noteToAdd.DateCreated = timestampNow()
 
-	id, err := n.db.AddNote(nr.Note)
+	id, err := n.db.AddNote(noteToAdd)
 	cnr := &ehrpb.CreateNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{},
 	}
