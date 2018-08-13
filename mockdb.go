@@ -5,6 +5,8 @@ import (
 	"github.com/geekmdio/ehrprotorepo/goproto"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"sort"
+	"fmt"
+	"github.com/pkg/errors"
 )
 
 type MockDb struct {
@@ -40,24 +42,87 @@ func (m *MockDb) generateUniqueId() int32 {
 	return generatedId
 }
 
-func (*MockDb) UpdateNote(note *ehrpb.Note) error {
-	panic("implement me")
+func (m *MockDb) UpdateNote(note *ehrpb.Note) error {
+
+	var noteIndex int
+	found := false
+	for k, v := range m.db {
+		if v.Id == note.Id {
+			noteIndex = k
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return errors.New("cannot update note because it could not be found")
+	}
+	m.db[noteIndex] = note
+
+	return nil
 }
 
-func (*MockDb) DeleteNote(id int32) error {
-	panic("implement me")
+func (m *MockDb) DeleteNote(id int32) error {
+	var index int
+	var found bool
+	for k, n := range m.db {
+		if n.Id == id {
+			index = k
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return fmt.Errorf("note with id %v not located in database", id)
+	}
+
+	var newDb []*ehrpb.Note
+	newDb = append(newDb, m.db[:index]...)
+	newDb = append(newDb, m.db[index + 1:]...)
+	m.db = newDb
+	return nil
 }
 
 func (m *MockDb) AllNotes() ([]*ehrpb.Note, error) {
+	if m.db == nil {
+		return nil, errors.New("Mock database is empty")
+	}
 	return m.db, nil
 }
 
-func (*MockDb) GetNoteById(id int32) (*ehrpb.Note, error) {
-	panic("implement me")
+func (m *MockDb) GetNoteById(id int32) (*ehrpb.Note, error) {
+	var foundNote *ehrpb.Note
+	found := false
+	for _, v := range m.db {
+		if v.Id == id {
+			foundNote = v
+			found = true
+		}
+	}
+
+	if !found {
+		return nil, errors.New("unable to locate note with that id")
+	}
+
+	return foundNote, nil
 }
 
-func (*MockDb) FindNote(filter NoteFindFilter) ([]*ehrpb.Note, error) {
-	panic("implement me")
+func (m *MockDb) FindNote(filter NoteFindFilter) ([]*ehrpb.Note, error) {
+	var foundNotes []*ehrpb.Note
+	for _, v := range m.db {
+		if v.GetVisitGuid() == filter.VisitGuid ||
+			v.GetPatientGuid() == filter.PatientGuid ||
+			v.GetAuthorGuid() == filter.AuthorGuid {
+			foundNotes = append(foundNotes, v)
+		}
+	}
+
+	if len(foundNotes) == 0 {
+		return nil, errors.New("unable to find notes matching query")
+	}
+
+	return foundNotes, nil
 }
 
 func (*MockDb) AddNoteFragment(note *ehrpb.NoteFragment) (id int32, guid string, err error) {

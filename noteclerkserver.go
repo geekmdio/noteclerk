@@ -24,7 +24,7 @@ type NoteClerkServer struct {
 }
 
 func (n *NoteClerkServer) NewNote(ctx context.Context, nr *ehrpb.CreateNoteRequest) (*ehrpb.CreateNoteResponse, error) {
-	n.testInitialization()
+	n.verifyServerInitialized()
 
 	noteToAdd := nr.Note
 	noteToAdd.NoteGuid = uuid.New().String()
@@ -50,24 +50,91 @@ func (n *NoteClerkServer) NewNote(ctx context.Context, nr *ehrpb.CreateNoteReque
 	return cnr, nil
 }
 
-func (n *NoteClerkServer) DeleteNote(context.Context, *ehrpb.DeleteNoteRequest) (*ehrpb.DeleteNoteResponse, error) {
-	n.testInitialization()
-	panic("implement me")
+func (n *NoteClerkServer) DeleteNote(ctx context.Context, dnr *ehrpb.DeleteNoteRequest) (*ehrpb.DeleteNoteResponse, error) {
+	n.verifyServerInitialized()
+
+	dnRes := &ehrpb.DeleteNoteResponse{
+		Status: &ehrpb.NoteServiceResponseStatus{
+			HttpCode:             ehrpb.StatusCodes_OK,
+			Message:              "Successfully deleted note.",
+		},
+	}
+
+	err := n.db.DeleteNote(dnr.Id)
+	if err != nil {
+		dnRes.Status.HttpCode = ehrpb.StatusCodes_NOT_MODIFIED
+		dnRes.Status.Message = "Failed to delete note."
+		return dnRes, errors.Errorf("%v. Error: %v", dnRes.Status.Message, err)
+	}
+
+	return dnRes, nil
 }
 
-func (n *NoteClerkServer) RetrieveNote(context.Context, *ehrpb.RetrieveNoteRequest) (*ehrpb.RetrieveNoteResponse, error) {
-	n.testInitialization()
-	panic("implement me")
+func (n *NoteClerkServer) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveNoteRequest) (*ehrpb.RetrieveNoteResponse, error) {
+	n.verifyServerInitialized()
+
+	note, err := n.db.GetNoteById(rnr.Id)
+	retNotRes := &ehrpb.RetrieveNoteResponse{
+		Status: &ehrpb.NoteServiceResponseStatus{
+			HttpCode:             ehrpb.StatusCodes_OK,
+			Message:              "Successfully retrieved note.",
+		},
+		Note: note,
+	}
+	if err != nil {
+		retNotRes.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
+		retNotRes.Status.Message = "unable to locate note"
+		return nil, fmt.Errorf("%v, error: %v", retNotRes.Status.Message, err)
+	}
+
+	return retNotRes, nil
 }
 
-func (n *NoteClerkServer) FindNote(context.Context, *ehrpb.FindNoteRequest) (*ehrpb.FindNoteResponse, error) {
-	n.testInitialization()
-	panic("implement me")
+func (n *NoteClerkServer) FindNote(ctx context.Context, fnr *ehrpb.FindNoteRequest) (*ehrpb.FindNoteResponse, error) {
+	n.verifyServerInitialized()
+
+	filter := NoteFindFilter{
+		VisitGuid:   fnr.VisitGuid,
+		AuthorGuid:  fnr.AuthorGuid,
+		PatientGuid: fnr.PatientGuid,
+		SearchTerms: fnr.SearchTerms,
+	}
+
+	findNoteResponse := &ehrpb.FindNoteResponse{
+		Status: &ehrpb.NoteServiceResponseStatus{
+			HttpCode:             ehrpb.StatusCodes_OK,
+			Message:              "found one or more notes matching query",
+		},
+		Note:                 nil,
+	}
+	notes, err := n.db.FindNote(filter)
+	if err != nil {
+		findNoteResponse.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
+		findNoteResponse.Status.Message = "unable to locate notes matching that query"
+		return findNoteResponse, fmt.Errorf("%v, error: %v", findNoteResponse.Status.Message, err)
+	}
+
+	findNoteResponse.Note = notes
+	return findNoteResponse, nil
 }
 
-func (n *NoteClerkServer) UpdateNote(context.Context, *ehrpb.UpdateNoteRequest) (*ehrpb.UpdateNoteResponse, error) {
-	n.testInitialization()
-	panic("implement me")
+func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteRequest) (*ehrpb.UpdateNoteResponse, error) {
+	n.verifyServerInitialized()
+
+	updateNoteResponse := &ehrpb.UpdateNoteResponse{
+		Status: &ehrpb.NoteServiceResponseStatus{
+			HttpCode:             ehrpb.StatusCodes_OK,
+			Message:              "note successfully updated",
+		},
+	}
+	err := n.db.UpdateNote(unr.Note)
+	if err != nil {
+		updateNoteResponse.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
+		updateNoteResponse.Status.Message = "unable to update note"
+		return updateNoteResponse, fmt.Errorf("%v, error: %v", updateNoteResponse.Status.Message, err)
+	}
+
+	return updateNoteResponse, nil
 }
 
 func (n *NoteClerkServer) Initialize(protocol string, ip string, port string, db DbAccessor) error {
@@ -136,7 +203,7 @@ func timestampNow() *timestamp.Timestamp {
 	}
 	return ts
 }
-func (n *NoteClerkServer) testInitialization() {
+func (n *NoteClerkServer) verifyServerInitialized() {
 	if n.db == nil {
 		panic("NoteClerkServer's database was not initialized.")
 	}
