@@ -77,7 +77,7 @@ func TestNoteClerkServer_NewNote_WithFragmentsRetainsFragments(t *testing.T) {
 	})
 	res, err := s.NewNote(c, cnr)
 	if err != nil {
-		t.Fatalf("Error creating a new note")
+		t.Fatalf("Error creating a new note, err %v", err)
 	}
 
 	if len(res.Note.Fragments)  <= 0 {
@@ -102,7 +102,7 @@ func TestNoteClerkServer_NewNote_WithTagsRetainsTags(t *testing.T) {
 
 	res, err := s.NewNote(c, cnr)
 	if err != nil {
-		t.Fatalf("Error creating a new note")
+		t.Fatalf("Error creating a new note, err %v", err)
 	}
 
 	if len(res.Note.Tags) <= 0 {
@@ -113,6 +113,24 @@ func TestNoteClerkServer_NewNote_WithTagsRetainsTags(t *testing.T) {
 	if firstTag != expectedTag {
 		t.Fatalf("Expected tag %v, but got %v", expectedTag, firstTag)
 	}
+}
+
+func TestNoteClerkServer_NewNote_WithNonZeroIdIsRejected(t *testing.T) {
+	s := &NoteClerkServer{}
+	s.Initialize("", "", "", pdi.MockDB)
+	cnr := &ehrpb.CreateNoteRequest{
+		Note: pdi.Note,
+	}
+	cnr.Note.Id = 1
+	res, err := s.NewNote(context.Background(), cnr)
+	if err == nil {
+		t.Fatalf("Note should be rejected for non-zero id.")
+	}
+
+	if res != nil {
+		t.Fatalf("The response should be nil because note was rejected")
+	}
+
 }
 
 func TestNoteClerkServer_DeleteNote(t *testing.T) {
@@ -142,6 +160,26 @@ func TestNoteClerkServer_DeleteNote(t *testing.T) {
 	}
 	if idPresent {
 		t.Fatalf("Note is still present in the database, confimed by id.")
+	}
+}
+
+func TestNoteClerkServer_DeleteNote_WhichDoestExistReturnsError(t *testing.T) {
+	s := &NoteClerkServer{}
+	s.Initialize("", "", "", &MockDb{})
+
+	idToDelete := int32(-1)
+	delReq := &ehrpb.DeleteNoteRequest{
+		Id:                   idToDelete,
+	}
+
+	res, err := s.DeleteNote(context.Background(), delReq)
+	if err == nil {
+		t.Fatalf("Should not be able to delete a note with a negative id, which doesn't exist")
+	}
+
+	status := res.Status.HttpCode
+	if status != ehrpb.StatusCodes_NOT_MODIFIED {
+		t.Fatalf("status returned %v, but should be %v", status, ehrpb.StatusCodes_NOT_MODIFIED)
 	}
 }
 
@@ -237,6 +275,48 @@ func TestNoteClerkServer_UpdateNote(t *testing.T) {
 
 	if updateRes.Status.HttpCode != ehrpb.StatusCodes_OK {
 		t.Fatalf("Status should return OK.")
+	}
+
+}
+
+func TestNoteClerkServer_UpdateNote_NoteDoesNotExistReturnsError(t *testing.T) {
+	s := &NoteClerkServer{}
+	s.Initialize("", "", "", &MockDb{})
+
+	note := pdi.Note
+	note.Id = -1
+	updateReq := &ehrpb.UpdateNoteRequest{
+		Id: note.Id,
+		Note: note,
+	}
+	updateRes, updateErr := s.UpdateNote(context.Background(), updateReq)
+	if updateErr == nil {
+		t.Fatalf("should not be able to updated note with negative Id, which doesn't exist")
+	}
+
+	if updateRes.Status.HttpCode != ehrpb.StatusCodes_NOT_FOUND {
+		t.Fatalf("Status should return NOT FOUND.")
+	}
+
+}
+
+func TestNoteClerkServer_UpdateNote_NoteIdDoesntMatchUpdateId(t *testing.T) {
+	s := &NoteClerkServer{}
+	s.Initialize("", "", "", &MockDb{})
+
+	note := pdi.Note
+	note.Id = 0
+	updateReq := &ehrpb.UpdateNoteRequest{
+		Id: 1,
+		Note: note,
+	}
+	updateRes, updateErr := s.UpdateNote(context.Background(), updateReq)
+	if updateErr == nil {
+		t.Fatalf("should not be able to updated note with negative Id, which doesn't exist")
+	}
+
+	if updateRes.Status.HttpCode != ehrpb.StatusCodes_CONFLICT {
+		t.Fatalf("Status should return CONFLICT, but returned %v.", updateRes.Status.HttpCode)
 	}
 
 }

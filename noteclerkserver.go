@@ -35,7 +35,6 @@ func (n *NoteClerkServer) NewNote(ctx context.Context, nr *ehrpb.CreateNoteReque
 		Status: &ehrpb.NoteServiceResponseStatus{},
 	}
 	if err != nil {
-		pdi.Log.Fatalf("Failed to create new note. Error: %v", err)
 		cnr.Status.HttpCode = ehrpb.StatusCodes_NOT_MODIFIED
 		cnr.Status.Message = fmt.Sprintf("Could not add note. Error: %v", err)
 		cnr.Note = nil
@@ -127,6 +126,14 @@ func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteR
 			Message:              "note successfully updated",
 		},
 	}
+
+	if unr.Id != unr.Note.Id {
+		updateNoteResponse.Status.HttpCode = ehrpb.StatusCodes_CONFLICT
+		updateNoteResponse.Status.Message = "the id provided for the update note request does not match the id of the note"
+		return updateNoteResponse, fmt.Errorf("%v", updateNoteResponse.Status.Message)
+	}
+
+
 	err := n.db.UpdateNote(unr.Note)
 	if err != nil {
 		updateNoteResponse.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
@@ -172,11 +179,6 @@ func (n *NoteClerkServer) constructor(protocol string, ip string, port string, d
 	n.protocol = protocol
 	n.connAddr = fmt.Sprintf("%v:%v", n.getIp(), n.getPort())
 	n.db = db
-}
-
-
-func (n *NoteClerkServer) getDb() DbAccessor {
-	return n.db
 }
 
 func (n *NoteClerkServer) getIp() string {

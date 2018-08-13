@@ -23,11 +23,14 @@ func (m *MockDb) Init() (*sql.DB, error) {
 }
 
 func (m *MockDb) AddNote(note *ehrpb.Note) (id int32, err error) {
-	generatedId := m.generateUniqueId()
+	if note.Id > 0 {
+		return 0, errors.New("note has index greater than 0 and is rejected")
+	}
+	note.Id = m.generateUniqueId()
 
 	m.db = append(m.db, note)
 
-	return generatedId, nil
+	return m.generateUniqueId(), nil
 }
 
 func (m *MockDb) generateUniqueId() int32 {
