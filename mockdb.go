@@ -43,7 +43,23 @@ func (m *MockDb) generateUniqueId() int32 {
 }
 
 func (m *MockDb) UpdateNote(note *ehrpb.Note) error {
-	panic("implement me")
+
+	var noteIndex int
+	found := false
+	for k, v := range m.db {
+		if v.Id == note.Id {
+			noteIndex = k
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return errors.New("cannot update note because it could not be found")
+	}
+	m.db[noteIndex] = note
+
+	return nil
 }
 
 func (m *MockDb) DeleteNote(id int32) error {

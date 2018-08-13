@@ -118,9 +118,23 @@ func (n *NoteClerkServer) FindNote(ctx context.Context, fnr *ehrpb.FindNoteReque
 	return findNoteResponse, nil
 }
 
-func (n *NoteClerkServer) UpdateNote(context.Context, *ehrpb.UpdateNoteRequest) (*ehrpb.UpdateNoteResponse, error) {
+func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteRequest) (*ehrpb.UpdateNoteResponse, error) {
 	n.verifyServerInitialized()
-	panic("implement me")
+
+	updateNoteResponse := &ehrpb.UpdateNoteResponse{
+		Status: &ehrpb.NoteServiceResponseStatus{
+			HttpCode:             ehrpb.StatusCodes_OK,
+			Message:              "note successfully updated",
+		},
+	}
+	err := n.db.UpdateNote(unr.Note)
+	if err != nil {
+		updateNoteResponse.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
+		updateNoteResponse.Status.Message = "unable to update note"
+		return updateNoteResponse, fmt.Errorf("%v, error: %v", updateNoteResponse.Status.Message, err)
+	}
+
+	return updateNoteResponse, nil
 }
 
 func (n *NoteClerkServer) Initialize(protocol string, ip string, port string, db DbAccessor) error {
