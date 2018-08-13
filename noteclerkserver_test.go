@@ -68,7 +68,10 @@ func TestNoteClerkServer_NewNote_WithFragmentsRetainsFragments(t *testing.T) {
 
 	c := context.Background()
 	cnr := &ehrpb.CreateNoteRequest{
-		Note: pdi.Note,
+		Note: &ehrpb.Note{
+			Id:                   0,
+			Fragments: []*ehrpb.NoteFragment{},
+		},
 	}
 	expectedFragId := int32(44)
 	cnr.Note.Fragments = append(cnr.Note.Fragments, &ehrpb.NoteFragment{
@@ -96,7 +99,9 @@ func TestNoteClerkServer_NewNote_WithTagsRetainsTags(t *testing.T) {
 	c := context.Background()
 	expectedTag := "mytag"
 	cnr := &ehrpb.CreateNoteRequest{
-		Note: pdi.Note,
+		Note: &ehrpb.Note{
+			Id:                   0,
+		},
 	}
 	cnr.Note.Tags = append(cnr.Note.Tags, expectedTag)
 
