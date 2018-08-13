@@ -11,14 +11,13 @@ import (
 
 type MockDb struct {
 	db []*ehrpb.Note
-
 }
 
-func (m *MockDb) Init() (*sql.DB, error) {
+func (m *MockDb) Init(config *Config) (*sql.DB, error) {
 	var notes []*ehrpb.Note
-
 	notes = append(notes, buildNote1(), buildNote2())
 	m.db = notes
+
 	return nil, nil
 }
 
@@ -30,19 +29,7 @@ func (m *MockDb) AddNote(note *ehrpb.Note) (id int32, err error) {
 
 	m.db = append(m.db, note)
 
-	return m.generateUniqueId(), nil
-}
-
-func (m *MockDb) generateUniqueId() int32 {
-	var idList []int
-	for _, v := range m.db {
-		idList = append(idList, int(v.Id))
-	}
-	sort.Ints(idList)
-	listLen := len(idList) - 1
-	max := idList[listLen]
-	generatedId := int32(max + 1)
-	return generatedId
+	return note.Id, nil
 }
 
 func (m *MockDb) UpdateNote(note *ehrpb.Note) error {
@@ -150,6 +137,18 @@ func (*MockDb) GetNoteFragmentsById(id int32) (*ehrpb.NoteFragment, error) {
 
 func (*MockDb) FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.NoteFragment, error) {
 	panic("implement me")
+}
+
+func (m *MockDb) generateUniqueId() int32 {
+	var idList []int
+	for _, v := range m.db {
+		idList = append(idList, int(v.Id))
+	}
+	sort.Ints(idList)
+	listLen := len(idList) - 1
+	max := idList[listLen]
+	generatedId := int32(max + 1)
+	return generatedId
 }
 
 func buildNote1() *ehrpb.Note {

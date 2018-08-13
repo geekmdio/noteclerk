@@ -6,7 +6,7 @@ import (
 )
 
 type DbAccessor interface {
-	Init() (*sql.DB, error)
+	Init(config *Config) (*sql.DB, error)
 	AddNote(note *ehrpb.Note) (id int32, err error)
 	UpdateNote(note *ehrpb.Note) error
 	DeleteNote(id int32) error
