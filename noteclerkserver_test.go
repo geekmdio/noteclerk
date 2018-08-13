@@ -116,13 +116,12 @@ func TestNoteClerkServer_NewNote_WithTagsRetainsTags(t *testing.T) {
 }
 
 func TestNoteClerkServer_DeleteNote(t *testing.T) {
-	db := &MockDb{}
-	s := &NoteClerkServer{
-		db:       db,
-	}
+	s := &NoteClerkServer{}
+	s.Initialize("", "", "", &MockDb{})
 
+	idToDelete := int32(0)
 	delReq := &ehrpb.DeleteNoteRequest{
-		Id:                   0,
+		Id:                   idToDelete,
 	}
 
 	res, err := s.DeleteNote(context.Background(), delReq)
@@ -132,6 +131,17 @@ func TestNoteClerkServer_DeleteNote(t *testing.T) {
 
 	if res.Status.HttpCode != ehrpb.StatusCodes_OK {
 		t.Fatalf("Status response should be OK")
+	}
+
+	allNotes, _ := s.db.AllNotes()
+	idPresent := false
+	for _, n := range allNotes {
+		if n.Id == idToDelete {
+			idPresent = true
+		}
+	}
+	if idPresent {
+		t.Fatalf("Note is still present in the database, confimed by id.")
 	}
 }
 

@@ -24,7 +24,7 @@ type NoteClerkServer struct {
 }
 
 func (n *NoteClerkServer) NewNote(ctx context.Context, nr *ehrpb.CreateNoteRequest) (*ehrpb.CreateNoteResponse, error) {
-	n.testInitialization()
+	n.verifyServerInitialized()
 
 	noteToAdd := nr.Note
 	noteToAdd.NoteGuid = uuid.New().String()
@@ -50,23 +50,38 @@ func (n *NoteClerkServer) NewNote(ctx context.Context, nr *ehrpb.CreateNoteReque
 	return cnr, nil
 }
 
-func (n *NoteClerkServer) DeleteNote(context.Context, *ehrpb.DeleteNoteRequest) (*ehrpb.DeleteNoteResponse, error) {
-	n.testInitialization()
-	panic("implement me")
+func (n *NoteClerkServer) DeleteNote(ctx context.Context, dnr *ehrpb.DeleteNoteRequest) (*ehrpb.DeleteNoteResponse, error) {
+	n.verifyServerInitialized()
+
+	dnRes := &ehrpb.DeleteNoteResponse{
+		Status: &ehrpb.NoteServiceResponseStatus{
+			HttpCode:             ehrpb.StatusCodes_OK,
+			Message:              "Successfully deleted note.",
+		},
+	}
+
+	err := n.db.DeleteNote(dnr.Id)
+	if err != nil {
+		dnRes.Status.HttpCode = ehrpb.StatusCodes_NOT_MODIFIED
+		dnRes.Status.Message = "Failed to delete note."
+		return dnRes, errors.Errorf("%v. Error: %v", dnRes.Status.Message, err)
+	}
+
+	return dnRes, nil
 }
 
 func (n *NoteClerkServer) RetrieveNote(context.Context, *ehrpb.RetrieveNoteRequest) (*ehrpb.RetrieveNoteResponse, error) {
-	n.testInitialization()
+	n.verifyServerInitialized()
 	panic("implement me")
 }
 
 func (n *NoteClerkServer) FindNote(context.Context, *ehrpb.FindNoteRequest) (*ehrpb.FindNoteResponse, error) {
-	n.testInitialization()
+	n.verifyServerInitialized()
 	panic("implement me")
 }
 
 func (n *NoteClerkServer) UpdateNote(context.Context, *ehrpb.UpdateNoteRequest) (*ehrpb.UpdateNoteResponse, error) {
-	n.testInitialization()
+	n.verifyServerInitialized()
 	panic("implement me")
 }
 
@@ -136,7 +151,7 @@ func timestampNow() *timestamp.Timestamp {
 	}
 	return ts
 }
-func (n *NoteClerkServer) testInitialization() {
+func (n *NoteClerkServer) verifyServerInitialized() {
 	if n.db == nil {
 		panic("NoteClerkServer's database was not initialized.")
 	}

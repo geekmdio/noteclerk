@@ -5,6 +5,7 @@ import (
 	"github.com/geekmdio/ehrprotorepo/goproto"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"sort"
+	"fmt"
 )
 
 type MockDb struct {
@@ -40,12 +41,30 @@ func (m *MockDb) generateUniqueId() int32 {
 	return generatedId
 }
 
-func (*MockDb) UpdateNote(note *ehrpb.Note) error {
+func (m *MockDb) UpdateNote(note *ehrpb.Note) error {
 	panic("implement me")
 }
 
-func (*MockDb) DeleteNote(id int32) error {
-	panic("implement me")
+func (m *MockDb) DeleteNote(id int32) error {
+	var index int
+	var found bool
+	for k, n := range m.db {
+		if n.Id == id {
+			index = k
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return fmt.Errorf("note with id %v not located in database", id)
+	}
+
+	var newDb []*ehrpb.Note
+	newDb = append(newDb, m.db[:index]...)
+	newDb = append(newDb, m.db[index + 1:]...)
+	m.db = newDb
+	return nil
 }
 
 func (m *MockDb) AllNotes() ([]*ehrpb.Note, error) {

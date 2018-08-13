@@ -1,4 +1,4 @@
-# GeekMD: NoteClerk
+# GeekMD: NoteClerk v0.1.0
 NoteClerk is a micro-service dedicated to managing clinical notes from the Noted library. It uses protcol buffers and 
 gRPC and so the API is relatively language agnostic.
 
