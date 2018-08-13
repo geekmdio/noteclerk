@@ -9,8 +9,6 @@ import (
 	"github.com/geekmdio/ehrprotorepo/goproto"
 	"github.com/pkg/errors"
 	"context"
-	"time"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/google/uuid"
 )
 
@@ -144,12 +142,12 @@ func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteR
 	return updateNoteResponse, nil
 }
 
-func (n *NoteClerkServer) Initialize(protocol string, ip string, port string, db DbAccessor) error {
+func (n *NoteClerkServer) Initialize(config *Config, db DbAccessor) error {
 	// Build up the server's fields
-	n.constructor(protocol, ip, port, db)
+	n.constructor(config.ServerProtocol, config.ServerIp, config.ServerPort, db)
 
 	// Initialize server database
-	_, err := n.db.Init()
+	_, err := n.db.Init(config)
 	if err != nil {
 		panic("Failed to initialize database.")
 	}
@@ -197,14 +195,6 @@ func (n *NoteClerkServer) getConnectionAddr() string {
 	return n.connAddr
 }
 
-func timestampNow() *timestamp.Timestamp {
-	now := time.Now()
-	ts := &timestamp.Timestamp{
-		Seconds: now.Unix(),
-		Nanos:   int32(now.UnixNano()),
-	}
-	return ts
-}
 func (n *NoteClerkServer) verifyServerInitialized() {
 	if n.db == nil {
 		panic("NoteClerkServer's database was not initialized.")

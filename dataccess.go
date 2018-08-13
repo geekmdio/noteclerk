@@ -5,8 +5,11 @@ import (
 	"github.com/geekmdio/ehrprotorepo/goproto"
 )
 
+// DbAccessor has all methods necessary for Note transactions and, as an interface, can easily be mocked.
+// Any changes to the database implementation should implement this interface, and if the new struct will take over
+// as the preferred database implementation, it should be assigned to 'db' in dependencies.go.
 type DbAccessor interface {
-	Init() (*sql.DB, error)
+	Init(config *Config) (*sql.DB, error)
 	AddNote(note *ehrpb.Note) (id int32, err error)
 	UpdateNote(note *ehrpb.Note) error
 	DeleteNote(id int32) error
@@ -21,6 +24,7 @@ type DbAccessor interface {
 	FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.NoteFragment, error)
 }
 
+// Find Note's with several fields to narrow search.
 type NoteFindFilter struct {
 	VisitGuid string
 	AuthorGuid string
@@ -28,6 +32,8 @@ type NoteFindFilter struct {
 	SearchTerms string
 }
 
+
+// Find NoteFragment's with several fields to narrow search.
 type NoteFragmentFindFilter struct {
 	Day int32
 	Month int32

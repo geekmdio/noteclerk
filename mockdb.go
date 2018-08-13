@@ -9,19 +9,21 @@ import (
 	"github.com/pkg/errors"
 )
 
+// MockDb implements DbAccessor, but the database is simply a slice of Note pointers. Used in unit testing.
 type MockDb struct {
 	db []*ehrpb.Note
-
 }
 
-func (m *MockDb) Init() (*sql.DB, error) {
+// The database should be initialized after instantiation for all structs implementing the DbAccessor interface.
+func (m *MockDb) Init(config *Config) (*sql.DB, error) {
 	var notes []*ehrpb.Note
-
 	notes = append(notes, buildNote1(), buildNote2())
 	m.db = notes
+
 	return nil, nil
 }
 
+// Add a note to the mock database.
 func (m *MockDb) AddNote(note *ehrpb.Note) (id int32, err error) {
 	if note.Id > 0 {
 		return 0, errors.New("note has index greater than 0 and is rejected")
@@ -30,21 +32,10 @@ func (m *MockDb) AddNote(note *ehrpb.Note) (id int32, err error) {
 
 	m.db = append(m.db, note)
 
-	return m.generateUniqueId(), nil
+	return note.Id, nil
 }
 
-func (m *MockDb) generateUniqueId() int32 {
-	var idList []int
-	for _, v := range m.db {
-		idList = append(idList, int(v.Id))
-	}
-	sort.Ints(idList)
-	listLen := len(idList) - 1
-	max := idList[listLen]
-	generatedId := int32(max + 1)
-	return generatedId
-}
-
+// Update a note which already exists in the mock database.
 func (m *MockDb) UpdateNote(note *ehrpb.Note) error {
 
 	var noteIndex int
@@ -65,6 +56,7 @@ func (m *MockDb) UpdateNote(note *ehrpb.Note) error {
 	return nil
 }
 
+// Delete a note from the mock database.
 func (m *MockDb) DeleteNote(id int32) error {
 	var index int
 	var found bool
@@ -87,6 +79,7 @@ func (m *MockDb) DeleteNote(id int32) error {
 	return nil
 }
 
+// Returns all notes currently stored in the mock database.
 func (m *MockDb) AllNotes() ([]*ehrpb.Note, error) {
 	if m.db == nil {
 		return nil, errors.New("Mock database is empty")
@@ -94,6 +87,7 @@ func (m *MockDb) AllNotes() ([]*ehrpb.Note, error) {
 	return m.db, nil
 }
 
+// Get's a Note by it's Id, which should be unique.
 func (m *MockDb) GetNoteById(id int32) (*ehrpb.Note, error) {
 	var foundNote *ehrpb.Note
 	found := false
@@ -111,6 +105,7 @@ func (m *MockDb) GetNoteById(id int32) (*ehrpb.Note, error) {
 	return foundNote, nil
 }
 
+// Find a note using a number of powerful search filters.
 func (m *MockDb) FindNote(filter NoteFindFilter) ([]*ehrpb.Note, error) {
 	var foundNotes []*ehrpb.Note
 	for _, v := range m.db {
@@ -150,6 +145,18 @@ func (*MockDb) GetNoteFragmentsById(id int32) (*ehrpb.NoteFragment, error) {
 
 func (*MockDb) FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.NoteFragment, error) {
 	panic("implement me")
+}
+
+func (m *MockDb) generateUniqueId() int32 {
+	var idList []int
+	for _, v := range m.db {
+		idList = append(idList, int(v.Id))
+	}
+	sort.Ints(idList)
+	listLen := len(idList) - 1
+	max := idList[listLen]
+	generatedId := int32(max + 1)
+	return generatedId
 }
 
 func buildNote1() *ehrpb.Note {
