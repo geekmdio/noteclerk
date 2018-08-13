@@ -7,10 +7,15 @@ import (
 	"time"
 )
 
+// This is the database implementation for the server; can be changed so long as it's interfaces with
+// the DbAccessor interface.
 var db = &DbPostgres{}
 
+// TODO: move to a different area; consider just the test area.
+// A mock Db implementation
 var mockDb = &MockDb{}
 
+// Generate a new Note with essential elements of instantiation handled.
 func newNote() *ehrpb.Note {
 	return &ehrpb.Note{
 		Id:          0,
@@ -21,6 +26,7 @@ func newNote() *ehrpb.Note {
 	}
 }
 
+// Generate a new NoteFragment with essential elements of instantiation handled.
 func newNoteFragment() *ehrpb.NoteFragment {
 	return &ehrpb.NoteFragment{
 		Id:               0,
@@ -38,6 +44,7 @@ func newNoteFragment() *ehrpb.NoteFragment {
 	}
 }
 
+// Generate a timestamp for now.
 func timestampNow() *timestamp.Timestamp {
 	now := time.Now()
 	ts := &timestamp.Timestamp{
