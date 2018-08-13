@@ -40,8 +40,8 @@ func LoadConfiguration() (c *Config, err error) {
 }
 
 func MakeConfig() {
-	testToWrite :=
-`{
+	fmt.Println("Put the following into ./config/config.<environment>.json, where <environment> is development, staging, or production:")
+	fmt.Println(`{
 	"ServerProtocol": "",
 	"ServerIp": "",
 	"ServerPort": "",
@@ -51,9 +51,7 @@ func MakeConfig() {
 	"DbPassword": "",
 	"DbName": "",
 	"DbSslMode": ""
-}`
-	fmt.Println("Put the following into ./config/config.<environment>.json, where <environment> is development, staging, or production:")
-	fmt.Println(testToWrite)
+}`)
 }
 
 
