@@ -70,14 +70,52 @@ func (n *NoteClerkServer) DeleteNote(ctx context.Context, dnr *ehrpb.DeleteNoteR
 	return dnRes, nil
 }
 
-func (n *NoteClerkServer) RetrieveNote(context.Context, *ehrpb.RetrieveNoteRequest) (*ehrpb.RetrieveNoteResponse, error) {
+func (n *NoteClerkServer) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveNoteRequest) (*ehrpb.RetrieveNoteResponse, error) {
 	n.verifyServerInitialized()
-	panic("implement me")
+
+	note, err := n.db.GetNoteById(rnr.Id)
+	retNotRes := &ehrpb.RetrieveNoteResponse{
+		Status: &ehrpb.NoteServiceResponseStatus{
+			HttpCode:             ehrpb.StatusCodes_OK,
+			Message:              "Successfully retrieved note.",
+		},
+		Note: note,
+	}
+	if err != nil {
+		retNotRes.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
+		retNotRes.Status.Message = "unable to locate note"
+		return nil, fmt.Errorf("%v, error: %v", retNotRes.Status.Message, err)
+	}
+
+	return retNotRes, nil
 }
 
-func (n *NoteClerkServer) FindNote(context.Context, *ehrpb.FindNoteRequest) (*ehrpb.FindNoteResponse, error) {
+func (n *NoteClerkServer) FindNote(ctx context.Context, fnr *ehrpb.FindNoteRequest) (*ehrpb.FindNoteResponse, error) {
 	n.verifyServerInitialized()
-	panic("implement me")
+
+	filter := NoteFindFilter{
+		VisitGuid:   fnr.VisitGuid,
+		AuthorGuid:  fnr.AuthorGuid,
+		PatientGuid: fnr.PatientGuid,
+		SearchTerms: fnr.SearchTerms,
+	}
+
+	findNoteResponse := &ehrpb.FindNoteResponse{
+		Status: &ehrpb.NoteServiceResponseStatus{
+			HttpCode:             ehrpb.StatusCodes_OK,
+			Message:              "found one or more notes matching query",
+		},
+		Note:                 nil,
+	}
+	notes, err := n.db.FindNote(filter)
+	if err != nil {
+		findNoteResponse.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
+		findNoteResponse.Status.Message = "unable to locate notes matching that query"
+		return findNoteResponse, fmt.Errorf("%v, error: %v", findNoteResponse.Status.Message, err)
+	}
+
+	findNoteResponse.Note = notes
+	return findNoteResponse, nil
 }
 
 func (n *NoteClerkServer) UpdateNote(context.Context, *ehrpb.UpdateNoteRequest) (*ehrpb.UpdateNoteResponse, error) {

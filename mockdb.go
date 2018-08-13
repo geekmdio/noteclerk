@@ -6,6 +6,7 @@ import (
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"sort"
 	"fmt"
+	"github.com/pkg/errors"
 )
 
 type MockDb struct {
@@ -68,15 +69,44 @@ func (m *MockDb) DeleteNote(id int32) error {
 }
 
 func (m *MockDb) AllNotes() ([]*ehrpb.Note, error) {
+	if m.db == nil {
+		return nil, errors.New("Mock database is empty")
+	}
 	return m.db, nil
 }
 
-func (*MockDb) GetNoteById(id int32) (*ehrpb.Note, error) {
-	panic("implement me")
+func (m *MockDb) GetNoteById(id int32) (*ehrpb.Note, error) {
+	var foundNote *ehrpb.Note
+	found := false
+	for _, v := range m.db {
+		if v.Id == id {
+			foundNote = v
+			found = true
+		}
+	}
+
+	if !found {
+		return nil, errors.New("unable to locate note with that id")
+	}
+
+	return foundNote, nil
 }
 
-func (*MockDb) FindNote(filter NoteFindFilter) ([]*ehrpb.Note, error) {
-	panic("implement me")
+func (m *MockDb) FindNote(filter NoteFindFilter) ([]*ehrpb.Note, error) {
+	var foundNotes []*ehrpb.Note
+	for _, v := range m.db {
+		if v.GetVisitGuid() == filter.VisitGuid ||
+			v.GetPatientGuid() == filter.PatientGuid ||
+			v.GetAuthorGuid() == filter.AuthorGuid {
+			foundNotes = append(foundNotes, v)
+		}
+	}
+
+	if len(foundNotes) == 0 {
+		return nil, errors.New("unable to find notes matching query")
+	}
+
+	return foundNotes, nil
 }
 
 func (*MockDb) AddNoteFragment(note *ehrpb.NoteFragment) (id int32, guid string, err error) {

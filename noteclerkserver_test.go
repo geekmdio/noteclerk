@@ -146,10 +146,8 @@ func TestNoteClerkServer_DeleteNote(t *testing.T) {
 }
 
 func TestNoteClerkServer_RetrieveNote(t *testing.T) {
-	db := &MockDb{}
-	s := &NoteClerkServer{
-		db:       db,
-	}
+	s := &NoteClerkServer{}
+	s.Initialize("", "", "", &MockDb{})
 
 	expectedId := int32(1)
 
@@ -159,7 +157,7 @@ func TestNoteClerkServer_RetrieveNote(t *testing.T) {
 
 	res, err := s.RetrieveNote(context.Background(), retReq)
 	if err != nil {
-		t.Fatalf("Failed to perform retrieval request.")
+		t.Fatalf("Failed to perform retrieval request. Err: %v", err)
 	}
 
 	if res.Status.HttpCode != ehrpb.StatusCodes_OK {
@@ -176,24 +174,16 @@ func TestNoteClerkServer_RetrieveNote(t *testing.T) {
 }
 
 func TestNoteClerkServer_FindNote(t *testing.T) {
-	mockDb := &MockDb{}
-	_, err := mockDb.Init()
-	if err != nil {
-		t.Fatalf("Failed to initialize mock database.")
-	}
+	s := &NoteClerkServer{}
+	s.Initialize("", "", "", &MockDb{})
 
-	firstNote := mockDb.db[0]
-
-	filter := &NoteFindFilter{
-		VisitGuid:   firstNote.VisitGuid,
-	}
+	found, err := s.db.AllNotes()
+	firstNote := found[0]
 
 	findReq := &ehrpb.FindNoteRequest{
-		VisitGuid:            filter.VisitGuid,
+		VisitGuid:            firstNote.GetVisitGuid(),
 	}
 
-	s := &NoteClerkServer{}
-	s.db = mockDb
 	res, err := s.FindNote(context.Background(), findReq)
 	if err != nil {
 		t.Fatalf("Failed to find note.")
@@ -203,15 +193,15 @@ func TestNoteClerkServer_FindNote(t *testing.T) {
 		t.Fatalf("Should result with status OK.")
 	}
 
-	found := false
+	noteFound := false
 	for _, n := range res.Note {
-		if n.GetVisitGuid() == filter.VisitGuid {
-			found = true
+		if n.GetVisitGuid() == firstNote.VisitGuid {
+			noteFound = true
 			break
 		}
 	}
-	if !found {
-		t.Fatalf("Failed to find a note associted with visit GUID %v", filter.VisitGuid)
+	if !noteFound {
+		t.Fatalf("Failed to find a note associted with visit GUID %v", firstNote.VisitGuid)
 	}
 
 }
