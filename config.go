@@ -6,8 +6,12 @@ import (
 	"log"
 	"fmt"
 	"os"
+	"strings"
 )
 
+// This struct is the model for a JSON configuration file that should be located in
+// ./config/config.<environment>.json, where '.' indicates the server root, and where
+// <environment> can be any lowercase value so long as the NOTECLERK_ENVIRONMENT environmental variable matches.
 type Config struct {
 	ServerProtocol string
 	ServerIp       string
@@ -20,9 +24,9 @@ type Config struct {
 	DbSslMode      string
 }
 
-// An environmental JSON file
+// Load the configuration JSON and return the Config struct.
 func LoadConfiguration() (c *Config, err error) {
-	path := getEnvironmentDependentPath()
+	path := fmt.Sprintf("config/config.%v.json", strings.ToLower(os.Getenv("NOTECLERK_ENVIRONMENT")))
 
 	file, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -39,8 +43,13 @@ func LoadConfiguration() (c *Config, err error) {
 	return conf, nil
 }
 
+// Invoked on the commandline as `./noteclerk config`, this prints a copy of the bare-bones JSON configuration files
+// to the terminal. This should be copied and pasted into ./config/config.<environment>.json, where '.' is the server's
+// root directory, and '<environment>' can be any lowercase value so long as the NOTECLERK_ENVIRONMENT
+// environmental variable matches.
 func MakeConfig() {
-	fmt.Println("Put the following into ./config/config.<environment>.json, where <environment> is development, staging, or production:")
+	fmt.Println("Put the following into ./config/config.<environment>.json, where '<environment>' can be any " +
+					"lowercase value so long as the NOTECLERK_ENVIRONMENT environmental variable matches:")
 	fmt.Println(`{
 	"ServerProtocol": "",
 	"ServerIp": "",
@@ -52,22 +61,4 @@ func MakeConfig() {
 	"DbName": "",
 	"DbSslMode": ""
 }`)
-}
-
-
-func getEnvironmentDependentPath() string {
-	env := os.Getenv("NOTECLERK_ENVIRONMENT")
-	var path string
-	switch env {
-	case "development":
-		path = "config/config.development.json"
-		break
-	case "staging":
-		path = "config/config.staging.json"
-		break
-	case "production":
-		path = "config/config.production.json"
-		break
-	}
-	return path
 }
