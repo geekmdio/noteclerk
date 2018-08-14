@@ -5,10 +5,10 @@ import (
 	"github.com/geekmdio/ehrprotorepo/goproto"
 )
 
-// DbAccessor has all methods necessary for Note transactions and, as an interface, can easily be mocked.
+// RDBMSAccessor has all methods necessary for Note transactions and, as an interface, can easily be mocked.
 // Any changes to the database implementation should implement this interface, and if the new struct will take over
 // as the preferred database implementation, it should be assigned to 'db' in dependencies.go.
-type DbAccessor interface {
+type RDBMSAccessor interface {
 	Initialize(config *Config) (*sql.DB, error)
 	AddNote(note *ehrpb.Note) (id int32, err error)
 	UpdateNote(note *ehrpb.Note) error
@@ -22,6 +22,7 @@ type DbAccessor interface {
 	AllNoteFragments() ([]*ehrpb.NoteFragment, error)
 	GetNoteFragmentsById(id int32) (*ehrpb.NoteFragment, error)
 	FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.NoteFragment, error)
+	CreateSchema() error
 }
 
 // Find Note's with several fields to narrow search.

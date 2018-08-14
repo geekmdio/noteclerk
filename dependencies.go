@@ -8,7 +8,7 @@ import (
 )
 
 // This is the database implementation for the server; can be changed so long as it's interfaces with
-// the DbAccessor interface.
+// the RDBMSAccessor interface.
 var db = &DbPostgres{}
 
 // A mock Db implementation

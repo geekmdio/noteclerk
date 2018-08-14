@@ -284,7 +284,7 @@ func TestNoteClerkServer_FindNote_WithNonExistentGuid_ReturnsError(t *testing.T)
 
 func TestNoteClerkServer_UpdateNote(t *testing.T) {
 	mockDb := mockDb
-	_, err := mockDb.Init(nil)
+	_, err := mockDb.Initialize(nil)
 	if err != nil {
 		t.Fatalf("Failed to initialize mock database.")
 	}

@@ -92,3 +92,8 @@ func (da *DbPostgres) FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb
 	log.Fatal("Not implemented.")
 	return nil, nil
 }
+
+func (da *DbPostgres) CreateSchema() error {
+	log.Fatal("Not implemented.")
+	return nil
+}

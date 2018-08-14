@@ -13,13 +13,12 @@ import (
 )
 
 type NoteClerkServer struct {
-	db       DbAccessor
-	ip       string
-	port     string
-	protocol string
-	connAddr string
-	server   *grpc.Server
-	initialized bool
+	db          RDBMSAccessor
+	ip          string
+	port        string
+	protocol    string
+	connAddr    string
+	server      *grpc.Server
 }
 
 func (n *NoteClerkServer) NewNote(ctx context.Context, nr *ehrpb.CreateNoteRequest) (*ehrpb.CreateNoteResponse, error) {
@@ -143,7 +142,7 @@ func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteR
 	return updateNoteResponse, nil
 }
 
-func (n *NoteClerkServer) Initialize(config *Config, db DbAccessor) error {
+func (n *NoteClerkServer) Initialize(config *Config, db RDBMSAccessor) error {
 	// Build up the server's fields
 	n.constructor(config, db)
 
@@ -169,11 +168,10 @@ func (n *NoteClerkServer) Initialize(config *Config, db DbAccessor) error {
 		return errors.Errorf("Failed to serve on the listener.")
 	}
 
-	n.initialized = true
 	return nil
 }
 
-func (n *NoteClerkServer) constructor(config *Config, db DbAccessor) {
+func (n *NoteClerkServer) constructor(config *Config, db RDBMSAccessor) {
 	n.ip = config.ServerIp
 	n.port = config.ServerPort
 	n.protocol = config.ServerProtocol
@@ -182,7 +180,7 @@ func (n *NoteClerkServer) constructor(config *Config, db DbAccessor) {
 }
 
 func (n *NoteClerkServer) verifyServerInitialized() {
-	if n.db == nil || !n.initialized {
+	if n.db == nil {
 		panic("NoteClerkServer's database was not initialized.")
 	}
 }

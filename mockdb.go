@@ -9,13 +9,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-// MockDb implements DbAccessor, but the database is simply a slice of Note pointers. Used in unit testing.
+// MockDb implements RDBMSAccessor, but the database is simply a slice of Note pointers. Used in unit testing.
 type MockDb struct {
 	db []*ehrpb.Note
 }
 
-// The database should be initialized after instantiation for all structs implementing the DbAccessor interface.
-func (m *MockDb) Init(config *Config) (*sql.DB, error) {
+// The database should be initialized after instantiation for all structs implementing the RDBMSAccessor interface.
+func (m *MockDb) Initialize (config *Config) (*sql.DB, error) {
 	var notes []*ehrpb.Note
 	notes = append(notes, buildNote1(), buildNote2())
 	m.db = notes
@@ -141,6 +141,10 @@ func (*MockDb) GetNoteFragmentsById(id int32) (*ehrpb.NoteFragment, error) {
 }
 
 func (*MockDb) FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.NoteFragment, error) {
+	panic("implement me")
+}
+
+func (*MockDb) CreateSchema() error {
 	panic("implement me")
 }
 
