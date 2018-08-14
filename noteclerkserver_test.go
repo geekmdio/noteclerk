@@ -10,7 +10,7 @@ import (
 
 func TestNoteClerkServer_NewNote(t *testing.T) {
 	s := &NoteClerkServer{}
-	s.Initialize("", "", "", pdi.MockDB)
+	s.Initialize(&Config{}, mockDb)
 	c := context.Background()
 	cnr := &ehrpb.CreateNoteRequest{
 		Note: &ehrpb.Note{
@@ -64,20 +64,17 @@ func TestNoteClerkServer_NewNote(t *testing.T) {
 
 func TestNoteClerkServer_NewNote_WithFragmentsRetainsFragments(t *testing.T) {
 	s := &NoteClerkServer{}
-	s.Initialize("", "", "", pdi.MockDB)
+	s.Initialize(&Config{}, mockDb)
 
-	c := context.Background()
-	cnr := &ehrpb.CreateNoteRequest{
-		Note: pdi.Note,
-	}
 	expectedFragId := int32(44)
-	cnr.Note.Fragments = append(cnr.Note.Fragments, &ehrpb.NoteFragment{
-		Id: expectedFragId,
+	noteFrag := NewNoteFragment()
+	noteFrag.Id = expectedFragId
+	cnr := &ehrpb.CreateNoteRequest{ Note: NewNote() }
 
-	})
-	res, err := s.NewNote(c, cnr)
+	cnr.Note.Fragments = append(cnr.Note.Fragments, noteFrag)
+	res, err := s.NewNote(context.Background(), cnr)
 	if err != nil {
-		t.Fatalf("Error creating a new note")
+		t.Fatalf("Error creating a new note, err %v", err)
 	}
 
 	if len(res.Note.Fragments)  <= 0 {
@@ -92,17 +89,19 @@ func TestNoteClerkServer_NewNote_WithFragmentsRetainsFragments(t *testing.T) {
 
 func TestNoteClerkServer_NewNote_WithTagsRetainsTags(t *testing.T) {
 	s := &NoteClerkServer{}
-	s.Initialize("", "", "", pdi.MockDB)
+	s.Initialize(&Config{}, mockDb)
 	c := context.Background()
 	expectedTag := "mytag"
 	cnr := &ehrpb.CreateNoteRequest{
-		Note: pdi.Note,
+		Note: &ehrpb.Note{
+			Id:                   0,
+		},
 	}
 	cnr.Note.Tags = append(cnr.Note.Tags, expectedTag)
 
 	res, err := s.NewNote(c, cnr)
 	if err != nil {
-		t.Fatalf("Error creating a new note")
+		t.Fatalf("Error creating a new note, err %v", err)
 	}
 
 	if len(res.Note.Tags) <= 0 {
@@ -115,9 +114,27 @@ func TestNoteClerkServer_NewNote_WithTagsRetainsTags(t *testing.T) {
 	}
 }
 
+func TestNoteClerkServer_NewNote_WithNonZeroIdIsRejected(t *testing.T) {
+	s := &NoteClerkServer{}
+	s.Initialize(&Config{}, mockDb)
+	cnr := &ehrpb.CreateNoteRequest{
+		Note: NewNote(),
+	}
+	cnr.Note.Id = 1
+	res, err := s.NewNote(context.Background(), cnr)
+	if err == nil {
+		t.Fatalf("Note should be rejected for non-zero id.")
+	}
+
+	if res != nil {
+		t.Fatalf("The response should be nil because note was rejected")
+	}
+
+}
+
 func TestNoteClerkServer_DeleteNote(t *testing.T) {
 	s := &NoteClerkServer{}
-	s.Initialize("", "", "", &MockDb{})
+	s.Initialize(&Config{}, mockDb)
 
 	idToDelete := int32(0)
 	delReq := &ehrpb.DeleteNoteRequest{
@@ -145,9 +162,29 @@ func TestNoteClerkServer_DeleteNote(t *testing.T) {
 	}
 }
 
+func TestNoteClerkServer_DeleteNote_WhichDoestExistReturnsError(t *testing.T) {
+	s := &NoteClerkServer{}
+	s.Initialize(&Config{}, mockDb)
+
+	idToDelete := int32(-1)
+	delReq := &ehrpb.DeleteNoteRequest{
+		Id:                   idToDelete,
+	}
+
+	res, err := s.DeleteNote(context.Background(), delReq)
+	if err == nil {
+		t.Fatalf("Should not be able to delete a note with a negative id, which doesn't exist")
+	}
+
+	status := res.Status.HttpCode
+	if status != ehrpb.StatusCodes_NOT_MODIFIED {
+		t.Fatalf("status returned %v, but should be %v", status, ehrpb.StatusCodes_NOT_MODIFIED)
+	}
+}
+
 func TestNoteClerkServer_RetrieveNote(t *testing.T) {
 	s := &NoteClerkServer{}
-	s.Initialize("", "", "", &MockDb{})
+	s.Initialize(&Config{}, mockDb)
 
 	expectedId := int32(1)
 
@@ -173,9 +210,30 @@ func TestNoteClerkServer_RetrieveNote(t *testing.T) {
 	}
 }
 
+
+func TestNoteClerkServer_RetrieveNote_ByIdThatDoesntExist_ReturnsError(t *testing.T) {
+	s := &NoteClerkServer{}
+	s.Initialize(&Config{}, mockDb)
+
+	expectedId := int32(-1)
+
+	retReq := &ehrpb.RetrieveNoteRequest{
+		Id:                   expectedId,
+	}
+
+	res, err := s.RetrieveNote(context.Background(), retReq)
+	if err == nil {
+		t.Fatalf("Should not be able to find note with negative Id.")
+	}
+
+	if res.Status.HttpCode != ehrpb.StatusCodes_NOT_FOUND {
+		t.Fatalf("Status response should be NOT FOUND")
+	}
+}
+
 func TestNoteClerkServer_FindNote(t *testing.T) {
 	s := &NoteClerkServer{}
-	s.Initialize("", "", "", &MockDb{})
+	s.Initialize(&Config{}, mockDb)
 
 	found, err := s.db.AllNotes()
 	firstNote := found[0]
@@ -206,9 +264,27 @@ func TestNoteClerkServer_FindNote(t *testing.T) {
 
 }
 
+func TestNoteClerkServer_FindNote_WithNonExistentGuid_ReturnsError(t *testing.T) {
+	s := &NoteClerkServer{}
+	s.Initialize(&Config{}, mockDb)
+
+	findReq := &ehrpb.FindNoteRequest{
+		VisitGuid:            uuid.New().String(),
+	}
+
+	res, err := s.FindNote(context.Background(), findReq)
+	if err == nil {
+		t.Fatalf("A note with this newly generated GUID should not be found in the database.")
+	}
+
+	if res.Status.HttpCode != ehrpb.StatusCodes_NOT_FOUND {
+		t.Fatalf("Should return NOT FOUND")
+	}
+}
+
 func TestNoteClerkServer_UpdateNote(t *testing.T) {
-	mockDb := &MockDb{}
-	_, err := mockDb.Init()
+	mockDb := mockDb
+	_, err := mockDb.Init(nil)
 	if err != nil {
 		t.Fatalf("Failed to initialize mock database.")
 	}
@@ -237,6 +313,48 @@ func TestNoteClerkServer_UpdateNote(t *testing.T) {
 
 	if updateRes.Status.HttpCode != ehrpb.StatusCodes_OK {
 		t.Fatalf("Status should return OK.")
+	}
+
+}
+
+func TestNoteClerkServer_UpdateNote_NoteDoesNotExistReturnsError(t *testing.T) {
+	s := &NoteClerkServer{}
+	s.Initialize(&Config{}, mockDb)
+
+	note := NewNote()
+	note.Id = -1
+	updateReq := &ehrpb.UpdateNoteRequest{
+		Id: note.Id,
+		Note: note,
+	}
+	updateRes, updateErr := s.UpdateNote(context.Background(), updateReq)
+	if updateErr == nil {
+		t.Fatalf("should not be able to updated note with negative Id, which doesn't exist")
+	}
+
+	if updateRes.Status.HttpCode != ehrpb.StatusCodes_NOT_FOUND {
+		t.Fatalf("Status should return NOT FOUND.")
+	}
+
+}
+
+func TestNoteClerkServer_UpdateNote_NoteIdDoesntMatchUpdateId(t *testing.T) {
+	s := &NoteClerkServer{}
+	s.Initialize(&Config{}, mockDb)
+
+	note := NewNote()
+	note.Id = 0
+	updateReq := &ehrpb.UpdateNoteRequest{
+		Id: 1,
+		Note: note,
+	}
+	updateRes, updateErr := s.UpdateNote(context.Background(), updateReq)
+	if updateErr == nil {
+		t.Fatalf("should not be able to updated note with negative Id, which doesn't exist")
+	}
+
+	if updateRes.Status.HttpCode != ehrpb.StatusCodes_CONFLICT {
+		t.Fatalf("Status should return CONFLICT, but returned %v.", updateRes.Status.HttpCode)
 	}
 
 }

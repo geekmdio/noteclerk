@@ -9,8 +9,6 @@ import (
 	"github.com/geekmdio/ehrprotorepo/goproto"
 	"github.com/pkg/errors"
 	"context"
-	"time"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/google/uuid"
 )
 
@@ -28,14 +26,13 @@ func (n *NoteClerkServer) NewNote(ctx context.Context, nr *ehrpb.CreateNoteReque
 
 	noteToAdd := nr.Note
 	noteToAdd.NoteGuid = uuid.New().String()
-	noteToAdd.DateCreated = timestampNow()
+	noteToAdd.DateCreated = TimestampNow()
 
 	id, err := n.db.AddNote(noteToAdd)
 	cnr := &ehrpb.CreateNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{},
 	}
 	if err != nil {
-		pdi.Log.Fatalf("Failed to create new note. Error: %v", err)
 		cnr.Status.HttpCode = ehrpb.StatusCodes_NOT_MODIFIED
 		cnr.Status.Message = fmt.Sprintf("Could not add note. Error: %v", err)
 		cnr.Note = nil
@@ -74,7 +71,7 @@ func (n *NoteClerkServer) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveN
 	n.verifyServerInitialized()
 
 	note, err := n.db.GetNoteById(rnr.Id)
-	retNotRes := &ehrpb.RetrieveNoteResponse{
+	retNoteRes := &ehrpb.RetrieveNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{
 			HttpCode:             ehrpb.StatusCodes_OK,
 			Message:              "Successfully retrieved note.",
@@ -82,12 +79,12 @@ func (n *NoteClerkServer) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveN
 		Note: note,
 	}
 	if err != nil {
-		retNotRes.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
-		retNotRes.Status.Message = "unable to locate note"
-		return nil, fmt.Errorf("%v, error: %v", retNotRes.Status.Message, err)
+		retNoteRes.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
+		retNoteRes.Status.Message = "unable to locate note"
+		return retNoteRes, fmt.Errorf("%v, error: %v", retNoteRes.Status.Message, err)
 	}
 
-	return retNotRes, nil
+	return retNoteRes, nil
 }
 
 func (n *NoteClerkServer) FindNote(ctx context.Context, fnr *ehrpb.FindNoteRequest) (*ehrpb.FindNoteResponse, error) {
@@ -127,6 +124,14 @@ func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteR
 			Message:              "note successfully updated",
 		},
 	}
+
+	if unr.Id != unr.Note.Id {
+		updateNoteResponse.Status.HttpCode = ehrpb.StatusCodes_CONFLICT
+		updateNoteResponse.Status.Message = "the id provided for the update note request does not match the id of the note"
+		return updateNoteResponse, fmt.Errorf("%v", updateNoteResponse.Status.Message)
+	}
+
+
 	err := n.db.UpdateNote(unr.Note)
 	if err != nil {
 		updateNoteResponse.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
@@ -137,12 +142,12 @@ func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteR
 	return updateNoteResponse, nil
 }
 
-func (n *NoteClerkServer) Initialize(protocol string, ip string, port string, db DbAccessor) error {
+func (n *NoteClerkServer) Initialize(config *Config, db DbAccessor) error {
 	// Build up the server's fields
-	n.constructor(protocol, ip, port, db)
+	n.constructor(config.ServerProtocol, config.ServerIp, config.ServerPort, db)
 
 	// Initialize server database
-	_, err := n.db.Init()
+	_, err := n.db.Init(config)
 	if err != nil {
 		panic("Failed to initialize database.")
 	}
@@ -174,11 +179,6 @@ func (n *NoteClerkServer) constructor(protocol string, ip string, port string, d
 	n.db = db
 }
 
-
-func (n *NoteClerkServer) getDb() DbAccessor {
-	return n.db
-}
-
 func (n *NoteClerkServer) getIp() string {
 	return n.ip
 }
@@ -195,14 +195,6 @@ func (n *NoteClerkServer) getConnectionAddr() string {
 	return n.connAddr
 }
 
-func timestampNow() *timestamp.Timestamp {
-	now := time.Now()
-	ts := &timestamp.Timestamp{
-		Seconds: now.Unix(),
-		Nanos:   int32(now.UnixNano()),
-	}
-	return ts
-}
 func (n *NoteClerkServer) verifyServerInitialized() {
 	if n.db == nil {
 		panic("NoteClerkServer's database was not initialized.")
