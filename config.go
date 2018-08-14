@@ -3,7 +3,6 @@ package main
 import (
 	"io/ioutil"
 	"encoding/json"
-	"log"
 )
 
 // This is the environmental variable in the OS that should be se to your preferred
@@ -50,14 +49,13 @@ func LoadConfiguration(path string) (c *Config, err error) {
 
 	file, err := ioutil.ReadFile(path)
 	if err != nil {
-		panic("could not read configuration file")
-		return nil, err
+		return &Config{}, err
 	}
 
 	conf := &Config{}
 	unmarshalErr := json.Unmarshal(file, conf)
 	if unmarshalErr != nil {
-		log.Fatalf("failed to unmarshal the json file, recieved err %v", unmarshalErr)
+		return &Config{}, unmarshalErr
 	}
 
 	return conf, nil

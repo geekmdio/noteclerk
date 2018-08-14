@@ -82,7 +82,7 @@ func (m *MockDb) DeleteNote(id int32) error {
 // Returns all notes currently stored in the mock database.
 func (m *MockDb) AllNotes() ([]*ehrpb.Note, error) {
 	if m.db == nil {
-		return nil, errors.New("Mock database is empty")
+		return make([]*ehrpb.Note, 0), errors.New("Mock database is empty")
 	}
 	return m.db, nil
 }
