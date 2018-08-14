@@ -11,11 +11,11 @@ import (
 
 type DbPostgres struct {}
 
-// Init() initializes the connection to database. Ensure that the ./config/config.<environment>.json
+// Initialize() initializes the connection to database. Ensure that the ./config/config.<environment>.json
 // file has been created and properly configured with server and database values. Of note, the '<environment>'
 // can be set to any value, so long as the NOTECLERK_ENVIRONMENT environmental variable's value matches.
 // RETURNS: *sql.db, error
-func (da *DbPostgres) Init(config *Config) (*sql.DB, error) {
+func (da *DbPostgres) Initialize(config *Config) (*sql.DB, error) {
 	connStr := fmt.Sprintf("user=%v password=%v host=%v dbname=%v sslmode=%v port=%v",
 		config.DbUsername, config.DbPassword, config.DbIp, config.DbName, config.DbSslMode, config.DbPort)
 

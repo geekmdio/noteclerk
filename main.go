@@ -9,8 +9,8 @@ import (
 
 func main() {
 
-	var env = os.Getenv(Environment)
-	var path = fmt.Sprintf("config/config.%v.json", strings.ToLower(env))
+	env := os.Getenv(Environment)
+	path := fmt.Sprintf("config/config.%v.json", strings.ToLower(env))
 
 	if env == "" {
 		panic(fmt.Sprintf("Environmental variable %v not set.", Environment))
@@ -27,17 +27,17 @@ func main() {
 			return
 		} else {
 			fmt.Println("You've provided an incorrect argument. Run ./prog help for assistance.")
-			os.Exit(1)
+			return
 		}
 	}
 
-	printSubtext("Loading configuration file...")
+	printSubtext(fmt.Sprintf("Loading configuration file from %v.", path))
 	config, err := LoadConfiguration(path)
 	if err != nil {
 		log.Fatalf("unable to load Config file. err: %v", err)
 	}
 
-	printSubtext("Starting GeekMD's NoteClerk Server...")
+	printSubtext(fmt.Sprintf("Starting GeekMD's NoteClerk Server on %v:%v.", config.ServerIp, config.ServerPort))
 	s := &NoteClerkServer{}
 	err = s.Initialize(config, db)
 	if err != nil {

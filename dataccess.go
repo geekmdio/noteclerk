@@ -9,7 +9,7 @@ import (
 // Any changes to the database implementation should implement this interface, and if the new struct will take over
 // as the preferred database implementation, it should be assigned to 'db' in dependencies.go.
 type DbAccessor interface {
-	Init(config *Config) (*sql.DB, error)
+	Initialize(config *Config) (*sql.DB, error)
 	AddNote(note *ehrpb.Note) (id int32, err error)
 	UpdateNote(note *ehrpb.Note) error
 	DeleteNote(id int32) error

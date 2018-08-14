@@ -19,6 +19,7 @@ type NoteClerkServer struct {
 	protocol string
 	connAddr string
 	server   *grpc.Server
+	initialized bool
 }
 
 func (n *NoteClerkServer) NewNote(ctx context.Context, nr *ehrpb.CreateNoteRequest) (*ehrpb.CreateNoteResponse, error) {
@@ -144,15 +145,15 @@ func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteR
 
 func (n *NoteClerkServer) Initialize(config *Config, db DbAccessor) error {
 	// Build up the server's fields
-	n.constructor(config.ServerProtocol, config.ServerIp, config.ServerPort, db)
+	n.constructor(config, db)
 
 	// Initialize server database
-	_, err := n.db.Init(config)
+	_, err := n.db.Initialize(config)
 	if err != nil {
 		panic("Failed to initialize database.")
 	}
 
-	// Create and register GRPC server
+	// Create and register gRPC server
 	n.server = grpc.NewServer()
 	ehrpb.RegisterNoteServiceServer(n.server, n)
 
@@ -168,15 +169,22 @@ func (n *NoteClerkServer) Initialize(config *Config, db DbAccessor) error {
 		return errors.Errorf("Failed to serve on the listener.")
 	}
 
+	n.initialized = true
 	return nil
 }
 
-func (n *NoteClerkServer) constructor(protocol string, ip string, port string, db DbAccessor) {
-	n.ip = ip
-	n.port = port
-	n.protocol = protocol
+func (n *NoteClerkServer) constructor(config *Config, db DbAccessor) {
+	n.ip = config.ServerIp
+	n.port = config.ServerPort
+	n.protocol = config.ServerProtocol
 	n.connAddr = fmt.Sprintf("%v:%v", n.getIp(), n.getPort())
 	n.db = db
+}
+
+func (n *NoteClerkServer) verifyServerInitialized() {
+	if n.db == nil || !n.initialized {
+		panic("NoteClerkServer's database was not initialized.")
+	}
 }
 
 func (n *NoteClerkServer) getIp() string {
@@ -193,10 +201,4 @@ func (n *NoteClerkServer) getProtocol() string {
 
 func (n *NoteClerkServer) getConnectionAddr() string {
 	return n.connAddr
-}
-
-func (n *NoteClerkServer) verifyServerInitialized() {
-	if n.db == nil {
-		panic("NoteClerkServer's database was not initialized.")
-	}
 }
