@@ -11,9 +11,9 @@ import (
 
 type DbPostgres struct {}
 
-// Init() initializes the connection to database. Importantly, the
-// PostgreSQL user, password, host, DbName, sslmode, and port should
-// all be environmental variables in the OS that match the below naming schemes.
+// Init() initializes the connection to database. Ensure that the ./config/config.<environment>.json
+// file has been created and properly configured with server and database values. Of note, the '<environment>'
+// can be set to any value, so long as the NOTECLERK_ENVIRONMENT environmental variable's value matches.
 // RETURNS: *sql.db, error
 func (da *DbPostgres) Init(config *Config) (*sql.DB, error) {
 	connStr := fmt.Sprintf("user=%v password=%v host=%v dbname=%v sslmode=%v port=%v",

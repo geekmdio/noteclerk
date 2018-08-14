@@ -3,11 +3,31 @@ package main
 import (
 	"io/ioutil"
 	"encoding/json"
-	"log"
-	"fmt"
-	"os"
-	"strings"
 )
+
+// This is the environmental variable in the OS that should be se to your preferred
+// environment and matched to a configuration file. E.g. NOTECLERK_ENVIRONMENT=production
+// will match to './config/config.production.json'.
+const Environment = "NOTECLERK_ENVIRONMENT"
+
+// Template for config files. The config files should be stored in the root directory
+// under a folder 'config', with the naming convention 'config.<environment>.json'
+// where environment is set by the os environmental variable NOTECLERK_ENVIRONMENT
+// to be any string. The string the environmental variable is set to should match
+// '<environment'. E.g. NOTECLERK_ENVIRONMENT=production will match to
+// './config/config.production.json'
+
+const configJson = `{
+	"ServerProtocol": "",
+	"ServerIp": "",
+	"ServerPort": "",
+	"DbIp": "",
+	"DbPort": "",
+	"DbUsername": "",
+	"DbPassword": "",
+	"DbName": "",
+	"DbSslMode": ""
+}`
 
 // This struct is the model for a JSON configuration file that should be located in
 // ./config/config.<environment>.json, where '.' indicates the server root, and where
@@ -25,40 +45,18 @@ type Config struct {
 }
 
 // Load the configuration JSON and return the Config struct.
-func LoadConfiguration() (c *Config, err error) {
-	path := fmt.Sprintf("config/config.%v.json", strings.ToLower(os.Getenv("NOTECLERK_ENVIRONMENT")))
+func LoadConfiguration(path string) (c *Config, err error) {
 
 	file, err := ioutil.ReadFile(path)
 	if err != nil {
-		panic("could not read configuration file")
-		return nil, err
+		return &Config{}, err
 	}
 
 	conf := &Config{}
 	unmarshalErr := json.Unmarshal(file, conf)
 	if unmarshalErr != nil {
-		log.Fatalf("failed to unmarshal the json file, recieved err %v", unmarshalErr)
+		return &Config{}, unmarshalErr
 	}
 
 	return conf, nil
-}
-
-// Invoked on the commandline as `./noteclerk config`, this prints a copy of the bare-bones JSON configuration files
-// to the terminal. This should be copied and pasted into ./config/config.<environment>.json, where '.' is the server's
-// root directory, and '<environment>' can be any lowercase value so long as the NOTECLERK_ENVIRONMENT
-// environmental variable matches.
-func MakeConfig() {
-	fmt.Println("Put the following into ./config/config.<environment>.json, where '<environment>' can be any " +
-					"lowercase value so long as the NOTECLERK_ENVIRONMENT environmental variable matches:")
-	fmt.Println(`{
-	"ServerProtocol": "",
-	"ServerIp": "",
-	"ServerPort": "",
-	"DbIp": "",
-	"DbPort": "",
-	"DbUsername": "",
-	"DbPassword": "",
-	"DbName": "",
-	"DbSslMode": ""
-}`)
 }

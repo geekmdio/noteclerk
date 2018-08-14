@@ -26,7 +26,7 @@ func (n *NoteClerkServer) NewNote(ctx context.Context, nr *ehrpb.CreateNoteReque
 
 	noteToAdd := nr.Note
 	noteToAdd.NoteGuid = uuid.New().String()
-	noteToAdd.DateCreated = timestampNow()
+	noteToAdd.DateCreated = TimestampNow()
 
 	id, err := n.db.AddNote(noteToAdd)
 	cnr := &ehrpb.CreateNoteResponse{
@@ -71,7 +71,7 @@ func (n *NoteClerkServer) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveN
 	n.verifyServerInitialized()
 
 	note, err := n.db.GetNoteById(rnr.Id)
-	retNotRes := &ehrpb.RetrieveNoteResponse{
+	retNoteRes := &ehrpb.RetrieveNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{
 			HttpCode:             ehrpb.StatusCodes_OK,
 			Message:              "Successfully retrieved note.",
@@ -79,12 +79,12 @@ func (n *NoteClerkServer) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveN
 		Note: note,
 	}
 	if err != nil {
-		retNotRes.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
-		retNotRes.Status.Message = "unable to locate note"
-		return nil, fmt.Errorf("%v, error: %v", retNotRes.Status.Message, err)
+		retNoteRes.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
+		retNoteRes.Status.Message = "unable to locate note"
+		return retNoteRes, fmt.Errorf("%v, error: %v", retNoteRes.Status.Message, err)
 	}
 
-	return retNotRes, nil
+	return retNoteRes, nil
 }
 
 func (n *NoteClerkServer) FindNote(ctx context.Context, fnr *ehrpb.FindNoteRequest) (*ehrpb.FindNoteResponse, error) {

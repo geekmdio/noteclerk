@@ -11,15 +11,14 @@ import (
 // the DbAccessor interface.
 var db = &DbPostgres{}
 
-// TODO: move to a different area; consider just the test area.
 // A mock Db implementation
 var mockDb = &MockDb{}
 
 // Generate a new Note with essential elements of instantiation handled.
-func newNote() *ehrpb.Note {
+func NewNote() *ehrpb.Note {
 	return &ehrpb.Note{
 		Id:          0,
-		DateCreated: timestampNow(),
+		DateCreated: TimestampNow(),
 		NoteGuid:    uuid.New().String(),
 		Fragments:   make([]*ehrpb.NoteFragment, 0),
 		Tags:        make([]string,0),
@@ -27,10 +26,10 @@ func newNote() *ehrpb.Note {
 }
 
 // Generate a new NoteFragment with essential elements of instantiation handled.
-func newNoteFragment() *ehrpb.NoteFragment {
+func NewNoteFragment() *ehrpb.NoteFragment {
 	return &ehrpb.NoteFragment{
 		Id:               0,
-		DateCreated:      timestampNow(),
+		DateCreated:      TimestampNow(),
 		NoteFragmentGuid: uuid.New().String(),
 		IssueGuid:        "IssueGuid not set",
 		Icd_10Code:       "Icd_10Code not set",
@@ -45,7 +44,7 @@ func newNoteFragment() *ehrpb.NoteFragment {
 }
 
 // Generate a timestamp for now.
-func timestampNow() *timestamp.Timestamp {
+func TimestampNow() *timestamp.Timestamp {
 	now := time.Now()
 	ts := &timestamp.Timestamp{
 		Seconds: now.Unix(),

@@ -66,19 +66,13 @@ func TestNoteClerkServer_NewNote_WithFragmentsRetainsFragments(t *testing.T) {
 	s := &NoteClerkServer{}
 	s.Initialize(&Config{}, mockDb)
 
-	c := context.Background()
-	cnr := &ehrpb.CreateNoteRequest{
-		Note: &ehrpb.Note{
-			Id:                   0,
-			Fragments: []*ehrpb.NoteFragment{},
-		},
-	}
 	expectedFragId := int32(44)
-	cnr.Note.Fragments = append(cnr.Note.Fragments, &ehrpb.NoteFragment{
-		Id: expectedFragId,
+	noteFrag := NewNoteFragment()
+	noteFrag.Id = expectedFragId
+	cnr := &ehrpb.CreateNoteRequest{ Note: NewNote() }
 
-	})
-	res, err := s.NewNote(c, cnr)
+	cnr.Note.Fragments = append(cnr.Note.Fragments, noteFrag)
+	res, err := s.NewNote(context.Background(), cnr)
 	if err != nil {
 		t.Fatalf("Error creating a new note, err %v", err)
 	}
@@ -124,7 +118,7 @@ func TestNoteClerkServer_NewNote_WithNonZeroIdIsRejected(t *testing.T) {
 	s := &NoteClerkServer{}
 	s.Initialize(&Config{}, mockDb)
 	cnr := &ehrpb.CreateNoteRequest{
-		Note: newNote(),
+		Note: NewNote(),
 	}
 	cnr.Note.Id = 1
 	res, err := s.NewNote(context.Background(), cnr)
@@ -216,6 +210,27 @@ func TestNoteClerkServer_RetrieveNote(t *testing.T) {
 	}
 }
 
+
+func TestNoteClerkServer_RetrieveNote_ByIdThatDoesntExist_ReturnsError(t *testing.T) {
+	s := &NoteClerkServer{}
+	s.Initialize(&Config{}, mockDb)
+
+	expectedId := int32(-1)
+
+	retReq := &ehrpb.RetrieveNoteRequest{
+		Id:                   expectedId,
+	}
+
+	res, err := s.RetrieveNote(context.Background(), retReq)
+	if err == nil {
+		t.Fatalf("Should not be able to find note with negative Id.")
+	}
+
+	if res.Status.HttpCode != ehrpb.StatusCodes_NOT_FOUND {
+		t.Fatalf("Status response should be NOT FOUND")
+	}
+}
+
 func TestNoteClerkServer_FindNote(t *testing.T) {
 	s := &NoteClerkServer{}
 	s.Initialize(&Config{}, mockDb)
@@ -247,6 +262,24 @@ func TestNoteClerkServer_FindNote(t *testing.T) {
 		t.Fatalf("Failed to find a note associted with visit GUID %v", firstNote.VisitGuid)
 	}
 
+}
+
+func TestNoteClerkServer_FindNote_WithNonExistentGuid_ReturnsError(t *testing.T) {
+	s := &NoteClerkServer{}
+	s.Initialize(&Config{}, mockDb)
+
+	findReq := &ehrpb.FindNoteRequest{
+		VisitGuid:            uuid.New().String(),
+	}
+
+	res, err := s.FindNote(context.Background(), findReq)
+	if err == nil {
+		t.Fatalf("A note with this newly generated GUID should not be found in the database.")
+	}
+
+	if res.Status.HttpCode != ehrpb.StatusCodes_NOT_FOUND {
+		t.Fatalf("Should return NOT FOUND")
+	}
 }
 
 func TestNoteClerkServer_UpdateNote(t *testing.T) {
@@ -288,7 +321,7 @@ func TestNoteClerkServer_UpdateNote_NoteDoesNotExistReturnsError(t *testing.T) {
 	s := &NoteClerkServer{}
 	s.Initialize(&Config{}, mockDb)
 
-	note := newNote()
+	note := NewNote()
 	note.Id = -1
 	updateReq := &ehrpb.UpdateNoteRequest{
 		Id: note.Id,
@@ -309,7 +342,7 @@ func TestNoteClerkServer_UpdateNote_NoteIdDoesntMatchUpdateId(t *testing.T) {
 	s := &NoteClerkServer{}
 	s.Initialize(&Config{}, mockDb)
 
-	note := newNote()
+	note := NewNote()
 	note.Id = 0
 	updateReq := &ehrpb.UpdateNoteRequest{
 		Id: 1,
