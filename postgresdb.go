@@ -54,8 +54,26 @@ func (d *DbPostgres) DeleteNote(id int32) error {
 }
 
 func (d *DbPostgres) AllNotes() ([]*ehrpb.Note, error) {
-	log.Fatal("Not implemented.")
-	return nil, nil
+	rows, err := d.db.Query("SELECT * FROM note;")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer rows.Close()
+
+	notes := []*ehrpb.Note{}
+	for rows.Next() {
+		tmpNote := &ehrpb.Note{}
+		var tmpInt int64
+		err := rows.Scan(&tmpNote.Id, &tmpInt, &tmpNote.NoteGuid,
+			&tmpNote.VisitGuid, &tmpNote.AuthorGuid, &tmpNote.PatientGuid, &tmpNote.Type)
+		if err != nil {
+			log.Println(err)
+		}
+		// tmpNote.DateCreated = timestamp.Timestamp(tmpInt)
+		notes = append(notes, tmpNote)
+
+	}
+	return notes, nil
 }
 
 func (d *DbPostgres) GetNoteById(id int32) (*ehrpb.Note, error) {
@@ -101,7 +119,7 @@ func (d *DbPostgres) FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.
 // https://www.calhoun.io/updating-and-deleting-postgresql-records-using-gos-sql-package/
 func (d *DbPostgres) CreateSchema() error {
 
-	createNoteTable := `create table note
+	note := `create table note
 (
 	id serial not null
 		constraint note_pkey
@@ -136,7 +154,7 @@ create unique index note_patient_guid_uindex
 
 `
 
-	createNoteFragmentTable := `create table note_fragment
+	noteFragment := `create table note_fragment
 (
 	id serial not null
 		constraint note_fragment_pkey
@@ -175,7 +193,7 @@ create unique index note_fragment_issue_guid_uindex
 ;
 `
 
-	createNoteTagTable := `create table note_tag
+	noteTag := `create table note_tag
 (
 	id serial not null
 		constraint note_tag_pkey
@@ -190,21 +208,41 @@ alter table note_tag owner to postgres
 
 `
 
-	createNoteFragmentTagTable := `create table note_fragment_tags
+	noteFragmentTag := `create table note_fragment_tag
 (
 	id serial not null
-		constraint note_fragment_tags_pkey
+		constraint note_fragment_tag_pkey
 			primary key,
 	note_fragment_guid varchar(38) not null,
 	tag varchar(55) not null
 )
 ;
 
-alter table note_fragment_tags owner to postgres
+alter table note_fragment_tag owner to postgres
 ;
 
 `
 
-	log.Fatalf("%v\n%v\n%v\n%v\n", createNoteTable, createNoteTagTable, createNoteFragmentTable, createNoteFragmentTagTable)
+	d.createTable(note)
+	d.createTable(noteFragment)
+	d.createTable(noteTag)
+	d.createTable(noteFragmentTag)
+
+
+	notes, notesErr := d.AllNotes()
+	if notesErr != nil {
+		log.Println(notesErr)
+	}
+	fmt.Println(notes)
+
 	return nil
+}
+
+func (d *DbPostgres) createTable(query string) {
+	_, err := d.db.Exec(query)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("Table created successfully.")
+	}
 }
