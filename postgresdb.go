@@ -60,7 +60,7 @@ func (d *DbPostgres) AllNotes() ([]*ehrpb.Note, error) {
 	}
 	defer rows.Close()
 
-	notes := []*ehrpb.Note{}
+	var notes []*ehrpb.Note
 	for rows.Next() {
 		tmpNote := &ehrpb.Note{}
 		var tmpInt int64
