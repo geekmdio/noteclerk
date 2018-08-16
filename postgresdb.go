@@ -22,6 +22,7 @@ func (d *DbPostgres) Initialize(config *Config) (*sql.DB, error) {
 		config.DbUsername, config.DbPassword, config.DbIp, config.DbName, config.DbSslMode, config.DbPort)
 
 	db, err := sql.Open("postgres", connStr)
+	defer db.Close()
 
 	if err = db.Ping(); err != nil {
 		err = errors.New("Could not ping PostgreSQL db")
@@ -97,6 +98,7 @@ func (d *DbPostgres) FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.
 	return nil, nil
 }
 
+// https://www.calhoun.io/updating-and-deleting-postgresql-records-using-gos-sql-package/
 func (d *DbPostgres) CreateSchema() error {
 
 	createNoteTable := `create table note
