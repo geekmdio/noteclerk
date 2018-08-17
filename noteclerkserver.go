@@ -34,7 +34,7 @@ func (n *NoteClerkServer) NewNote(ctx context.Context, nr *ehrpb.CreateNoteReque
 	}
 	if err != nil {
 		cnr.Status.HttpCode = ehrpb.StatusCodes_NOT_MODIFIED
-		cnr.Status.Message = fmt.Sprintf("Could not add note. Error: %v", err)
+		cnr.Status.Message = fmt.Sprintf("Could not add createNoteTable. Error: %v", err)
 		cnr.Note = nil
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (n *NoteClerkServer) NewNote(ctx context.Context, nr *ehrpb.CreateNoteReque
 	cnr.Note = noteToAdd
 	cnr.Note.Id = id
 	cnr.Status.HttpCode = ehrpb.StatusCodes_OK
-	cnr.Status.Message = "Successfully submit new note."
+	cnr.Status.Message = "Successfully submit new createNoteTable."
 
 	return cnr, nil
 }
@@ -53,14 +53,14 @@ func (n *NoteClerkServer) DeleteNote(ctx context.Context, dnr *ehrpb.DeleteNoteR
 	dnRes := &ehrpb.DeleteNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{
 			HttpCode:             ehrpb.StatusCodes_OK,
-			Message:              "Successfully deleted note.",
+			Message:              "Successfully deleted createNoteTable.",
 		},
 	}
 
 	err := n.db.DeleteNote(dnr.Id)
 	if err != nil {
 		dnRes.Status.HttpCode = ehrpb.StatusCodes_NOT_MODIFIED
-		dnRes.Status.Message = "Failed to delete note."
+		dnRes.Status.Message = "Failed to delete createNoteTable."
 		return dnRes, errors.Errorf("%v. Error: %v", dnRes.Status.Message, err)
 	}
 
@@ -74,13 +74,13 @@ func (n *NoteClerkServer) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveN
 	retNoteRes := &ehrpb.RetrieveNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{
 			HttpCode:             ehrpb.StatusCodes_OK,
-			Message:              "Successfully retrieved note.",
+			Message:              "Successfully retrieved createNoteTable.",
 		},
 		Note: note,
 	}
 	if err != nil {
 		retNoteRes.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
-		retNoteRes.Status.Message = "unable to locate note"
+		retNoteRes.Status.Message = "unable to locate createNoteTable"
 		return retNoteRes, fmt.Errorf("%v, error: %v", retNoteRes.Status.Message, err)
 	}
 
@@ -121,13 +121,13 @@ func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteR
 	updateNoteResponse := &ehrpb.UpdateNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{
 			HttpCode:             ehrpb.StatusCodes_OK,
-			Message:              "note successfully updated",
+			Message:              "createNoteTable successfully updated",
 		},
 	}
 
 	if unr.Id != unr.Note.Id {
 		updateNoteResponse.Status.HttpCode = ehrpb.StatusCodes_CONFLICT
-		updateNoteResponse.Status.Message = "the id provided for the update note request does not match the id of the note"
+		updateNoteResponse.Status.Message = "the id provided for the update createNoteTable request does not match the id of the createNoteTable"
 		return updateNoteResponse, fmt.Errorf("%v", updateNoteResponse.Status.Message)
 	}
 
@@ -135,7 +135,7 @@ func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteR
 	err := n.db.UpdateNote(unr.Note)
 	if err != nil {
 		updateNoteResponse.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
-		updateNoteResponse.Status.Message = "unable to update note"
+		updateNoteResponse.Status.Message = "unable to update createNoteTable"
 		return updateNoteResponse, fmt.Errorf("%v, error: %v", updateNoteResponse.Status.Message, err)
 	}
 

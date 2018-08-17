@@ -39,26 +39,26 @@ func TestNoteClerkServer_NewNote(t *testing.T) {
 
 	_, noteGuidParseErr := uuid.Parse(res.Note.GetNoteGuid())
 	if noteGuidParseErr != nil {
-		t.Fatalf("The note did not have a new GUID created for it, and is likely invalid.")
+		t.Fatalf("The createNoteTable did not have a new GUID created for it, and is likely invalid.")
 	}
 
 	_, visitGuidParseErr := uuid.Parse(res.Note.GetVisitGuid())
 	if visitGuidParseErr != nil {
-		t.Fatalf("The note did not have a new GUID created for it, and is likely invalid.")
+		t.Fatalf("The createNoteTable did not have a new GUID created for it, and is likely invalid.")
 	}
 
 	_, authorGuidParseErr := uuid.Parse(res.Note.GetAuthorGuid())
 	if authorGuidParseErr != nil {
-		t.Fatalf("The note did not have a new GUID created for it, and is likely invalid.")
+		t.Fatalf("The createNoteTable did not have a new GUID created for it, and is likely invalid.")
 	}
 
 	_, patientGuidParseErr := uuid.Parse(res.Note.GetPatientGuid())
 	if patientGuidParseErr != nil {
-		t.Fatalf("The note did not have a new GUID created for it, and is likely invalid.")
+		t.Fatalf("The createNoteTable did not have a new GUID created for it, and is likely invalid.")
 	}
 
 	if res.Note.Type != cnr.Note.Type {
-		t.Fatalf("Note type was not transferred to resulting note.")
+		t.Fatalf("Note type was not transferred to resulting createNoteTable.")
 	}
 }
 
@@ -74,11 +74,11 @@ func TestNoteClerkServer_NewNote_WithFragmentsRetainsFragments(t *testing.T) {
 	cnr.Note.Fragments = append(cnr.Note.Fragments, noteFrag)
 	res, err := s.NewNote(context.Background(), cnr)
 	if err != nil {
-		t.Fatalf("Error creating a new note, err %v", err)
+		t.Fatalf("Error creating a new createNoteTable, err %v", err)
 	}
 
 	if len(res.Note.Fragments)  <= 0 {
-		t.Fatalf("Note fragments were note appended.")
+		t.Fatalf("Note fragments were createNoteTable appended.")
 	}
 
 	firstFrag := res.Note.Fragments[0]
@@ -101,7 +101,7 @@ func TestNoteClerkServer_NewNote_WithTagsRetainsTags(t *testing.T) {
 
 	res, err := s.NewNote(c, cnr)
 	if err != nil {
-		t.Fatalf("Error creating a new note, err %v", err)
+		t.Fatalf("Error creating a new createNoteTable, err %v", err)
 	}
 
 	if len(res.Note.Tags) <= 0 {
@@ -127,7 +127,7 @@ func TestNoteClerkServer_NewNote_WithNonZeroIdIsRejected(t *testing.T) {
 	}
 
 	if res != nil {
-		t.Fatalf("The response should be nil because note was rejected")
+		t.Fatalf("The response should be nil because createNoteTable was rejected")
 	}
 
 }
@@ -173,7 +173,7 @@ func TestNoteClerkServer_DeleteNote_WhichDoestExistReturnsError(t *testing.T) {
 
 	res, err := s.DeleteNote(context.Background(), delReq)
 	if err == nil {
-		t.Fatalf("Should not be able to delete a note with a negative id, which doesn't exist")
+		t.Fatalf("Should not be able to delete a createNoteTable with a negative id, which doesn't exist")
 	}
 
 	status := res.Status.HttpCode
@@ -202,11 +202,11 @@ func TestNoteClerkServer_RetrieveNote(t *testing.T) {
 	}
 
 	if res.Note == nil {
-		t.Fatalf("No note was retrieved")
+		t.Fatalf("No createNoteTable was retrieved")
 	}
 
 	if res.Note.Id != expectedId {
-		t.Fatalf("The note Id was %v, but should have been %v", res.Note.Id, expectedId)
+		t.Fatalf("The createNoteTable Id was %v, but should have been %v", res.Note.Id, expectedId)
 	}
 }
 
@@ -223,7 +223,7 @@ func TestNoteClerkServer_RetrieveNote_ByIdThatDoesntExist_ReturnsError(t *testin
 
 	res, err := s.RetrieveNote(context.Background(), retReq)
 	if err == nil {
-		t.Fatalf("Should not be able to find note with negative Id.")
+		t.Fatalf("Should not be able to find createNoteTable with negative Id.")
 	}
 
 	if res.Status.HttpCode != ehrpb.StatusCodes_NOT_FOUND {
@@ -244,7 +244,7 @@ func TestNoteClerkServer_FindNote(t *testing.T) {
 
 	res, err := s.FindNote(context.Background(), findReq)
 	if err != nil {
-		t.Fatalf("Failed to find note.")
+		t.Fatalf("Failed to find createNoteTable.")
 	}
 
 	if res.Status.HttpCode != ehrpb.StatusCodes_OK {
@@ -259,7 +259,7 @@ func TestNoteClerkServer_FindNote(t *testing.T) {
 		}
 	}
 	if !noteFound {
-		t.Fatalf("Failed to find a note associted with visit GUID %v", firstNote.VisitGuid)
+		t.Fatalf("Failed to find a createNoteTable associted with visit GUID %v", firstNote.VisitGuid)
 	}
 
 }
@@ -274,7 +274,7 @@ func TestNoteClerkServer_FindNote_WithNonExistentGuid_ReturnsError(t *testing.T)
 
 	res, err := s.FindNote(context.Background(), findReq)
 	if err == nil {
-		t.Fatalf("A note with this newly generated GUID should not be found in the database.")
+		t.Fatalf("A createNoteTable with this newly generated GUID should not be found in the database.")
 	}
 
 	if res.Status.HttpCode != ehrpb.StatusCodes_NOT_FOUND {
@@ -308,7 +308,7 @@ func TestNoteClerkServer_UpdateNote(t *testing.T) {
 	}
 	updateRes, updateErr := s.UpdateNote(context.Background(), updateReq)
 	if updateErr != nil {
-		t.Fatalf("Failed to update note")
+		t.Fatalf("Failed to update createNoteTable")
 	}
 
 	if updateRes.Status.HttpCode != ehrpb.StatusCodes_OK {
@@ -329,7 +329,7 @@ func TestNoteClerkServer_UpdateNote_NoteDoesNotExistReturnsError(t *testing.T) {
 	}
 	updateRes, updateErr := s.UpdateNote(context.Background(), updateReq)
 	if updateErr == nil {
-		t.Fatalf("should not be able to updated note with negative Id, which doesn't exist")
+		t.Fatalf("should not be able to updated createNoteTable with negative Id, which doesn't exist")
 	}
 
 	if updateRes.Status.HttpCode != ehrpb.StatusCodes_NOT_FOUND {
@@ -350,7 +350,7 @@ func TestNoteClerkServer_UpdateNote_NoteIdDoesntMatchUpdateId(t *testing.T) {
 	}
 	updateRes, updateErr := s.UpdateNote(context.Background(), updateReq)
 	if updateErr == nil {
-		t.Fatalf("should not be able to updated note with negative Id, which doesn't exist")
+		t.Fatalf("should not be able to updated createNoteTable with negative Id, which doesn't exist")
 	}
 
 	if updateRes.Status.HttpCode != ehrpb.StatusCodes_CONFLICT {
