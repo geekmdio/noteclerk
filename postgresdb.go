@@ -39,8 +39,16 @@ func (d *DbPostgres) Initialize(config *Config) (*sql.DB, error) {
 }
 
 func (d *DbPostgres) AddNote(n *ehrpb.Note) (id int64, err error) {
-	log.Fatal("Not implemented.")
-	return 0,nil
+
+	scanErr := d.db.QueryRow(addNoteQuery, n.DateCreated.Seconds, n.DateCreated.Nanos,
+		n.NoteGuid, n.VisitGuid, n.AuthorGuid, n.PatientGuid, n.Type, n.Status).Scan(n.Id)
+
+	if scanErr != nil {
+		return 0, scanErr
+	}
+
+	defer d.db.Close()
+	return n.Id,nil
 }
 
 func (d *DbPostgres) UpdateNote(n *ehrpb.Note) error {
@@ -124,6 +132,9 @@ func (d *DbPostgres) CreateSchema() error {
 	d.createTable(createNoteFragmentTable)
 	d.createTable(createNoteFragmentTagTable)
 
+	tmpNote := NewNote()
+
+	d.AddNote(tmpNote)
 	//TODO: remove this
 	notes, notesErr := d.AllNotes()
 	if notesErr != nil {
