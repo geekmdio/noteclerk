@@ -66,7 +66,7 @@ func TestNoteClerkServer_NewNote_WithFragmentsRetainsFragments(t *testing.T) {
 	s := &NoteClerkServer{}
 	s.Initialize(&Config{}, mockDb)
 
-	expectedFragId := int32(44)
+	expectedFragId := int64(44)
 	noteFrag := NewNoteFragment()
 	noteFrag.Id = expectedFragId
 	cnr := &ehrpb.CreateNoteRequest{ Note: NewNote() }
@@ -136,7 +136,7 @@ func TestNoteClerkServer_DeleteNote(t *testing.T) {
 	s := &NoteClerkServer{}
 	s.Initialize(&Config{}, mockDb)
 
-	idToDelete := int32(0)
+	idToDelete := int64(0)
 	delReq := &ehrpb.DeleteNoteRequest{
 		Id:                   idToDelete,
 	}
@@ -166,7 +166,7 @@ func TestNoteClerkServer_DeleteNote_WhichDoestExistReturnsError(t *testing.T) {
 	s := &NoteClerkServer{}
 	s.Initialize(&Config{}, mockDb)
 
-	idToDelete := int32(-1)
+	idToDelete := int64(-1)
 	delReq := &ehrpb.DeleteNoteRequest{
 		Id:                   idToDelete,
 	}
@@ -186,7 +186,7 @@ func TestNoteClerkServer_RetrieveNote(t *testing.T) {
 	s := &NoteClerkServer{}
 	s.Initialize(&Config{}, mockDb)
 
-	expectedId := int32(1)
+	expectedId := int64(1)
 
 	retReq := &ehrpb.RetrieveNoteRequest{
 		Id:                   expectedId,
@@ -215,7 +215,7 @@ func TestNoteClerkServer_RetrieveNote_ByIdThatDoesntExist_ReturnsError(t *testin
 	s := &NoteClerkServer{}
 	s.Initialize(&Config{}, mockDb)
 
-	expectedId := int32(-1)
+	expectedId := int64(-1)
 
 	retReq := &ehrpb.RetrieveNoteRequest{
 		Id:                   expectedId,
@@ -358,8 +358,3 @@ func TestNoteClerkServer_UpdateNote_NoteIdDoesntMatchUpdateId(t *testing.T) {
 	}
 
 }
-
-// Skip??
-//func TestNoteClerkServer_Initialize(t *testing.T) {
-//	panic("implement me")
-//}

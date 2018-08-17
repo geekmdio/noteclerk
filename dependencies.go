@@ -35,10 +35,10 @@ func NewNoteFragment() *ehrpb.NoteFragment {
 		Icd_10Code:       "Icd_10Code not set",
 		Icd_10Long:       "Icd_10Long not set",
 		Description:      "Description not set",
-		Status:           ehrpb.NoteFragmentStatus_INCOMPLETE,
-		Priority:         ehrpb.FragmentPriority_NO_PRIORITY,
-		Topic:            ehrpb.FragmentTopic_NO_TOPIC,
-		MarkdownContent:  "MarkdownContent not set",
+		Status:           ehrpb.RecordStatus_INCOMPLETE,
+		Priority:         ehrpb.RecordPriority_NO_PRIORITY,
+		Topic:            ehrpb.FragmentType_NO_TOPIC,
+		Content:  "MarkdownContent not set",
 		Tags:             make([]string,0),
 	}
 }

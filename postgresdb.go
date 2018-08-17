@@ -38,7 +38,7 @@ func (d *DbPostgres) Initialize(config *Config) (*sql.DB, error) {
 	return d.db, nil
 }
 
-func (d *DbPostgres) AddNote(n *ehrpb.Note) (id int32, err error) {
+func (d *DbPostgres) AddNote(n *ehrpb.Note) (id int64, err error) {
 	log.Fatal("Not implemented.")
 	return 0,nil
 }
@@ -48,7 +48,7 @@ func (d *DbPostgres) UpdateNote(n *ehrpb.Note) error {
 	return nil
 }
 
-func (d *DbPostgres) DeleteNote(id int32) error {
+func (d *DbPostgres) DeleteNote(id int64) error {
 	log.Fatal("Not implemented.")
 	return nil
 }
@@ -77,7 +77,7 @@ func (d *DbPostgres) AllNotes() ([]*ehrpb.Note, error) {
 	return notes, nil
 }
 
-func (d *DbPostgres) GetNoteById(id int32) (*ehrpb.Note, error) {
+func (d *DbPostgres) GetNoteById(id int64) (*ehrpb.Note, error) {
 	log.Fatal("Not implemented.")
 	return nil, nil
 }
@@ -92,7 +92,7 @@ func (d *DbPostgres) AllNoteFragments() ([]*ehrpb.NoteFragment, error) {
 	return nil, nil
 }
 
-func (d *DbPostgres) AddNoteFragment(n *ehrpb.NoteFragment)  (id int32, guid string, err error) {
+func (d *DbPostgres) AddNoteFragment(n *ehrpb.NoteFragment)  (id int64, guid string, err error) {
 	log.Fatal("Not implemented.")
 	return 0, "",nil
 }
@@ -102,12 +102,12 @@ func (d *DbPostgres) UpdateNoteFragment(n *ehrpb.NoteFragment)  error {
 	return nil
 }
 
-func (d *DbPostgres) DeleteNoteFragment(id int32)  error {
+func (d *DbPostgres) DeleteNoteFragment(id int64)  error {
 	log.Fatal("Not implemented.")
 	return nil
 }
 
-func (d *DbPostgres) GetNoteFragmentsById(id int32) (*ehrpb.NoteFragment, error) {
+func (d *DbPostgres) GetNoteFragmentsById(id int64) (*ehrpb.NoteFragment, error) {
 	log.Fatal("Not implemented.")
 	return nil, nil
 }
