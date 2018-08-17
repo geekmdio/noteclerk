@@ -66,7 +66,7 @@ func (d *DbPostgres) AllNotes() ([]*ehrpb.Note, error) {
 		tmpNote := NewNote()
 		err := rows.Scan(&tmpNote.Id, &tmpNote.DateCreated.Seconds, &tmpNote.DateCreated.Nanos,
 			&tmpNote.NoteGuid, &tmpNote.VisitGuid, &tmpNote.AuthorGuid,
-			&tmpNote.PatientGuid, &tmpNote.Type)
+			&tmpNote.PatientGuid, &tmpNote.Type, &tmpNote.Status)
 		if err != nil {
 			log.Println(err)
 			return nil, err

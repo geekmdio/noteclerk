@@ -3,62 +3,57 @@ package main
 
 const createNoteTable = `create table note
 (
-	id serial not null
-		constraint note_pkey
-			primary key,
-	date_created_seconds integer not null,
-	date_created_nanos integer default 0 not null,
-	note_guid varchar(38) not null,
-	visit_guid varchar(38) not null,
-	author_guid varchar(38) not null,
-	patient_guid varchar(38) not null,
-	type integer not null
-)
-;
+  id                   serial            not null
+    constraint note_pkey
+    primary key,
+  date_created_seconds integer           not null,
+  date_created_nanos   integer default 0 not null,
+  note_guid            varchar(38)       not null,
+  visit_guid           varchar(38)       not null,
+  author_guid          varchar(38)       not null,
+  patient_guid         varchar(38)       not null,
+  type                 integer           not null,
+  status               integer           not null
+);
 
-alter table note owner to postgres
-;
+alter table note
+  owner to postgres;
 
 create unique index note_id_uindex
-	on note (id)
-;
+  on note (id);
 
 create unique index note_note_guid_uindex
-	on note (note_guid)
-;
+  on note (note_guid);
 `
 
 const createNoteFragmentTable = `create table note_fragment
 (
-	id serial not null
-		constraint note_fragment_pkey
-			primary key,
-	date_created_seconds integer not null,
-	date_created_nanos integer default 0 not null,
-	note_fragment_guid varchar(38) not null,
-	note_guid varchar(38) not null
-		constraint note_fragment_note_note_guid_fk
-			references note (note_guid),
-	icd_10code varchar(15) not null,
-	icd_10long varchar(250) not null,
-	description varchar(150) not null,
-	status integer not null,
-	priority integer not null,
-	topic integer not null,
-	markdown_content varchar(2500) not null
-)
-;
+  id                   serial            not null
+    constraint note_fragment_pkey
+    primary key,
+  date_created_seconds integer           not null,
+  date_created_nanos   integer default 0 not null,
+  note_fragment_guid   varchar(38)       not null,
+  note_guid            varchar(38)       not null
+    constraint note_fragment_note_note_guid_fk
+    references note (note_guid),
+  icd_10code           varchar(15)       not null,
+  icd_10long           varchar(250)      not null,
+  description          varchar(150)      not null,
+  status               integer           not null,
+  priority             integer           not null,
+  topic                integer           not null,
+  content     varchar(2500)     not null
+);
 
-alter table note_fragment owner to postgres
-;
+alter table note_fragment
+  owner to postgres;
 
 create unique index note_fragment_id_uindex
-	on note_fragment (id)
-;
+  on note_fragment (id);
 
 create unique index note_fragment_note_fragment_guid_uindex
-	on note_fragment (note_fragment_guid)
-;
+  on note_fragment (note_fragment_guid);
 
 `
 
