@@ -40,14 +40,21 @@ func (d *DbPostgres) Initialize(config *Config) (*sql.DB, error) {
 
 func (d *DbPostgres) AddNote(n *ehrpb.Note) (id int64, err error) {
 
-	scanErr := d.db.QueryRow(addNoteQuery, n.DateCreated.Seconds, n.DateCreated.Nanos,
-		n.NoteGuid, n.VisitGuid, n.AuthorGuid, n.PatientGuid, n.Type, n.Status).Scan(n.Id)
+	scanErr := d.db.QueryRow(addNoteQuery, n.DateCreated.GetSeconds(), n.DateCreated.GetNanos(),
+		n.GetNoteGuid(), n.GetVisitGuid(), n.GetAuthorGuid(), n.GetPatientGuid(), n.GetType(),
+		n.GetStatus()).Scan(n.Id)
 
 	if scanErr != nil {
 		return 0, scanErr
 	}
 
-	defer d.db.Close()
+	for _, v := range n.GetFragments() {
+		_, _, err := d.AddNoteFragment(v)
+		if err != nil {
+			return 0, scanErr
+		}
+	}
+
 	return n.Id,nil
 }
 
@@ -101,8 +108,14 @@ func (d *DbPostgres) AllNoteFragments() ([]*ehrpb.NoteFragment, error) {
 }
 
 func (d *DbPostgres) AddNoteFragment(n *ehrpb.NoteFragment)  (id int64, guid string, err error) {
-	log.Fatal("Not implemented.")
-	return 0, "",nil
+	scanErr := d.db.QueryRow(addNoteFragmentQuery, n.DateCreated.Seconds, n.DateCreated.Nanos,
+		n.GetNoteFragmentGuid(), n.GetNoteGuid(), n.GetIcd_10Code(), n.GetIcd_10Long(),
+		n.GetDescription(), n.GetStatus(), n.GetPriority(), n.GetTopic(), n.GetContent()).Scan(n.Id)
+
+	if scanErr != nil {
+		return 0, "", scanErr
+	}
+	return n.GetId(), n.GetNoteFragmentGuid(),nil
 }
 
 func (d *DbPostgres) UpdateNoteFragment(n *ehrpb.NoteFragment)  error {
@@ -133,6 +146,11 @@ func (d *DbPostgres) CreateSchema() error {
 	d.createTable(createNoteFragmentTagTable)
 
 	tmpNote := NewNote()
+	tmpFrag := NewNoteFragment()
+	tmpFrag.NoteGuid = tmpNote.GetNoteGuid()
+	tmpFrag2 := NewNoteFragment()
+	tmpFrag2.NoteGuid = tmpNote.GetNoteGuid()
+	tmpNote.Fragments = append(tmpNote.Fragments, tmpFrag, tmpFrag2)
 
 	d.AddNote(tmpNote)
 	//TODO: remove this

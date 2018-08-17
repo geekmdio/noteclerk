@@ -98,7 +98,8 @@ create unique index note_fragment_tag_id_uindex
 ;
 `
 
-const addNoteQuery = `INSERT INTO "public"."note" 
+const addNoteQuery =
+`INSERT INTO "public"."note" 
 (
 	"id", 
 	"date_created_seconds", 
@@ -121,4 +122,36 @@ VALUES
 	$6, 
 	$7, 
 	$8
+);`
+
+const addNoteFragmentQuery =
+`INSERT INTO "public"."note_fragment" 
+(
+	"id", 
+	"date_created_seconds", 
+	"date_created_nanos", 
+	"note_fragment_guid", 
+	"note_guid", 
+	"icd_10code", 
+	"icd_10long", 
+	"description", 
+	"status", 
+	"priority", 
+	"topic", 
+	"content"
+) 
+VALUES 
+(
+	DEFAULT, 
+	$1, 
+	$2, 
+	$3, 
+	$4, 
+	$5, 
+	$6, 
+	$7, 
+	$8, 
+	$9, 
+	$10,
+	$11
 );`
