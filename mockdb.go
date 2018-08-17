@@ -23,10 +23,10 @@ func (m *MockDb) Initialize (config *Config) (*sql.DB, error) {
 	return nil, nil
 }
 
-// Add a createNoteTable to the mock database.
+// Add a note to the mock database.
 func (m *MockDb) AddNote(note *ehrpb.Note) (id int32, err error) {
 	if note.Id > 0 {
-		return 0, errors.New("createNoteTable has index greater than 0 and is rejected")
+		return 0, errors.New("note has index greater than 0 and is rejected")
 	}
 	note.Id = m.generateUniqueId()
 
@@ -35,7 +35,7 @@ func (m *MockDb) AddNote(note *ehrpb.Note) (id int32, err error) {
 	return note.Id, nil
 }
 
-// Update a createNoteTable which already exists in the mock database.
+// Update a note which already exists in the mock database.
 func (m *MockDb) UpdateNote(note *ehrpb.Note) error {
 
 	var noteIndex int
@@ -49,14 +49,14 @@ func (m *MockDb) UpdateNote(note *ehrpb.Note) error {
 	}
 
 	if !found {
-		return errors.New("cannot update createNoteTable because it could not be found")
+		return errors.New("cannot update note because it could not be found")
 	}
 	m.db[noteIndex] = note
 
 	return nil
 }
 
-// Delete a createNoteTable from the mock database.
+// Delete a note from the mock database.
 func (m *MockDb) DeleteNote(id int32) error {
 	var index int
 	var found bool
@@ -69,7 +69,7 @@ func (m *MockDb) DeleteNote(id int32) error {
 	}
 
 	if !found {
-		return fmt.Errorf("createNoteTable with id %v not located in database", id)
+		return fmt.Errorf("note with id %v not located in database", id)
 	}
 
 	var newDb []*ehrpb.Note
@@ -96,13 +96,13 @@ func (m *MockDb) GetNoteById(id int32) (*ehrpb.Note, error) {
 	}
 
 	if !found {
-		return nil, errors.New("unable to locate createNoteTable with that id")
+		return nil, errors.New("unable to locate note with that id")
 	}
 
 	return foundNote, nil
 }
 
-// Find a createNoteTable using a number of powerful search filters.
+// Find a note using a number of powerful search filters.
 func (m *MockDb) FindNote(filter NoteFindFilter) ([]*ehrpb.Note, error) {
 	var foundNotes []*ehrpb.Note
 	for _, v := range m.db {

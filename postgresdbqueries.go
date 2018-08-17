@@ -1,7 +1,7 @@
 package main
 
 
-const createNoteTable = `create table createNoteTable
+const createNoteTable = `create table note
 (
 	id serial not null
 		constraint note_pkey
@@ -16,18 +16,16 @@ const createNoteTable = `create table createNoteTable
 )
 ;
 
-alter table createNoteTable owner to postgres
+alter table note owner to postgres
 ;
 
 create unique index note_id_uindex
-	on createNoteTable (id)
+	on note (id)
 ;
 
 create unique index note_note_guid_uindex
-	on createNoteTable (note_guid)
+	on note (note_guid)
 ;
-
-
 `
 
 const createNoteFragmentTable = `create table note_fragment
@@ -40,7 +38,7 @@ const createNoteFragmentTable = `create table note_fragment
 	note_fragment_guid varchar(38) not null,
 	note_guid varchar(38) not null
 		constraint note_fragment_note_note_guid_fk
-			references createNoteTable (note_guid),
+			references note (note_guid),
 	icd_10code varchar(15) not null,
 	icd_10long varchar(250) not null,
 	description varchar(150) not null,
@@ -71,7 +69,7 @@ const createNoteTagTable = `create table note_tag
 			primary key,
 	note_guid varchar(38) not null
 		constraint note_tag_note_note_guid_fk
-			references createNoteTable (note_guid),
+			references note (note_guid),
 	tag varchar(55) not null
 )
 ;
@@ -82,7 +80,6 @@ alter table note_tag owner to postgres
 create unique index note_tag_id_uindex
 	on note_tag (id)
 ;
-
 
 `
 
@@ -104,7 +101,4 @@ alter table note_fragment_tag owner to postgres
 create unique index note_fragment_tag_id_uindex
 	on note_fragment_tag (id)
 ;
-
-
-
 `

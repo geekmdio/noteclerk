@@ -14,7 +14,7 @@ type DbPostgres struct {
 }
 
 // Initialize() initializes the connection to database. Ensure that the ./config/config.<environment>.json
-// file has been created and properly configured with server and database values. Of createNoteTable, the '<environment>'
+// file has been created and properly configured with server and database values. Of note, the '<environment>'
 // can be set to any value, so long as the NOTECLERK_ENVIRONMENT environmental variable's value matches.
 // RETURNS: *sql.db, error
 func (d *DbPostgres) Initialize(config *Config) (*sql.DB, error) {
@@ -54,7 +54,7 @@ func (d *DbPostgres) DeleteNote(id int32) error {
 }
 
 func (d *DbPostgres) AllNotes() ([]*ehrpb.Note, error) {
-	rows, err := d.db.Query("SELECT * FROM createNoteTable;")
+	rows, err := d.db.Query("SELECT * FROM note;")
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -124,6 +124,7 @@ func (d *DbPostgres) CreateSchema() error {
 	d.createTable(createNoteFragmentTable)
 	d.createTable(createNoteFragmentTagTable)
 
+	//TODO: remove this
 	notes, notesErr := d.AllNotes()
 	if notesErr != nil {
 		log.Println(notesErr)
