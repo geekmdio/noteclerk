@@ -77,7 +77,32 @@ get_user_input() {
     fi
 }
 
+test_if_config_file_exists() {
+    test -f ${CONFIG_FILE_PATH}
+    if [  $? != "0" ] ; then
+        echo "Writing configuration to ${CONFIG_FILE_PATH}..."
+    else
+        echo "---WARNING---"
+        printf "Configuration file already exists. Overwrite (default: no)? "
+        read -r USER_INPUT
+        case ${USER_INPUT} in
+            [yY] | [yY][Ee][Ss])
+                echo "Overwriting ${CONFIG_FILE_PATH} with new configuration data."
+                echo "" > ${CONFIG_FILE_PATH} #clears out existing file
+                 ;;
+            [nN] | [n|N][O|o] | "")
+                echo "The file will NOT be overwritten. Exiting now"
+                exit 0
+                ;;
+            *)
+                echo "Invalid selection. Please run setup again."
+                exit 1
+                ;;
+        esac
+    fi
+}
 write_to_config() {
+
     echo '{' >> ${CONFIG_FILE_PATH}
     echo '  "Version": "'${VERSION}'",' >> ${CONFIG_FILE_PATH}
     echo '  "LogPath": "'${LOG_PATH}'",' >> ${CONFIG_FILE_PATH}
@@ -93,20 +118,35 @@ write_to_config() {
     echo '}' >> ${CONFIG_FILE_PATH}
 }
 
-
-main() {
-    echo "NoteClerk v${VERSION} Setup"
-    echo "==========================="
+ensure_config_directory_exists() {
     # If the directory does not already exist, create the config directory
-    echo "Checking for presence of ${CONFIG_DIRECOTRY} directory..."
+    printf "Checking for presence of ${CONFIG_DIRECOTRY} directory..."
     mkdir ${CONFIG_DIRECOTRY} 2> /dev/null
     if [ $? -ne 0 ]; then
         echo "Found!"
     else
         echo "Not found, creating ${CONFIG_DIRECOTRY}"
     fi
+}
+
+ensure_env_set() {
+    if [ "${NOTECLERK_ENVIRONMENT}" == "" ]; then
+        echo "NOTECLERK_ENVIRONMENT environmental variable is not set. Please set this environmental variable and run again."
+        exit 1
+    fi
+}
+
+main() {
+    echo "NoteClerk v${VERSION} Setup"
+    echo "==========================="
+
+    ensure_env_set
+
+    ensure_config_directory_exists
 
     get_user_input
+
+    test_if_config_file_exists
 
     write_to_config
 
