@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
 # NOTE: You must have the environmental variable NOTECLERK_ENVIRONMENT set.
+# E.g. export NOTECLERK_ENVIRONMENET=development.
 
-VERSION="0.3.0"
+VERSION="$(cat version.dat)"
 LOG_DIR="${HOME}/.noteclerk/log"
 LOG_PATH="${LOG_DIR}/server.log"
 SERVER_PROTOCOL="tcp"
@@ -108,7 +109,7 @@ write_to_config() {
     echo '  "LogPath": "'${LOG_PATH}'",' >> ${CONFIG_FILE_PATH}
     echo '  "ServerProtocol": "'${SERVER_PROTOCOL}'",' >> ${CONFIG_FILE_PATH}
     echo '  "ServerIp": "'${SERVER_IP}'",' >> ${CONFIG_FILE_PATH}
-    echo '  "ServerPort": "'${SERVER_IP}'",' >> ${CONFIG_FILE_PATH}
+    echo '  "ServerPort": "'${SERVER_PORT}'",' >> ${CONFIG_FILE_PATH}
     echo '  "DbIp": "'${DB_IP}'",' >> ${CONFIG_FILE_PATH}
     echo '  "DbPort": "'${DB_PORT}'",' >> ${CONFIG_FILE_PATH}
     echo '  "DbUsername": "'${DB_USERNAME}'",' >> ${CONFIG_FILE_PATH}

@@ -165,7 +165,7 @@ func (n *NoteClerkServer) Initialize(config *Config, db RDBMSAccessor) error {
 
 	// Serve
 	if err = n.server.Serve(lis); err != nil {
-		return errors.Errorf("Failed to serve on the listener.")
+		return errors.Errorf("Failed to serve on the listener. %v", err)
 	}
 
 	return nil
