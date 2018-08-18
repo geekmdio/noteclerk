@@ -16,13 +16,13 @@ func (l GmdLog) InitializeLogger(logPath string) {
 		log.Fatalf("Cannot access or locate log file at location %v.", logPath)
 	}
 
-	var writer io.Writer = os.Stdout
 	logrus.SetLevel(logrus.InfoLevel)
-	logrus.SetFormatter(&logrus.TextFormatter{})
+	var writer io.Writer = os.Stdout
 	if Environment != "production" {
 		writer = io.MultiWriter(os.Stdout, logFile)
 		logrus.SetLevel(logrus.DebugLevel)
 	}
+	logrus.SetFormatter(&logrus.TextFormatter{})
 
 	logrus.SetOutput(writer)
 }
