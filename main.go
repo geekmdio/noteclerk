@@ -2,15 +2,20 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
+	"github.com/geekmdtravis/noteclerk/gmdlog"
+	"github.com/pkg/errors"
 )
 
-func main() {
+var log = &gmdlog.GmdLog{}
 
+func main() {
 	env := os.Getenv(Environment)
 	path := fmt.Sprintf("config/config.%v.json", strings.ToLower(env))
+
+	isProduction := strings.ToLower(env) == "production"
+	log.InitializeLogger(isProduction)
 
 	if env == "" {
 		panic(fmt.Sprintf("Environmental variable %v not set.", Environment))
@@ -33,8 +38,9 @@ func main() {
 
 	printSubtext(fmt.Sprintf("Loading configuration file from %v.", path))
 	config, err := LoadConfiguration(path)
+	err = errors.New("Test")
 	if err != nil {
-		log.Fatalf("unable to load Config file. err: %v", err)
+		log.Warnf("Error loading configuration file. Error: %v", err)
 	}
 
 	printSubtext(fmt.Sprintf("Starting GeekMD's NoteClerk Server on %v:%v.", config.ServerIp, config.ServerPort))

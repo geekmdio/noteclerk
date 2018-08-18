@@ -6,7 +6,6 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/geekmdio/ehrprotorepo/goproto"
 	"github.com/pkg/errors"
-	"log"
 )
 
 type DbPostgres struct {
