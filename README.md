@@ -1,4 +1,4 @@
-# GeekMD: NoteClerk v0.3.0
+# GeekMD: NoteClerk v0.3.1
 NoteClerk is a micro-service dedicated to managing clinical notes from the Noted library. It uses protcol buffers and 
 gRPC and so the API is relatively language agnostic.
 
@@ -8,6 +8,12 @@ gRPC and so the API is relatively language agnostic.
 |Development|![dev-build](https://travis-ci.org/geekmdio/noteclerk.svg?branch=development)| [![codecov-development](https://codecov.io/gh/geekmdio/noteclerk/branch/development/graph/badge.svg)](https://codecov.io/gh/geekmdio/noteclerk)  |
 
 
-RELEASE NOTES v0.3.0
+###RELEASE NOTES v0.3.0
 - Updated to ehrproto v0.3.1
 - See [repo](https://github.com/geekmdio/ehrprotorepo) for changes.
+
+
+###SETUP
+- Set the environmental variable NOTECLERK_ENVIRONMENT
+- Run "setup.sh"; this can be run in Windows through Bash which is available in a Linux subsystem in Windows 10, or via the various terminal emulators.
+    - Of note, you may run into problems creating folders for the config files and log files if your permissions are not set properly. Recommend running this server under limited user and keeping log in default directory.

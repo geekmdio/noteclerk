@@ -3,7 +3,7 @@
 # NOTE: You must have the environmental variable NOTECLERK_ENVIRONMENT set.
 # E.g. export NOTECLERK_ENVIRONMENET=development.
 
-VERSION="$(cat version.dat)"
+VERSION="$(cat VERSION)"
 LOG_DIR="${HOME}/.noteclerk/log"
 LOG_PATH="${LOG_DIR}/server.log"
 SERVER_PROTOCOL="tcp"
