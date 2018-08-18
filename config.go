@@ -18,6 +18,8 @@ const Environment = "NOTECLERK_ENVIRONMENT"
 // './config/config.production.json'
 
 const configJson = `{
+	"Version": "",
+	"LogPath": "",
 	"ServerProtocol": "",
 	"ServerIp": "",
 	"ServerPort": "",
@@ -33,6 +35,8 @@ const configJson = `{
 // ./config/config.<environment>.json, where '.' indicates the server root, and where
 // <environment> can be any lowercase value so long as the NOTECLERK_ENVIRONMENT environmental variable matches.
 type Config struct {
+	Version 	   string
+	LogPath		   string
 	ServerProtocol string
 	ServerIp       string
 	ServerPort     string

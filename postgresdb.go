@@ -27,7 +27,7 @@ func (d *DbPostgres) Initialize(config *Config) (*sql.DB, error) {
 		err = errors.New("Could not ping PostgreSQL db")
 		return nil, err
 	}
-	log.Printf("Successfully connected to PostgreSQL db at %v:%v", config.DbIp, config.DbPort)
+	log.Infof("Successfully connected to PostgreSQL db at %v:%v", config.DbIp, config.DbPort)
 	d.db = db
 	d.CreateSchema()
 

@@ -5,7 +5,14 @@ import (
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/google/uuid"
 	"time"
+	"os"
 )
+
+// Establish logger
+var log = &GmdLog{}
+
+// Set the NoteClerk environmental variable.
+var NoteClerkEnv = os.Getenv(Environment)
 
 // This is the database implementation for the server; can be changed so long as it's interfaces with
 // the RDBMSAccessor interface.
