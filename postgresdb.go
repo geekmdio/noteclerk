@@ -13,6 +13,29 @@ type DbPostgres struct {
 	db *sql.DB
 }
 
+func (d *DbPostgres) GetNoteFragmentsByNoteGuid(noteGuid string) ([]*ehrpb.NoteFragment, error) {
+	rows, err := d.db.Query(getNoteFragmentByNoteGuid, noteGuid)
+	if err != nil {
+		//TODO: Custom error
+		return nil, err
+	}
+	defer rows.Close()
+
+	noteFragments := make([]*ehrpb.NoteFragment, 0)
+	for rows.Next() {
+		tmp := NewNoteFragment()
+		err := rows.Scan(&tmp.Id, &tmp.DateCreated.Seconds, &tmp.DateCreated.Nanos, &tmp.NoteFragmentGuid,
+			&tmp.NoteGuid, &tmp.Icd_10Code, &tmp.Icd_10Long, &tmp.Description, &tmp.Status,
+			&tmp.Priority,  &tmp.Topic, &tmp.Content)
+		if err != nil {
+			//TODO: Custom error
+			return nil, err
+		}
+		noteFragments = append(noteFragments, tmp)
+	}
+	return noteFragments, nil
+}
+
 func (d *DbPostgres) GetNoteTagsByNoteGuid(noteGuid string) (tag []string, err error) {
 	rows, err := d.db.Query(getNoteTagByNoteGuid, noteGuid)
 	if err != nil {
@@ -34,7 +57,7 @@ func (d *DbPostgres) GetNoteTagsByNoteGuid(noteGuid string) (tag []string, err e
 	return tags, nil
 }
 
-func (d *DbPostgres) GetNoteFragmentTagsByNoteGuid(noteFragGuid string) (tag []string, err error) {
+func (d *DbPostgres) GetNoteFragmentTagsByNoteFragmentGuid(noteFragGuid string) (tag []string, err error) {
 	rows, err := d.db.Query(getNoteFragmentTagsByNoteFragmentGuid, noteFragGuid)
 	if err != nil {
 		return nil, errors.Wrapf(ErrPostgresDbGetNoteFragmentTagsByNoteFragmentGuidFailsToQueryResults, "%v", err)
@@ -141,6 +164,12 @@ func (d *DbPostgres) AllNotes() ([]*ehrpb.Note, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		tmpNote.Fragments, err = d.GetNoteFragmentsByNoteGuid(tmpNote.GetNoteGuid())
+		if err != nil {
+			return nil, err
+		}
+
 		notes = append(notes, tmpNote)
 
 	}
@@ -262,10 +291,12 @@ func (d *DbPostgres) createSchema() error {
 	tmpFrag := NewNoteFragment()
 	tmpFrag.NoteGuid = tmpNote.GetNoteGuid()
 	tmpFrag.Tags = append(tmpFrag.Tags, "frag1Tag1", "frag1Tag2")
+	tmpFrag.Content = "This is my content for frag1"
 
 	tmpFrag2 := NewNoteFragment()
 	tmpFrag2.NoteGuid = tmpNote.GetNoteGuid()
 	tmpFrag2.Tags = append(tmpFrag2.Tags, "frag2Tag1", "frag2Tag2")
+	tmpFrag2.Content = "This is my content for frag2"
 
 	tmpNote.Fragments = append(tmpNote.Fragments, tmpFrag, tmpFrag2)
 
