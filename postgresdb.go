@@ -46,14 +46,21 @@ func (d *DbPostgres) AddNote(n *ehrpb.Note) (id int64, err error) {
 		n.GetNoteGuid(), n.GetVisitGuid(), n.GetAuthorGuid(), n.GetPatientGuid(), n.GetType(),
 		n.GetStatus())
 
-	if scanErr := row.Scan(n.Id); scanErr != nil {
+	if scanErr := row.Scan(n.Id); scanErr != nil && scanErr != sql.ErrNoRows {
 		return 0, errors.Wrapf(ErrPostgresDbAddNoteFailedToGetNewId, "%v", scanErr)
 	}
 
 	for _, v := range n.GetFragments() {
 		_, _, err := d.AddNoteFragment(v)
-		if err != nil {
+		if err != nil && err != sql.ErrNoRows {
 			return 0, errors.Wrapf(ErrPostgresDbAddNoteFailedToAddNoteFragments, "%v", err)
+		}
+	}
+
+	for _, v := range n.GetTags() {
+		_, err := d.AddNoteTag(n.GetNoteGuid(), v)
+		if err != nil && err != sql.ErrNoRows{
+			return 0, errors.Wrapf(ErrPostgresDbAddNoteFailedToAddNoteTagToDb, "%v", err)
 		}
 	}
 
@@ -94,6 +101,17 @@ func (d *DbPostgres) AllNotes() ([]*ehrpb.Note, error) {
 	return notes, nil
 }
 
+func (d *DbPostgres) AddNoteTag(noteGuid string, tag string) (id int64, err error) {
+	row := d.db.QueryRow(addNoteTagQuery, noteGuid, tag)
+
+	var newId int64
+	if scanErr := row.Scan(newId); scanErr != nil && scanErr != sql.ErrNoRows {
+		return 0, errors.Wrapf(ErrPostgresDbAddNoteTagFailedToGetNewId, "%v", scanErr)
+	}
+
+	return newId, nil
+}
+
 func (d *DbPostgres) GetNoteById(id int64) (*ehrpb.Note, error) {
 	log.Fatal("Not implemented.")
 	return nil, nil
@@ -109,15 +127,23 @@ func (d *DbPostgres) AllNoteFragments() ([]*ehrpb.NoteFragment, error) {
 	return nil, nil
 }
 
-func (d *DbPostgres) AddNoteFragment(n *ehrpb.NoteFragment)  (id int64, guid string, err error) {
-	row := d.db.QueryRow(addNoteFragmentQuery, n.DateCreated.Seconds, n.DateCreated.Nanos,
-		n.GetNoteFragmentGuid(), n.GetNoteGuid(), n.GetIcd_10Code(), n.GetIcd_10Long(),
-		n.GetDescription(), n.GetStatus(), n.GetPriority(), n.GetTopic(), n.GetContent())
-	scanErr := row.Scan(n.Id)
-	if scanErr != nil {
+func (d *DbPostgres) AddNoteFragment(nf *ehrpb.NoteFragment)  (id int64, guid string, err error) {
+	row := d.db.QueryRow(addNoteFragmentQuery, nf.DateCreated.Seconds, nf.DateCreated.Nanos,
+		nf.GetNoteFragmentGuid(), nf.GetNoteGuid(), nf.GetIcd_10Code(), nf.GetIcd_10Long(),
+		nf.GetDescription(), nf.GetStatus(), nf.GetPriority(), nf.GetTopic(), nf.GetContent())
+	scanErr := row.Scan(nf.Id)
+	if scanErr != nil && scanErr != sql.ErrNoRows {
 		return 0, "", errors.Wrapf(ErrPostgresDbAddNoteFragmentFailedToGetNewId, "%v", scanErr)
 	}
-	return n.GetId(), n.GetNoteFragmentGuid(),nil
+
+	for _, v := range nf.GetTags() {
+		_, err := d.AddNoteTag(nf.GetNoteFragmentGuid(), v)
+		if err != nil && err != sql.ErrNoRows{
+			return 0, nf.NoteFragmentGuid, errors.Wrapf(ErrPostgresDbAddNoteFragmentFailedToAddNoteFragmentTagToDb, "%v", err)
+		}
+	}
+
+	return nf.GetId(), nf.GetNoteFragmentGuid(),nil
 }
 
 func (d *DbPostgres) UpdateNoteFragment(n *ehrpb.NoteFragment)  error {
@@ -138,6 +164,18 @@ func (d *DbPostgres) GetNoteFragmentsById(id int64) (*ehrpb.NoteFragment, error)
 func (d *DbPostgres) FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.NoteFragment, error) {
 	log.Fatal("Not implemented.")
 	return nil, nil
+}
+
+
+func (d *DbPostgres) AddNoteFragmentTag(noteGuid string, tag string) (id int64, err error) {
+	row := d.db.QueryRow(addNoteFragmentTagQuery, noteGuid, tag)
+
+	var newId int64
+	if scanErr := row.Scan(newId); scanErr != nil && scanErr != sql.ErrNoRows {
+		return 0, errors.Wrapf(ErrPostgresDbAddNoteTagFailedToGetNewId, "%v", scanErr)
+	}
+
+	return newId, nil
 }
 
 // https://www.calhoun.io/updating-and-deleting-postgresql-records-using-gos-sql-package/
@@ -173,10 +211,16 @@ func (d *DbPostgres) createSchema() error {
 
 	//TODO: Remove this.
 	tmpNote := NewNote()
+	tmpNote.Tags = append(tmpNote.Tags, "note1Tag1", "note1Tag2")
+
 	tmpFrag := NewNoteFragment()
 	tmpFrag.NoteGuid = tmpNote.GetNoteGuid()
+	tmpFrag.Tags = append(tmpFrag.Tags, "frag1Tag1", "frag1Tag2")
+
 	tmpFrag2 := NewNoteFragment()
 	tmpFrag2.NoteGuid = tmpNote.GetNoteGuid()
+	tmpFrag2.Tags = append(tmpFrag.Tags, "frag2Tag1", "frag2Tag2")
+
 	tmpNote.Fragments = append(tmpNote.Fragments, tmpFrag, tmpFrag2)
 
 	d.AddNote(tmpNote)

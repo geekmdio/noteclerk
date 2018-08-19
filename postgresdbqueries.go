@@ -1,6 +1,6 @@
 package main
 
-
+//TODO: outsource this to loading SQL files
 const createNoteTable = `create table note
 (
   id                   serial            not null
@@ -154,4 +154,32 @@ VALUES
 	$9, 
 	$10,
 	$11
+);`
+
+const addNoteTagQuery =
+`INSERT INTO "public"."note_tag" 
+(
+	"id", 
+	"note_guid", 
+	"tag"
+) 
+VALUES 
+(
+	DEFAULT, 
+	$1, 
+	$2
+);`
+
+const addNoteFragmentTagQuery =
+`INSERT INTO "public"."note_fragment_tag" 
+(
+	"id", 
+	"note_fragment_guid", 
+	"tag"
+) 
+VALUES 
+(
+	DEFAULT, 
+	$1, 
+	$2
 );`

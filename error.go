@@ -23,4 +23,7 @@ var (
 	ErrPostgresDbInitFailedToCreateSchema = errors.New("ERROR 17: DbPostgres.Initialize failed to create the full database schema.")
 	ErrPostgresDbInitTableAlreadyExistsErr = errors.New("ERROR 18: Table already exists and will not be replaced.")
 	ErrMainEnvironmentalVariableNotSet = errors.New("ERROR 19: The NOTECLERK_ENVIRONMENT environmental variable was note set; cannot load configuration file.")
+	ErrPostgresDbAddNoteTagFailedToGetNewId = errors.New("ERROR 20: DbPostgres.AddNoteTag failed to retrieve a new Id; successful add to database unlikely.")
+	ErrPostgresDbAddNoteFailedToAddNoteTagToDb = errors.New("ERROR 21: DbPostgres.AddNote failed to add new note tags to database.")
+	ErrPostgresDbAddNoteFragmentFailedToAddNoteFragmentTagToDb =  errors.New("ERROR 22: DbPostgres.AddNoteFragment failed to add tags to database.")
 )
