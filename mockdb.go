@@ -144,7 +144,7 @@ func (*MockDb) FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.NoteFr
 	panic("implement me")
 }
 
-func (*MockDb) CreateSchema() error {
+func (*MockDb) createSchema() error {
 	panic("implement me")
 }
 
