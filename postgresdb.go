@@ -6,6 +6,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/geekmdio/ehrprotorepo/goproto"
 	"github.com/pkg/errors"
+	"strings"
 )
 
 type DbPostgres struct {
@@ -21,36 +22,38 @@ func (d *DbPostgres) Initialize(config *Config) (*sql.DB, error) {
 		config.DbUsername, config.DbPassword, config.DbIp, config.DbName, config.DbSslMode, config.DbPort)
 
 	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		return nil, errors.Wrapf(ErrPostgresDbInitFailedToOpenConn, "%v", err)
+	}
 	defer db.Close()
 
 	if err = db.Ping(); err != nil {
-		err = errors.New("Could not ping PostgreSQL db")
-		return nil, err
+		return nil, errors.Wrapf(ErrPostgresDbInitFailedToPingDb, "%v", err)
 	}
-	log.Infof("Successfully connected to PostgreSQL db at %v:%v", config.DbIp, config.DbPort)
-	d.db = db
-	d.CreateSchema()
 
-	if err != nil {
-		log.Fatalf("Unable to open connection to database. Error: %v", err)
+	d.db = db
+	schemaErr := d.createSchema()
+	if schemaErr != nil {
+		return nil, errors.Wrapf(ErrPostgresDbInitFailedToCreateSchema, "%v", schemaErr)
 	}
+
 	return d.db, nil
 }
 
 func (d *DbPostgres) AddNote(n *ehrpb.Note) (id int64, err error) {
 
-	scanErr := d.db.QueryRow(addNoteQuery, n.DateCreated.GetSeconds(), n.DateCreated.GetNanos(),
+	row := d.db.QueryRow(addNoteQuery, n.DateCreated.GetSeconds(), n.DateCreated.GetNanos(),
 		n.GetNoteGuid(), n.GetVisitGuid(), n.GetAuthorGuid(), n.GetPatientGuid(), n.GetType(),
-		n.GetStatus()).Scan(n.Id)
+		n.GetStatus())
 
-	if scanErr != nil {
-		return 0, scanErr
+	if scanErr := row.Scan(n.Id); scanErr != nil {
+		return 0, errors.Wrapf(ErrPostgresDbAddNoteFailedToGetNewId, "%v", scanErr)
 	}
 
 	for _, v := range n.GetFragments() {
 		_, _, err := d.AddNoteFragment(v)
 		if err != nil {
-			return 0, scanErr
+			return 0, errors.Wrapf(ErrPostgresDbAddNoteFailedToAddNoteFragments, "%v", err)
 		}
 	}
 
@@ -107,12 +110,12 @@ func (d *DbPostgres) AllNoteFragments() ([]*ehrpb.NoteFragment, error) {
 }
 
 func (d *DbPostgres) AddNoteFragment(n *ehrpb.NoteFragment)  (id int64, guid string, err error) {
-	scanErr := d.db.QueryRow(addNoteFragmentQuery, n.DateCreated.Seconds, n.DateCreated.Nanos,
+	row := d.db.QueryRow(addNoteFragmentQuery, n.DateCreated.Seconds, n.DateCreated.Nanos,
 		n.GetNoteFragmentGuid(), n.GetNoteGuid(), n.GetIcd_10Code(), n.GetIcd_10Long(),
-		n.GetDescription(), n.GetStatus(), n.GetPriority(), n.GetTopic(), n.GetContent()).Scan(n.Id)
-
+		n.GetDescription(), n.GetStatus(), n.GetPriority(), n.GetTopic(), n.GetContent())
+	scanErr := row.Scan(n.Id)
 	if scanErr != nil {
-		return 0, "", scanErr
+		return 0, "", errors.Wrapf(ErrPostgresDbAddNoteFragmentFailedToGetNewId, "%v", scanErr)
 	}
 	return n.GetId(), n.GetNoteFragmentGuid(),nil
 }
@@ -138,12 +141,37 @@ func (d *DbPostgres) FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.
 }
 
 // https://www.calhoun.io/updating-and-deleting-postgresql-records-using-gos-sql-package/
-func (d *DbPostgres) CreateSchema() error {
-	d.createTable(createNoteTable)
-	d.createTable(createNoteTagTable)
-	d.createTable(createNoteFragmentTable)
-	d.createTable(createNoteFragmentTagTable)
+func (d *DbPostgres) createSchema() error {
+	err := d.createTable(createNoteTable)
+	if notNilNotTableExists(err) {
+		return errors.Wrapf(ErrPostgresDbCreateSchemaFails, "Target table: note. Error: %v", err)
+	}
+	if err == ErrPostgresDbInitTableAlreadyExistsErr {
+		log.Warn("Table 'note' already exists.")
+	}
+	err = d.createTable(createNoteTagTable)
+	if notNilNotTableExists(err) {
+		return errors.Wrapf(ErrPostgresDbCreateSchemaFails, "Target table: note_tag. Error: %v", err)
+	}
+	if err == ErrPostgresDbInitTableAlreadyExistsErr {
+		log.Warn("Table 'note_tag' already exists.")
+	}
+	err = d.createTable(createNoteFragmentTable)
+	if notNilNotTableExists(err) {
+		return errors.Wrapf(ErrPostgresDbCreateSchemaFails, "Target table: note_fragment. Error: %v", err)
+	}
+	if err == ErrPostgresDbInitTableAlreadyExistsErr {
+		log.Warn("Table 'note_fragment' already exists.")
+	}
+	err = d.createTable(createNoteFragmentTagTable)
+	if notNilNotTableExists(err) {
+		return errors.Wrapf(ErrPostgresDbCreateSchemaFails, "Target table: note_fragment_tag. Error: %v", err)
+	}
+	if err == ErrPostgresDbInitTableAlreadyExistsErr {
+		log.Warn("Table 'note_fragment_tag' already exists.")
+	}
 
+	//TODO: Remove this.
 	tmpNote := NewNote()
 	tmpFrag := NewNoteFragment()
 	tmpFrag.NoteGuid = tmpNote.GetNoteGuid()
@@ -152,21 +180,30 @@ func (d *DbPostgres) CreateSchema() error {
 	tmpNote.Fragments = append(tmpNote.Fragments, tmpFrag, tmpFrag2)
 
 	d.AddNote(tmpNote)
-	//TODO: remove this
+
 	notes, notesErr := d.AllNotes()
 	if notesErr != nil {
 		log.Println(notesErr)
 	}
 	fmt.Println(notes)
+	//End remove
 
 	return nil
 }
 
-func (d *DbPostgres) createTable(query string) {
+func (d *DbPostgres) createTable(query string) error {
 	_, err := d.db.Exec(query)
-	if err != nil {
-		log.Println(err)
-	} else {
-		log.Println("Table created successfully.")
+
+	tableExistsError := strings.Contains(fmt.Sprintf("%v", err), "already exists")
+	if tableExistsError {
+		return ErrPostgresDbInitTableAlreadyExistsErr
 	}
+	if err != nil {
+		return errors.Wrapf(ErrPostgresDbCreateTableFails, "%v", err)
+	}
+	return nil
+}
+
+func notNilNotTableExists(err error) bool {
+	return err != nil && err != ErrPostgresDbInitTableAlreadyExistsErr
 }

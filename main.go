@@ -12,11 +12,11 @@ func main() {
 	log.Infof("Loading configuration file from %v", configPath)
 	config, err := LoadConfiguration(configPath)
 	if err != nil {
-		log.Panicf("Failed to load configuration file %v. Error returned: %v", configPath, err)
+		log.Panic(err)
 	}
 	InitializeLogger(config.LogPath)
 	if NoteClerkEnv == "" {
-		log.Panicf("NOTECLERK_ENVIRONMENT not set.")
+		log.Panic(ErrMainEnvironmentalVariableNotSet)
 	}
 
 	log.Infof("Initializing NoteClerk v%v on the %v environment.", config.Version, NoteClerkEnv)
@@ -25,6 +25,6 @@ func main() {
 	s := &NoteClerkServer{}
 	err = s.Initialize(config, db)
 	if err != nil {
-		log.Fatalf("failed to initialize server: %v", err)
+		log.Fatal(err)
 	}
 }

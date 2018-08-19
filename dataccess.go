@@ -23,7 +23,7 @@ type RDBMSAccessor interface {
 	AllNoteFragments() ([]*ehrpb.NoteFragment, error)
 	GetNoteFragmentsById(id int64) (*ehrpb.NoteFragment, error)
 	FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.NoteFragment, error)
-	CreateSchema() error
+	createSchema() error
 }
 
 // Find Note's with several fields to narrow search.

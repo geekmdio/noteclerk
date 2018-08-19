@@ -159,20 +159,24 @@ func (n *NoteClerkServer) Initialize(config *Config, db RDBMSAccessor) error {
 	// Initialize server database
 	_, err := n.db.Initialize(config)
 	if err != nil {
-		return ErrDbInitFails
+		return errors.Wrapf(ErrDbInitFails, "%v", err)
 	}
+	log.Info("Successfully connected to database.")
 
 	// Create and register gRPC server
 	n.server = grpc.NewServer()
 	ehrpb.RegisterNoteServiceServer(n.server, n)
+	log.Info("Assigning server a new instance of gRPC server.")
 
 	// Create listener
 	lis, err := net.Listen(n.getProtocol(), n.getConnectionAddr())
 	if err != nil {
 		return errors.Wrapf(ErrListenerInitFails, "Connection Address: %v. Error: %v", n.getConnectionAddr(), err)
 	}
+	log.Info("Successfully created a listener.")
 
 	// Serve
+	log.Info("Starting gRPC server.")
 	if err = n.server.Serve(lis); err != nil {
 		return errors.Wrapf(ErrFailToServeOnListener, "Connection Address: %v. Error: %v", n.getConnectionAddr(), err)
 	}
@@ -184,13 +188,13 @@ func (n *NoteClerkServer) constructor(config *Config, db RDBMSAccessor) error {
 	if config == nil {
 		return ErrServerInitFailsFromNilConfig
 	}
-	
+
 	n.ip = config.ServerIp
 	n.port = config.ServerPort
 	n.protocol = config.ServerProtocol
 	n.connAddr = fmt.Sprintf("%v:%v", n.getIp(), n.getPort())
 	n.db = db
-	
+
 	return nil
 }
 
