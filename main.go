@@ -3,16 +3,18 @@ package main
 import (
 	"fmt"
 	"strings"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	path := fmt.Sprintf("config/config.%v.json", strings.ToLower(NoteClerkEnv))
-	log.Infof("Loading configuration file from %v", path)
-	config, err := LoadConfiguration(path)
+	configPath := fmt.Sprintf("config/config.%v.json", strings.ToLower(NoteClerkEnv))
+	log.Formatter = &logrus.JSONFormatter{}
+	log.Infof("Loading configuration file from %v", configPath)
+	config, err := LoadConfiguration(configPath)
 	if err != nil {
-		log.Panicf("Failed to load configuration file %v. Error returned: %v", path, err)
+		log.Panicf("Failed to load configuration file %v. Error returned: %v", configPath, err)
 	}
-	log.InitializeLogger(config.LogPath)
+	InitializeLogger(config.LogPath)
 	if NoteClerkEnv == "" {
 		log.Panicf("NOTECLERK_ENVIRONMENT not set.")
 	}

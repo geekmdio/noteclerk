@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"github.com/geekmdio/ehrprotorepo/goproto"
+	"github.com/golang/protobuf/ptypes/timestamp"
 )
 
 // RDBMSAccessor has all methods necessary for Note transactions and, as an interface, can easily be mocked.
@@ -27,8 +28,10 @@ type RDBMSAccessor interface {
 
 // Find Note's with several fields to narrow search.
 type NoteFindFilter struct {
-	VisitGuid string
-	AuthorGuid string
+	FromTime    *timestamp.Timestamp
+	ToTime      *timestamp.Timestamp
+	VisitGuid   string
+	AuthorGuid  string
 	PatientGuid string
 	SearchTerms string
 }
@@ -36,15 +39,14 @@ type NoteFindFilter struct {
 
 // Find NoteFragment's with several fields to narrow search.
 type NoteFragmentFindFilter struct {
-	Day int64
-	Month int64
-	Year int64
-	NoteGuid string
-	VisitGuid string
-	AuthorGuid string
+	FromTime    *timestamp.Timestamp
+	ToTime      *timestamp.Timestamp
+	NoteGuid    string
+	VisitGuid   string
+	AuthorGuid  string
 	PatientGuid string
-	Topic ehrpb.FragmentType
-	Priority ehrpb.RecordPriority
-	Status ehrpb.RecordStatus
-	Tags []*string
+	Topic       ehrpb.FragmentType
+	Priority    ehrpb.RecordPriority
+	Status      ehrpb.RecordStatus
+	Tags        []*string
 }

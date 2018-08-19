@@ -6,10 +6,12 @@ import (
 	"github.com/google/uuid"
 	"time"
 	"os"
+	"github.com/sirupsen/logrus"
+	"io"
 )
 
 // Establish logger
-var log = &GmdLog{}
+var log = logrus.New()
 
 // Set the NoteClerk environmental variable.
 var NoteClerkEnv = os.Getenv(Environment)
@@ -45,7 +47,7 @@ func NewNoteFragment() *ehrpb.NoteFragment {
 		Status:           ehrpb.RecordStatus_INCOMPLETE,
 		Priority:         ehrpb.RecordPriority_NO_PRIORITY,
 		Topic:            ehrpb.FragmentType_NO_TOPIC,
-		Content:  "",
+		Content:  		  "",
 		Tags:             make([]string,0),
 	}
 }
@@ -58,4 +60,22 @@ func TimestampNow() *timestamp.Timestamp {
 		Nanos:   int32(now.UnixNano()),
 	}
 	return ts
+}
+
+// Set default settings for logger
+func InitializeLogger(logPath string) {
+	log.Formatter = &logrus.JSONFormatter{}
+	logFile, err := os.OpenFile(logPath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	if err != nil {
+		log.Fatalf("Cannot access or locate log file at location %v.", logPath)
+	}
+
+	log.SetLevel(logrus.InfoLevel)
+	var writer io.Writer = os.Stdout
+	if Environment != "production" {
+		writer = io.MultiWriter(os.Stdout, logFile)
+		logrus.SetLevel(logrus.DebugLevel)
+	}
+
+	log.Out = writer
 }
