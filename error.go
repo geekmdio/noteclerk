@@ -26,4 +26,9 @@ var (
 	ErrPostgresDbAddNoteTagFailedToGetNewId = errors.New("ERROR 20: DbPostgres.AddNoteTag failed to retrieve a new Id; successful add to database unlikely.")
 	ErrPostgresDbAddNoteFailedToAddNoteTagToDb = errors.New("ERROR 21: DbPostgres.AddNote failed to add new note tags to database.")
 	ErrPostgresDbAddNoteFragmentFailedToAddNoteFragmentTagToDb =  errors.New("ERROR 22: DbPostgres.AddNoteFragment failed to add tags to database.")
+	ErrPostgresDbGetNoteFragmentTagsByNoteFragmentGuidFailsToQueryResults = errors.New("ERROR 23: DbPostgres.GetNoteFragmentTagsByNoteFragmentGuid had an error during query.")
+	ErrPostgresDbGetNoteFragmentTagsByNoteFragmentGuidFailsToScanResults = errors.New("ERROR 24: DbPostgres.GetNoteFragmentTagsByNoteFragmentGuid failed to scan row to retrieve tag.")
+	ErrPostgresDbGetNoteTagsByNoteGuidFailsToQueryResults = errors.New("ERROR 23: DbPostgres.GetNoteTagsByNoteGuid had an error during query.")
+	ErrPostgresDbGetNoteTagsByNoteGuidFailsToScanResults = errors.New("ERROR 24: DbPostgres.GetNoteTagsByNoteGuid failed to scan row to retrieve tag.")
+
 )

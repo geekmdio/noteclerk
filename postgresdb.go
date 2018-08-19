@@ -13,6 +13,46 @@ type DbPostgres struct {
 	db *sql.DB
 }
 
+func (d *DbPostgres) GetNoteTagsByNoteGuid(noteGuid string) (tag []string, err error) {
+	rows, err := d.db.Query(getNoteTagByNoteGuid, noteGuid)
+	if err != nil {
+		return nil, errors.Wrapf(ErrPostgresDbGetNoteTagsByNoteGuidFailsToQueryResults, "%v", err)
+	}
+	defer rows.Close()
+
+	tags := make([]string, 0)
+	for rows.Next() {
+		var id int64
+		var noteGuid string
+		var tmpString string
+		err := rows.Scan(&id, &noteGuid, &tmpString)
+		if err != nil {
+			return nil, errors.Wrapf(ErrPostgresDbGetNoteTagsByNoteGuidFailsToScanResults, "%v", err)
+		}
+		tags = append(tags, tmpString)
+	}
+	return tags, nil
+}
+
+func (d *DbPostgres) GetNoteFragmentTagsByNoteGuid(noteFragGuid string) (tag []string, err error) {
+	rows, err := d.db.Query(getNoteFragmentTagsByNoteFragmentGuid, noteFragGuid)
+	if err != nil {
+		return nil, errors.Wrapf(ErrPostgresDbGetNoteFragmentTagsByNoteFragmentGuidFailsToQueryResults, "%v", err)
+	}
+	defer rows.Close()
+
+	tags := make([]string, 0)
+	for rows.Next() {
+		var tmpString string
+		err := rows.Scan(tmpString)
+		if err != nil {
+			return nil, errors.Wrapf(ErrPostgresDbGetNoteFragmentTagsByNoteFragmentGuidFailsToScanResults, "%v", err)
+		}
+		tags = append(tags, tmpString)
+	}
+	return tags, nil
+}
+
 // Initialize() initializes the connection to database. Ensure that the ./config/config.<environment>.json
 // file has been created and properly configured with server and database values. Of note, the '<environment>'
 // can be set to any value, so long as the NOTECLERK_ENVIRONMENT environmental variable's value matches.
@@ -82,7 +122,7 @@ func (d *DbPostgres) DeleteNote(id int64) error {
 func (d *DbPostgres) AllNotes() ([]*ehrpb.Note, error) {
 	rows, err := d.db.Query("SELECT * FROM note;")
 	if err != nil {
-		log.Println(err)
+		// TODO: Custom error giving more context.
 		return nil, err
 	}
 	defer rows.Close()
@@ -94,7 +134,11 @@ func (d *DbPostgres) AllNotes() ([]*ehrpb.Note, error) {
 			&tmpNote.NoteGuid, &tmpNote.VisitGuid, &tmpNote.AuthorGuid,
 			&tmpNote.PatientGuid, &tmpNote.Type, &tmpNote.Status)
 		if err != nil {
-			log.Println(err)
+			//TODO: Custom error giving more context.
+			return nil, err
+		}
+		tmpNote.Tags, err = d.GetNoteTagsByNoteGuid(tmpNote.GetNoteGuid())
+		if err != nil {
 			return nil, err
 		}
 		notes = append(notes, tmpNote)

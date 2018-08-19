@@ -18,6 +18,7 @@ type RDBMSAccessor interface {
 	GetNoteById(id int64) (*ehrpb.Note, error)
 	FindNote(filter NoteFindFilter) ([]*ehrpb.Note, error)
 	AddNoteTag(noteGuid string, tag string) (id int64, err error)
+	GetNoteTagsByNoteGuid(noteGuid string)(tag []string, err error)
 	AddNoteFragment(note *ehrpb.NoteFragment) (id int64, guid string, err error)
 	UpdateNoteFragment(note *ehrpb.NoteFragment) error
 	DeleteNoteFragment(id int64) error
@@ -25,6 +26,7 @@ type RDBMSAccessor interface {
 	GetNoteFragmentsById(id int64) (*ehrpb.NoteFragment, error)
 	FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.NoteFragment, error)
 	AddNoteFragmentTag(noteGuid string, tag string) (id int64, err error)
+	GetNoteFragmentTagsByNoteGuid(noteFragGuid string)(tag []string, err error)
 	createSchema() error
 }
 
