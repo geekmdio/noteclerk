@@ -50,12 +50,6 @@ func (d *DbPostgres) AddNote(n *ehrpb.Note) (id int64, err error) {
 		return 0, errors.Wrapf(ErrPostgresDbAddNoteFailedToGetNewId, "%v", scanErr)
 	}
 
-	for _, v := range n.GetFragments() {
-		_, _, err := d.AddNoteFragment(v)
-		if err != nil && err != sql.ErrNoRows {
-			return 0, errors.Wrapf(ErrPostgresDbAddNoteFailedToAddNoteFragments, "%v", err)
-		}
-	}
 
 	for _, v := range n.GetTags() {
 		_, err := d.AddNoteTag(n.GetNoteGuid(), v)
@@ -63,6 +57,14 @@ func (d *DbPostgres) AddNote(n *ehrpb.Note) (id int64, err error) {
 			return 0, errors.Wrapf(ErrPostgresDbAddNoteFailedToAddNoteTagToDb, "%v", err)
 		}
 	}
+
+	for _, v := range n.GetFragments() {
+		_, _, err := d.AddNoteFragment(v)
+		if err != nil && err != sql.ErrNoRows {
+			return 0, errors.Wrapf(ErrPostgresDbAddNoteFailedToAddNoteFragments, "%v", err)
+		}
+	}
+
 
 	return n.Id,nil
 }
@@ -137,7 +139,7 @@ func (d *DbPostgres) AddNoteFragment(nf *ehrpb.NoteFragment)  (id int64, guid st
 	}
 
 	for _, v := range nf.GetTags() {
-		_, err := d.AddNoteTag(nf.GetNoteFragmentGuid(), v)
+		_, err := d.AddNoteFragmentTag(nf.GetNoteFragmentGuid(), v)
 		if err != nil && err != sql.ErrNoRows{
 			return 0, nf.NoteFragmentGuid, errors.Wrapf(ErrPostgresDbAddNoteFragmentFailedToAddNoteFragmentTagToDb, "%v", err)
 		}
@@ -219,7 +221,7 @@ func (d *DbPostgres) createSchema() error {
 
 	tmpFrag2 := NewNoteFragment()
 	tmpFrag2.NoteGuid = tmpNote.GetNoteGuid()
-	tmpFrag2.Tags = append(tmpFrag.Tags, "frag2Tag1", "frag2Tag2")
+	tmpFrag2.Tags = append(tmpFrag2.Tags, "frag2Tag1", "frag2Tag2")
 
 	tmpNote.Fragments = append(tmpNote.Fragments, tmpFrag, tmpFrag2)
 
