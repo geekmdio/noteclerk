@@ -7,6 +7,7 @@ import (
 	"github.com/geekmdio/ehrprotorepo/goproto"
 	"github.com/pkg/errors"
 	"strings"
+	"github.com/google/uuid"
 )
 
 type DbPostgres struct {
@@ -116,7 +117,7 @@ func (d *DbPostgres) AddNote(n *ehrpb.Note) (id int64, err error) {
 		n.GetNoteGuid(), n.GetVisitGuid(), n.GetAuthorGuid(), n.GetPatientGuid(), n.GetType(),
 		n.GetStatus())
 
-	if scanErr := row.Scan(n.Id); scanErr != nil && scanErr != sql.ErrNoRows {
+	if scanErr := row.Scan(&n.Id); scanErr != nil && scanErr != sql.ErrNoRows {
 		return 0, errors.Wrapf(ErrPostgresDbAddNoteFailedToGetNewId, "%v", scanErr)
 	}
 
@@ -140,12 +141,39 @@ func (d *DbPostgres) AddNote(n *ehrpb.Note) (id int64, err error) {
 }
 
 func (d *DbPostgres) UpdateNote(n *ehrpb.Note) error {
-	log.Fatal("Not implemented.")
+	delErr := d.DeleteNote(n.GetId())
+	if delErr != nil && delErr != sql.ErrNoRows {
+		return delErr
+	}
+	n.NoteGuid = uuid.New().String()
+	for _, v := range n.GetFragments() {
+		v.NoteFragmentGuid = uuid.New().String()
+		v.NoteGuid = n.NoteGuid
+	}
+	_, addErr := d.AddNote(n)
+	if addErr != nil {
+		return addErr
+	}
 	return nil
 }
 
 func (d *DbPostgres) DeleteNote(id int64) error {
-	log.Fatal("Not implemented.")
+	note, getNoteErr := d.GetNoteById(id)
+	if getNoteErr != nil {
+		return getNoteErr
+	}
+	for _, v := range note.GetFragments() {
+		delErr := d.DeleteNoteFragment(v.GetNoteFragmentGuid())
+		if delErr != nil {
+			return delErr
+		}
+	}
+	row := d.db.QueryRow(updateNoteStatusToStatusByNoteIdQuery, ehrpb.RecordStatus_DELETED, id)
+	var newId int64
+	scanErr := row.Scan(newId)
+	if scanErr != nil && scanErr != sql.ErrNoRows {
+		return scanErr
+	}
 	return nil
 }
 
@@ -262,7 +290,7 @@ func (d *DbPostgres) DeleteNoteFragment(noteFragmentGuid string)  error {
 	row := d.db.QueryRow(updateNoteFragmentStatusToStatusByNoteFragmentGuidQuery, ehrpb.RecordStatus_DELETED, noteFragmentGuid)
 	var newId int64
 	scanErr := row.Scan(newId)
-	if scanErr != nil {
+	if scanErr != nil && scanErr != sql.ErrNoRows {
 		return scanErr
 	}
 	return nil
@@ -329,7 +357,10 @@ func (d *DbPostgres) createSchema() error {
 	tmpFrag.NoteGuid = tmpNote.GetNoteGuid()
 	tmpFrag.Tags = append(tmpFrag.Tags, "frag1Tag1", "frag1Tag2")
 	tmpFrag.Content = "This is my content for frag1"
-	d.DeleteNoteFragment(tmpFrag.GetNoteFragmentGuid())
+	err = d.DeleteNoteFragment(tmpFrag.GetNoteFragmentGuid())
+	if err != nil {
+		log.Warn(err)
+	}
 
 	tmpFrag2 := NewNoteFragment()
 	tmpFrag2.NoteGuid = tmpNote.GetNoteGuid()
@@ -338,20 +369,25 @@ func (d *DbPostgres) createSchema() error {
 
 	tmpNote.Fragments = append(tmpNote.Fragments, tmpFrag, tmpFrag2)
 
-	d.AddNote(tmpNote)
-
-	notes, notesErr := d.AllNotes()
-	if notesErr != nil {
-		log.Println(notesErr)
-	}
-	fmt.Println(notes)
-	//End remove
-
-	note, err := d.GetNoteById(124)
+	_, err = d.AddNote(tmpNote)
 	if err != nil {
 		log.Warn(err)
 	}
-	fmt.Println(note)
+
+	notes, notesErr := d.AllNotes()
+	if notesErr != nil {
+		log.Warn(notesErr)
+	}
+
+
+
+	tmpNote.Tags = append(tmpNote.Tags, "updatedTag")
+	updateErr := d.UpdateNote(tmpNote)
+	if updateErr != nil {
+		log.Warn(updateErr)
+	}
+	fmt.Println(notes)
+	//TODO: End remove
 
 	return nil
 }

@@ -195,4 +195,9 @@ const getNoteByIdQuery = `select * from note where id = $1;`
 const updateNoteFragmentStatusToStatusByNoteFragmentGuidQuery =
 `update note_fragment
 set status = $1
-where note_fragment_guid = $2`
+where note_fragment_guid = $2;`
+
+const updateNoteStatusToStatusByNoteIdQuery =
+`update note
+set status = $1
+where id = $2;`
