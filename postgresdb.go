@@ -248,7 +248,7 @@ func (d *DbPostgres) AddNoteFragment(nf *ehrpb.NoteFragment)  (id int64, guid st
 }
 
 func (d *DbPostgres) UpdateNoteFragment(n *ehrpb.NoteFragment)  error {
-	err := d.DeleteNoteFragment(n.Id)
+	err := d.DeleteNoteFragment(n.GetNoteFragmentGuid())
 	if err != nil {
 		return err
 	}
@@ -258,8 +258,13 @@ func (d *DbPostgres) UpdateNoteFragment(n *ehrpb.NoteFragment)  error {
 
 // This is not a true delete. It changes the status of the note to DELETED. Health care
 // records should not be deleted.
-func (d *DbPostgres) DeleteNoteFragment(id int64)  error {
-	log.Fatal("Not implemented.")
+func (d *DbPostgres) DeleteNoteFragment(noteFragmentGuid string)  error {
+	row := d.db.QueryRow(updateNoteFragmentStatusToStatusByNoteFragmentGuidQuery, ehrpb.RecordStatus_DELETED, noteFragmentGuid)
+	var newId int64
+	scanErr := row.Scan(newId)
+	if scanErr != nil {
+		return scanErr
+	}
 	return nil
 }
 
@@ -324,6 +329,7 @@ func (d *DbPostgres) createSchema() error {
 	tmpFrag.NoteGuid = tmpNote.GetNoteGuid()
 	tmpFrag.Tags = append(tmpFrag.Tags, "frag1Tag1", "frag1Tag2")
 	tmpFrag.Content = "This is my content for frag1"
+	d.DeleteNoteFragment(tmpFrag.GetNoteFragmentGuid())
 
 	tmpFrag2 := NewNoteFragment()
 	tmpFrag2.NoteGuid = tmpNote.GetNoteGuid()

@@ -191,3 +191,8 @@ const getNoteFragmentTagsByNoteFragmentGuid = `select * from note_fragment_tag w
 const getNoteFragmentByNoteGuid = `select * from note_fragment where note_guid = $1;`
 
 const getNoteByIdQuery = `select * from note where id = $1;`
+
+const updateNoteFragmentStatusToStatusByNoteFragmentGuidQuery =
+`update note_fragment
+set status = $1
+where note_fragment_guid = $2`

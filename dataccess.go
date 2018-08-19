@@ -21,7 +21,7 @@ type RDBMSAccessor interface {
 	GetNoteTagsByNoteGuid(noteGuid string)(tag []string, err error)
 	AddNoteFragment(note *ehrpb.NoteFragment) (id int64, guid string, err error)
 	UpdateNoteFragment(note *ehrpb.NoteFragment) error
-	DeleteNoteFragment(id int64) error
+	DeleteNoteFragment(noteFragmentGuid string) error
 	AllNoteFragments() ([]*ehrpb.NoteFragment, error)
 	GetNoteFragmentById(id int64) (*ehrpb.NoteFragment, error)
 	GetNoteFragmentsByNoteGuid(noteGuid string)([]*ehrpb.NoteFragment, error)
