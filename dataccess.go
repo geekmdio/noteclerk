@@ -23,7 +23,7 @@ type RDBMSAccessor interface {
 	UpdateNoteFragment(note *ehrpb.NoteFragment) error
 	DeleteNoteFragment(id int64) error
 	AllNoteFragments() ([]*ehrpb.NoteFragment, error)
-	GetNoteFragmentsById(id int64) (*ehrpb.NoteFragment, error)
+	GetNoteFragmentById(id int64) (*ehrpb.NoteFragment, error)
 	GetNoteFragmentsByNoteGuid(noteGuid string)([]*ehrpb.NoteFragment, error)
 	FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.NoteFragment, error)
 	AddNoteFragmentTag(noteGuid string, tag string) (id int64, err error)
@@ -39,6 +39,8 @@ type NoteFindFilter struct {
 	AuthorGuid  string
 	PatientGuid string
 	SearchTerms string
+	Type ehrpb.NoteType
+	Status ehrpb.RecordStatus
 }
 
 

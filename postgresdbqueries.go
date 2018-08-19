@@ -189,3 +189,5 @@ const getNoteTagByNoteGuid = `select * from note_tag where note_guid = $1;`
 const getNoteFragmentTagsByNoteFragmentGuid = `select * from note_fragment_tag where note_fragment_guid = $1;`
 
 const getNoteFragmentByNoteGuid = `select * from note_fragment where note_guid = $1;`
+
+const getNoteByIdQuery = `select * from note where id = $1;`

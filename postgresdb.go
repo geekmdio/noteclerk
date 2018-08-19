@@ -31,6 +31,11 @@ func (d *DbPostgres) GetNoteFragmentsByNoteGuid(noteGuid string) ([]*ehrpb.NoteF
 			//TODO: Custom error
 			return nil, err
 		}
+		tmp.Tags, err = d.GetNoteFragmentTagsByNoteFragmentGuid(tmp.GetNoteFragmentGuid())
+		if err != nil {
+			//TODO: Custom error
+			return nil, err
+		}
 		noteFragments = append(noteFragments, tmp)
 	}
 	return noteFragments, nil
@@ -66,12 +71,14 @@ func (d *DbPostgres) GetNoteFragmentTagsByNoteFragmentGuid(noteFragGuid string) 
 
 	tags := make([]string, 0)
 	for rows.Next() {
-		var tmpString string
-		err := rows.Scan(tmpString)
+		var tmpId int64
+		var tmpNoteFragmentGuid string
+		var tmpTag string
+		err := rows.Scan(&tmpId, &tmpNoteFragmentGuid, &tmpTag)
 		if err != nil {
 			return nil, errors.Wrapf(ErrPostgresDbGetNoteFragmentTagsByNoteFragmentGuidFailsToScanResults, "%v", err)
 		}
-		tags = append(tags, tmpString)
+		tags = append(tags, tmpTag)
 	}
 	return tags, nil
 }
@@ -188,8 +195,27 @@ func (d *DbPostgres) AddNoteTag(noteGuid string, tag string) (id int64, err erro
 }
 
 func (d *DbPostgres) GetNoteById(id int64) (*ehrpb.Note, error) {
-	log.Fatal("Not implemented.")
-	return nil, nil
+	row := d.db.QueryRow(getNoteByIdQuery, id)
+
+	newNote := NewNote()
+	err := row.Scan(&newNote.Id, &newNote.DateCreated.Seconds, &newNote.DateCreated.Nanos, &newNote.NoteGuid,
+		&newNote.VisitGuid, &newNote.AuthorGuid, &newNote.PatientGuid, &newNote.Type, &newNote.Status)
+
+	//TODO: Custom errors
+	if err != nil {
+		return nil, err
+	}
+	newNote.Fragments, err = d.GetNoteFragmentsByNoteGuid(newNote.GetNoteGuid())
+	if err != nil {
+		return nil, err
+	}
+
+	newNote.Tags, err = d.GetNoteTagsByNoteGuid(newNote.GetNoteGuid())
+	if err != nil {
+		return nil, err
+	}
+
+	return newNote, nil
 }
 
 func (d *DbPostgres) FindNote(filter NoteFindFilter) ([]*ehrpb.Note, error) {
@@ -222,16 +248,22 @@ func (d *DbPostgres) AddNoteFragment(nf *ehrpb.NoteFragment)  (id int64, guid st
 }
 
 func (d *DbPostgres) UpdateNoteFragment(n *ehrpb.NoteFragment)  error {
+	err := d.DeleteNoteFragment(n.Id)
+	if err != nil {
+		return err
+	}
 	log.Fatal("Not implemented.")
 	return nil
 }
 
+// This is not a true delete. It changes the status of the note to DELETED. Health care
+// records should not be deleted.
 func (d *DbPostgres) DeleteNoteFragment(id int64)  error {
 	log.Fatal("Not implemented.")
 	return nil
 }
 
-func (d *DbPostgres) GetNoteFragmentsById(id int64) (*ehrpb.NoteFragment, error) {
+func (d *DbPostgres) GetNoteFragmentById(id int64) (*ehrpb.NoteFragment, error) {
 	log.Fatal("Not implemented.")
 	return nil, nil
 }
@@ -308,6 +340,12 @@ func (d *DbPostgres) createSchema() error {
 	}
 	fmt.Println(notes)
 	//End remove
+
+	note, err := d.GetNoteById(124)
+	if err != nil {
+		log.Warn(err)
+	}
+	fmt.Println(note)
 
 	return nil
 }
