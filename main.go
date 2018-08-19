@@ -19,9 +19,14 @@ func main() {
 		log.Panic(ErrMainEnvironmentalVariableNotSet)
 	}
 
-	log.Infof("Initializing NoteClerk v%v on the %v environment.", config.Version, NoteClerkEnv)
+	initStatement := fmt.Sprintf("NoteClerk v%v is launching in %v", config.Version, strings.ToUpper(NoteClerkEnv))
+	fmt.Println(initStatement)
+	log.Infof(initStatement)
 
-	log.Infof("Starting GeekMD's NoteClerk Server on %v:%v.", config.ServerIp, config.ServerPort)
+	serverStartStatement := fmt.Sprintf("Starting GeekMD's NoteClerk Server on %v:%v.", config.ServerIp, config.ServerPort)
+	fmt.Println(serverStartStatement)
+	log.Infof(serverStartStatement)
+
 	s := &NoteClerkServer{}
 	err = s.Initialize(config, db)
 	if err != nil {
