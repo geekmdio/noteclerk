@@ -2,8 +2,7 @@ package main
 
 import (
 	"database/sql"
-	"github.com/geekmdio/ehrprotorepo/goproto"
-	"github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
 )
 
 // RDBMSAccessor has all methods necessary for Note transactions and, as an interface, can easily be mocked.
@@ -18,42 +17,32 @@ type RDBMSAccessor interface {
 	GetNoteById(id int64) (*ehrpb.Note, error)
 	FindNote(filter NoteFindFilter) ([]*ehrpb.Note, error)
 	AddNoteTag(noteGuid string, tag string) (id int64, err error)
-	GetNoteTagsByNoteGuid(noteGuid string)(tag []string, err error)
+	GetNoteTagsByNoteGuid(noteGuid string) (tag []string, err error)
 	AddNoteFragment(note *ehrpb.NoteFragment) (id int64, guid string, err error)
 	UpdateNoteFragment(note *ehrpb.NoteFragment) error
 	DeleteNoteFragment(noteFragmentGuid string) error
 	AllNoteFragments() ([]*ehrpb.NoteFragment, error)
 	GetNoteFragmentById(id int64) (*ehrpb.NoteFragment, error)
-	GetNoteFragmentsByNoteGuid(noteGuid string)([]*ehrpb.NoteFragment, error)
+	GetNoteFragmentsByNoteGuid(noteGuid string) ([]*ehrpb.NoteFragment, error)
 	FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.NoteFragment, error)
 	AddNoteFragmentTag(noteGuid string, tag string) (id int64, err error)
-	GetNoteFragmentTagsByNoteFragmentGuid(noteFragGuid string)(tag []string, err error)
+	GetNoteFragmentTagsByNoteFragmentGuid(noteFragGuid string) (tag []string, err error)
 	createSchema() error
 }
 
 // Find Note's with several fields to narrow search.
 type NoteFindFilter struct {
-	FromTime    *timestamp.Timestamp
-	ToTime      *timestamp.Timestamp
 	VisitGuid   string
 	AuthorGuid  string
 	PatientGuid string
 	SearchTerms string
-	Type ehrpb.NoteType
-	Status ehrpb.RecordStatus
 }
-
 
 // Find NoteFragment's with several fields to narrow search.
 type NoteFragmentFindFilter struct {
-	FromTime    *timestamp.Timestamp
-	ToTime      *timestamp.Timestamp
 	NoteGuid    string
 	VisitGuid   string
 	AuthorGuid  string
 	PatientGuid string
-	Topic       ehrpb.FragmentType
-	Priority    ehrpb.RecordPriority
-	Status      ehrpb.RecordStatus
-	Tags        []*string
+	SearchTerms string
 }

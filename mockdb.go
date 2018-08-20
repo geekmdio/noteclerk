@@ -2,11 +2,11 @@ package main
 
 import (
 	"database/sql"
-	"github.com/geekmdio/ehrprotorepo/goproto"
-	"github.com/golang/protobuf/ptypes/timestamp"
-	"sort"
 	"fmt"
+	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
+	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/pkg/errors"
+	"sort"
 )
 
 // MockDb implements RDBMSAccessor, but the database is simply a slice of Note pointers. Used in unit testing.
@@ -15,7 +15,7 @@ type MockDb struct {
 }
 
 // The database should be initialized after instantiation for all structs implementing the RDBMSAccessor interface.
-func (m *MockDb) Initialize (config *Config) (*sql.DB, error) {
+func (m *MockDb) Initialize(config *Config) (*sql.DB, error) {
 	var notes []*ehrpb.Note
 	notes = append(notes, buildNote1(), buildNote2())
 	m.db = notes
@@ -74,7 +74,7 @@ func (m *MockDb) DeleteNote(id int64) error {
 
 	var newDb []*ehrpb.Note
 	newDb = append(newDb, m.db[:index]...)
-	newDb = append(newDb, m.db[index + 1:]...)
+	newDb = append(newDb, m.db[index+1:]...)
 	m.db = newDb
 	return nil
 }
@@ -139,7 +139,6 @@ func (*MockDb) GetNoteFragmentsById(id int64) (*ehrpb.NoteFragment, error) {
 func (*MockDb) FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.NoteFragment, error) {
 	panic("implement me")
 }
-
 
 func (m *MockDb) AddNoteTag(noteGuid string, tag string) (id int64, err error) {
 	panic("implement me")
@@ -216,7 +215,7 @@ func buildNote1() *ehrpb.Note {
 		Status:           ehrpb.RecordStatus_ACTIVE,
 		Priority:         ehrpb.RecordPriority_HIGH,
 		Topic:            ehrpb.FragmentType_SUBJECTIVE,
-		Content:  "This would be markdown content.",
+		Content:          "This would be markdown content.",
 		Tags:             []string{"noteFrag1Tag1"},
 	})
 	return note1
@@ -253,7 +252,7 @@ func buildNote2() *ehrpb.Note {
 		Status:           ehrpb.RecordStatus_ACTIVE,
 		Priority:         ehrpb.RecordPriority_HIGH,
 		Topic:            ehrpb.FragmentType_SUBJECTIVE,
-		Content:  "This would be markdown content.",
+		Content:          "This would be markdown content.",
 		Tags:             []string{"noteFrag2Tag1"},
 	})
 	return note1

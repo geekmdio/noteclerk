@@ -3,11 +3,11 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
+	"github.com/google/uuid"
 	_ "github.com/lib/pq"
-	"github.com/geekmdio/ehrprotorepo/goproto"
 	"github.com/pkg/errors"
 	"strings"
-	"github.com/google/uuid"
 )
 
 type DbPostgres struct {
@@ -27,7 +27,7 @@ func (d *DbPostgres) GetNoteFragmentsByNoteGuid(noteGuid string) ([]*ehrpb.NoteF
 		tmp := NewNoteFragment()
 		err := rows.Scan(&tmp.Id, &tmp.DateCreated.Seconds, &tmp.DateCreated.Nanos, &tmp.NoteFragmentGuid,
 			&tmp.NoteGuid, &tmp.Icd_10Code, &tmp.Icd_10Long, &tmp.Description, &tmp.Status,
-			&tmp.Priority,  &tmp.Topic, &tmp.Content)
+			&tmp.Priority, &tmp.Topic, &tmp.Content)
 		if err != nil {
 			//TODO: Custom error
 			return nil, err
@@ -121,10 +121,9 @@ func (d *DbPostgres) AddNote(n *ehrpb.Note) (id int64, err error) {
 		return 0, errors.Wrapf(ErrPostgresDbAddNoteFailedToGetNewId, "%v", scanErr)
 	}
 
-
 	for _, v := range n.GetTags() {
 		_, err := d.AddNoteTag(n.GetNoteGuid(), v)
-		if err != nil && err != sql.ErrNoRows{
+		if err != nil && err != sql.ErrNoRows {
 			return 0, errors.Wrapf(ErrPostgresDbAddNoteFailedToAddNoteTagToDb, "%v", err)
 		}
 	}
@@ -136,8 +135,7 @@ func (d *DbPostgres) AddNote(n *ehrpb.Note) (id int64, err error) {
 		}
 	}
 
-
-	return n.Id,nil
+	return n.Id, nil
 }
 
 func (d *DbPostgres) UpdateNote(n *ehrpb.Note) error {
@@ -256,7 +254,7 @@ func (d *DbPostgres) AllNoteFragments() ([]*ehrpb.NoteFragment, error) {
 	return nil, nil
 }
 
-func (d *DbPostgres) AddNoteFragment(nf *ehrpb.NoteFragment)  (id int64, guid string, err error) {
+func (d *DbPostgres) AddNoteFragment(nf *ehrpb.NoteFragment) (id int64, guid string, err error) {
 	row := d.db.QueryRow(addNoteFragmentQuery, nf.DateCreated.Seconds, nf.DateCreated.Nanos,
 		nf.GetNoteFragmentGuid(), nf.GetNoteGuid(), nf.GetIcd_10Code(), nf.GetIcd_10Long(),
 		nf.GetDescription(), nf.GetStatus(), nf.GetPriority(), nf.GetTopic(), nf.GetContent())
@@ -267,15 +265,15 @@ func (d *DbPostgres) AddNoteFragment(nf *ehrpb.NoteFragment)  (id int64, guid st
 
 	for _, v := range nf.GetTags() {
 		_, err := d.AddNoteFragmentTag(nf.GetNoteFragmentGuid(), v)
-		if err != nil && err != sql.ErrNoRows{
+		if err != nil && err != sql.ErrNoRows {
 			return 0, nf.NoteFragmentGuid, errors.Wrapf(ErrPostgresDbAddNoteFragmentFailedToAddNoteFragmentTagToDb, "%v", err)
 		}
 	}
 
-	return nf.GetId(), nf.GetNoteFragmentGuid(),nil
+	return nf.GetId(), nf.GetNoteFragmentGuid(), nil
 }
 
-func (d *DbPostgres) UpdateNoteFragment(n *ehrpb.NoteFragment)  error {
+func (d *DbPostgres) UpdateNoteFragment(n *ehrpb.NoteFragment) error {
 	err := d.DeleteNoteFragment(n.GetNoteFragmentGuid())
 	if err != nil {
 		return err
@@ -286,7 +284,7 @@ func (d *DbPostgres) UpdateNoteFragment(n *ehrpb.NoteFragment)  error {
 
 // This is not a true delete. It changes the status of the note to DELETED. Health care
 // records should not be deleted.
-func (d *DbPostgres) DeleteNoteFragment(noteFragmentGuid string)  error {
+func (d *DbPostgres) DeleteNoteFragment(noteFragmentGuid string) error {
 	row := d.db.QueryRow(updateNoteFragmentStatusToStatusByNoteFragmentGuidQuery, ehrpb.RecordStatus_DELETED, noteFragmentGuid)
 	var newId int64
 	scanErr := row.Scan(newId)
@@ -305,7 +303,6 @@ func (d *DbPostgres) FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.
 	log.Fatal("Not implemented.")
 	return nil, nil
 }
-
 
 func (d *DbPostgres) AddNoteFragmentTag(noteGuid string, tag string) (id int64, err error) {
 	row := d.db.QueryRow(addNoteFragmentTagQuery, noteGuid, tag)
@@ -378,8 +375,6 @@ func (d *DbPostgres) createSchema() error {
 	if notesErr != nil {
 		log.Warn(notesErr)
 	}
-
-
 
 	tmpNote.Tags = append(tmpNote.Tags, "updatedTag")
 	updateErr := d.UpdateNote(tmpNote)

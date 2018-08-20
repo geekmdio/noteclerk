@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"github.com/sirupsen/logrus"
+	"strings"
 )
 
 func main() {

@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/geekmdio/ehrprotorepo/goproto"
+	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/google/uuid"
-	"time"
-	"os"
 	"github.com/sirupsen/logrus"
 	"io"
+	"os"
+	"time"
 )
 
 // Establish logger
@@ -30,7 +30,7 @@ func NewNote() *ehrpb.Note {
 		DateCreated: TimestampNow(),
 		NoteGuid:    uuid.New().String(),
 		Fragments:   make([]*ehrpb.NoteFragment, 0),
-		Tags:        make([]string,0),
+		Tags:        make([]string, 0),
 	}
 }
 
@@ -47,8 +47,8 @@ func NewNoteFragment() *ehrpb.NoteFragment {
 		Status:           ehrpb.RecordStatus_INCOMPLETE,
 		Priority:         ehrpb.RecordPriority_NO_PRIORITY,
 		Topic:            ehrpb.FragmentType_NO_TOPIC,
-		Content:  		  "",
-		Tags:             make([]string,0),
+		Content:          "",
+		Tags:             make([]string, 0),
 	}
 }
 
