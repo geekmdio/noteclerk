@@ -2,45 +2,34 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"os"
 	"strings"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
-
-	var env = os.Getenv(Environment)
-	var path = fmt.Sprintf("config/config.%v.json", strings.ToLower(env))
-
-	if env == "" {
-		panic(fmt.Sprintf("Environmental variable %v not set.", Environment))
-	}
-
-	printHeading(fmt.Sprintf("Initializing NoteClerk v0.1.0 on the %v environment.", env))
-
-	if len(os.Args) >= 2 {
-		if strings.ToLower(os.Args[1]) == "config" {
-			fmt.Printf("Add to './config/config.<environment>.json':\n%v\n", configJson)
-			return
-		} else if strings.ToLower(os.Args[1]) == "help" {
-			fmt.Println("You can execute the server as ./prog, or generate a config file with ./prog config")
-			return
-		} else {
-			fmt.Println("You've provided an incorrect argument. Run ./prog help for assistance.")
-			os.Exit(1)
-		}
-	}
-
-	printSubtext("Loading configuration file...")
-	config, err := LoadConfiguration(path)
+	configPath := fmt.Sprintf("config/config.%v.json", strings.ToLower(NoteClerkEnv))
+	log.Formatter = &logrus.JSONFormatter{}
+	log.Infof("Loading configuration file from %v", configPath)
+	config, err := LoadConfiguration(configPath)
 	if err != nil {
-		log.Fatalf("unable to load Config file. err: %v", err)
+		log.Panic(err)
+	}
+	InitializeLogger(config.LogPath)
+	if NoteClerkEnv == "" {
+		log.Panic(ErrMainEnvironmentalVariableNotSet)
 	}
 
-	printSubtext("Starting GeekMD's NoteClerk Server...")
+	initStatement := fmt.Sprintf("NoteClerk v%v is launching in %v", config.Version, strings.ToUpper(NoteClerkEnv))
+	fmt.Println(initStatement)
+	log.Infof(initStatement)
+
+	serverStartStatement := fmt.Sprintf("Starting GeekMD's NoteClerk Server on %v:%v.", config.ServerIp, config.ServerPort)
+	fmt.Println(serverStartStatement)
+	log.Infof(serverStartStatement)
+
 	s := &NoteClerkServer{}
 	err = s.Initialize(config, db)
 	if err != nil {
-		log.Fatalf("failed to initialize server")
+		log.Fatal(err)
 	}
 }
