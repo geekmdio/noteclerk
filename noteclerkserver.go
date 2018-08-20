@@ -118,7 +118,7 @@ func (n *NoteClerkServer) SearchNotes(ctx context.Context, fnr *ehrpb.SearchNote
 		}
 	}
 
-	notes, err := n.db.FindNote(filter)
+	notes, err := n.db.FindNotes(filter)
 	if err != nil {
 		newErr := errors.Wrapf(ErrFindNoteFailedToFindInDb, "%v", err)
 		log.Warn(newErr)

@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
-	"github.com/pkg/errors"
-	"sort"
 	"github.com/geekmdio/noted"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
+	"sort"
 )
 
 // MockDb implements RDBMSAccessor, but the database is simply a slice of Note pointers. Used in unit testing.
@@ -104,7 +104,7 @@ func (m *MockDb) GetNoteById(id int64) (*ehrpb.Note, error) {
 }
 
 // Find a note using a number of powerful search filters.
-func (m *MockDb) FindNote(filter NoteFindFilter) ([]*ehrpb.Note, error) {
+func (m *MockDb) FindNotes(filter NoteFindFilter) ([]*ehrpb.Note, error) {
 	var foundNotes []*ehrpb.Note
 	for _, v := range m.db {
 		if v.GetVisitGuid() == filter.VisitGuid ||

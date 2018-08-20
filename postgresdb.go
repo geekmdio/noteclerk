@@ -244,7 +244,7 @@ func (d *DbPostgres) GetNoteById(id int64) (*ehrpb.Note, error) {
 	return newNote, nil
 }
 
-func (d *DbPostgres) FindNote(filter NoteFindFilter) ([]*ehrpb.Note, error) {
+func (d *DbPostgres) FindNotes(filter NoteFindFilter) ([]*ehrpb.Note, error) {
 	log.Fatal("Not implemented.")
 	return nil, nil
 }
