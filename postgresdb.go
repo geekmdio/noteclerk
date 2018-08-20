@@ -14,6 +14,33 @@ type DbPostgres struct {
 	db *sql.DB
 }
 
+// Initialize() initializes the connection to database. Ensure that the ./config/config.<environment>.json
+// file has been created and properly configured with server and database values. Of note, the '<environment>'
+// can be set to any value, so long as the NOTECLERK_ENVIRONMENT environmental variable's value matches.
+// RETURNS: *sql.db, error
+func (d *DbPostgres) Initialize(config *Config) (*sql.DB, error) {
+	connStr := fmt.Sprintf("user=%v password=%v host=%v dbname=%v sslmode=%v port=%v",
+		config.DbUsername, config.DbPassword, config.DbIp, config.DbName, config.DbSslMode, config.DbPort)
+
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		return nil, errors.Wrapf(ErrPostgresDbInitFailedToOpenConn, "%v", err)
+	}
+	defer db.Close()
+
+	if err = db.Ping(); err != nil {
+		return nil, errors.Wrapf(ErrPostgresDbInitFailedToPingDb, "%v", err)
+	}
+
+	d.db = db
+	schemaErr := d.createSchema()
+	if schemaErr != nil {
+		return nil, errors.Wrapf(ErrPostgresDbInitFailedToCreateSchema, "%v", schemaErr)
+	}
+
+	return d.db, nil
+}
+
 func (d *DbPostgres) GetNoteFragmentsByNoteGuid(noteGuid string) ([]*ehrpb.NoteFragment, error) {
 	rows, err := d.db.Query(getNoteFragmentByNoteGuid, noteGuid)
 	if err != nil {
@@ -82,33 +109,6 @@ func (d *DbPostgres) GetNoteFragmentTagsByNoteFragmentGuid(noteFragGuid string) 
 		tags = append(tags, tmpTag)
 	}
 	return tags, nil
-}
-
-// Initialize() initializes the connection to database. Ensure that the ./config/config.<environment>.json
-// file has been created and properly configured with server and database values. Of note, the '<environment>'
-// can be set to any value, so long as the NOTECLERK_ENVIRONMENT environmental variable's value matches.
-// RETURNS: *sql.db, error
-func (d *DbPostgres) Initialize(config *Config) (*sql.DB, error) {
-	connStr := fmt.Sprintf("user=%v password=%v host=%v dbname=%v sslmode=%v port=%v",
-		config.DbUsername, config.DbPassword, config.DbIp, config.DbName, config.DbSslMode, config.DbPort)
-
-	db, err := sql.Open("postgres", connStr)
-	if err != nil {
-		return nil, errors.Wrapf(ErrPostgresDbInitFailedToOpenConn, "%v", err)
-	}
-	defer db.Close()
-
-	if err = db.Ping(); err != nil {
-		return nil, errors.Wrapf(ErrPostgresDbInitFailedToPingDb, "%v", err)
-	}
-
-	d.db = db
-	schemaErr := d.createSchema()
-	if schemaErr != nil {
-		return nil, errors.Wrapf(ErrPostgresDbInitFailedToCreateSchema, "%v", schemaErr)
-	}
-
-	return d.db, nil
 }
 
 func (d *DbPostgres) AddNote(n *ehrpb.Note) (id int64, err error) {
