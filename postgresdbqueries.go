@@ -98,8 +98,7 @@ create unique index note_fragment_tag_id_uindex
 ;
 `
 
-const addNoteQuery =
-`INSERT INTO "public"."note" 
+const addNoteQuery = `INSERT INTO "public"."note" 
 (
 	"id", 
 	"date_created_seconds", 
@@ -124,8 +123,7 @@ VALUES
 	$8
 );`
 
-const addNoteFragmentQuery =
-`INSERT INTO "public"."note_fragment" 
+const addNoteFragmentQuery = `INSERT INTO "public"."note_fragment" 
 (
 	"id", 
 	"date_created_seconds", 
@@ -156,8 +154,7 @@ VALUES
 	$11
 );`
 
-const addNoteTagQuery =
-`INSERT INTO "public"."note_tag" 
+const addNoteTagQuery = `INSERT INTO "public"."note_tag" 
 (
 	"id", 
 	"note_guid", 
@@ -170,8 +167,7 @@ VALUES
 	$2
 );`
 
-const addNoteFragmentTagQuery =
-`INSERT INTO "public"."note_fragment_tag" 
+const addNoteFragmentTagQuery = `INSERT INTO "public"."note_fragment_tag" 
 (
 	"id", 
 	"note_fragment_guid", 
@@ -192,12 +188,10 @@ const getNoteFragmentByNoteGuid = `select * from note_fragment where note_guid =
 
 const getNoteByIdQuery = `select * from note where id = $1;`
 
-const updateNoteFragmentStatusToStatusByNoteFragmentGuidQuery =
-`update note_fragment
+const updateNoteFragmentStatusToStatusByNoteFragmentGuidQuery = `update note_fragment
 set status = $1
 where note_fragment_guid = $2;`
 
-const updateNoteStatusToStatusByNoteIdQuery =
-`update note
+const updateNoteStatusToStatusByNoteIdQuery = `update note
 set status = $1
 where id = $2;`

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"io/ioutil"
 	"encoding/json"
+	"io/ioutil"
 )
 
 // This is the environmental variable in the OS that should be se to your preferred
@@ -14,8 +14,8 @@ const Environment = "NOTECLERK_ENVIRONMENT"
 // ./config/config.<environment>.json, where '.' indicates the server root, and where
 // <environment> can be any lowercase value so long as the NOTECLERK_ENVIRONMENT environmental variable matches.
 type Config struct {
-	Version 	   string
-	LogPath		   string
+	Version        string
+	LogPath        string
 	ServerProtocol string
 	ServerIp       string
 	ServerPort     string

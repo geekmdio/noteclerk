@@ -6,19 +6,19 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/geekmdio/ehrprotorepo/goproto"
-	"github.com/pkg/errors"
 	"context"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
+	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
 )
 
 type NoteClerkServer struct {
-	db          RDBMSAccessor
-	ip          string
-	port        string
-	protocol    string
-	connAddr    string
-	server      *grpc.Server
+	db       RDBMSAccessor
+	ip       string
+	port     string
+	protocol string
+	connAddr string
+	server   *grpc.Server
 }
 
 func (n *NoteClerkServer) CreateNote(ctx context.Context, nr *ehrpb.CreateNoteRequest) (*ehrpb.CreateNoteResponse, error) {
@@ -29,7 +29,6 @@ func (n *NoteClerkServer) CreateNote(ctx context.Context, nr *ehrpb.CreateNoteRe
 	noteToAdd := nr.Note
 	noteToAdd.NoteGuid = uuid.New().String()
 	noteToAdd.DateCreated = TimestampNow()
-
 
 	id, addErr := n.db.AddNote(noteToAdd)
 	if addErr != nil {
@@ -52,8 +51,8 @@ func (n *NoteClerkServer) CreateNote(ctx context.Context, nr *ehrpb.CreateNoteRe
 func (n *NoteClerkServer) DeleteNote(ctx context.Context, dnr *ehrpb.DeleteNoteRequest) (*ehrpb.DeleteNoteResponse, error) {
 	dnRes := &ehrpb.DeleteNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{
-			HttpCode:             ehrpb.StatusCodes_OK,
-			Message:              "Successfully marked note as deleted in the database.",
+			HttpCode: ehrpb.StatusCodes_OK,
+			Message:  "Successfully marked note as deleted in the database.",
 		},
 	}
 
@@ -72,8 +71,8 @@ func (n *NoteClerkServer) DeleteNote(ctx context.Context, dnr *ehrpb.DeleteNoteR
 func (n *NoteClerkServer) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveNoteRequest) (*ehrpb.RetrieveNoteResponse, error) {
 	retNoteRes := &ehrpb.RetrieveNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{
-			HttpCode:             ehrpb.StatusCodes_OK,
-			Message:              "Successfully retrieved note from database.",
+			HttpCode: ehrpb.StatusCodes_OK,
+			Message:  "Successfully retrieved note from database.",
 		},
 	}
 
@@ -101,8 +100,8 @@ func (n *NoteClerkServer) SearchNote(ctx context.Context, fnr *ehrpb.SearchNoteR
 
 	findNoteResponse := &ehrpb.SearchNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{
-			HttpCode:             ehrpb.StatusCodes_OK,
-			Message:              "Successfully found one or more notes matching query.",
+			HttpCode: ehrpb.StatusCodes_OK,
+			Message:  "Successfully found one or more notes matching query.",
 		},
 	}
 
@@ -123,8 +122,8 @@ func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteR
 
 	updateNoteResponse := &ehrpb.UpdateNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{
-			HttpCode:             ehrpb.StatusCodes_OK,
-			Message:              "Successfully updated note.",
+			HttpCode: ehrpb.StatusCodes_OK,
+			Message:  "Successfully updated note.",
 		},
 	}
 
@@ -135,7 +134,6 @@ func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteR
 		updateNoteResponse.Status.Message = "Failed to update note. The id provided for the update note request does not match the id of the note."
 		return updateNoteResponse, newErr
 	}
-
 
 	err := n.db.UpdateNote(unr.Note)
 	if err != nil {
@@ -189,6 +187,9 @@ func (n *NoteClerkServer) Initialize(config *Config, db RDBMSAccessor) error {
 }
 
 func (n *NoteClerkServer) constructor(config *Config, db RDBMSAccessor) error {
+	if db == nil {
+		return ErrServerCannotInitWithNilDatabase
+	}
 	if config == nil {
 		return ErrServerInitFailsFromNilConfig
 	}
