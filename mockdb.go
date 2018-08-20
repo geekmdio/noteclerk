@@ -2,20 +2,20 @@ package main
 
 import (
 	"database/sql"
-	"github.com/geekmdio/ehrprotorepo/goproto"
-	"github.com/golang/protobuf/ptypes/timestamp"
-	"sort"
 	"fmt"
+	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
+	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/pkg/errors"
+	"sort"
 )
 
-// MockDb implements DbAccessor, but the database is simply a slice of Note pointers. Used in unit testing.
+// MockDb implements RDBMSAccessor, but the database is simply a slice of Note pointers. Used in unit testing.
 type MockDb struct {
 	db []*ehrpb.Note
 }
 
-// The database should be initialized after instantiation for all structs implementing the DbAccessor interface.
-func (m *MockDb) Init(config *Config) (*sql.DB, error) {
+// The database should be initialized after instantiation for all structs implementing the RDBMSAccessor interface.
+func (m *MockDb) Initialize(config *Config) (*sql.DB, error) {
 	var notes []*ehrpb.Note
 	notes = append(notes, buildNote1(), buildNote2())
 	m.db = notes
@@ -24,7 +24,7 @@ func (m *MockDb) Init(config *Config) (*sql.DB, error) {
 }
 
 // Add a note to the mock database.
-func (m *MockDb) AddNote(note *ehrpb.Note) (id int32, err error) {
+func (m *MockDb) AddNote(note *ehrpb.Note) (id int64, err error) {
 	if note.Id > 0 {
 		return 0, errors.New("note has index greater than 0 and is rejected")
 	}
@@ -57,7 +57,7 @@ func (m *MockDb) UpdateNote(note *ehrpb.Note) error {
 }
 
 // Delete a note from the mock database.
-func (m *MockDb) DeleteNote(id int32) error {
+func (m *MockDb) DeleteNote(id int64) error {
 	var index int
 	var found bool
 	for k, n := range m.db {
@@ -74,21 +74,18 @@ func (m *MockDb) DeleteNote(id int32) error {
 
 	var newDb []*ehrpb.Note
 	newDb = append(newDb, m.db[:index]...)
-	newDb = append(newDb, m.db[index + 1:]...)
+	newDb = append(newDb, m.db[index+1:]...)
 	m.db = newDb
 	return nil
 }
 
 // Returns all notes currently stored in the mock database.
 func (m *MockDb) AllNotes() ([]*ehrpb.Note, error) {
-	if m.db == nil {
-		return make([]*ehrpb.Note, 0), errors.New("Mock database is empty")
-	}
 	return m.db, nil
 }
 
 // Get's a Note by it's Id, which should be unique.
-func (m *MockDb) GetNoteById(id int32) (*ehrpb.Note, error) {
+func (m *MockDb) GetNoteById(id int64) (*ehrpb.Note, error) {
 	var foundNote *ehrpb.Note
 	found := false
 	for _, v := range m.db {
@@ -123,7 +120,7 @@ func (m *MockDb) FindNote(filter NoteFindFilter) ([]*ehrpb.Note, error) {
 	return foundNotes, nil
 }
 
-func (*MockDb) AddNoteFragment(note *ehrpb.NoteFragment) (id int32, guid string, err error) {
+func (*MockDb) AddNoteFragment(note *ehrpb.NoteFragment) (id int64, guid string, err error) {
 	panic("implement me")
 }
 
@@ -131,15 +128,11 @@ func (*MockDb) UpdateNoteFragment(note *ehrpb.NoteFragment) error {
 	panic("implement me")
 }
 
-func (*MockDb) DeleteNoteFragment(id int32) error {
-	panic("implement me")
-}
-
 func (*MockDb) AllNoteFragments() ([]*ehrpb.NoteFragment, error) {
 	panic("implement me")
 }
 
-func (*MockDb) GetNoteFragmentsById(id int32) (*ehrpb.NoteFragment, error) {
+func (*MockDb) GetNoteFragmentsById(id int64) (*ehrpb.NoteFragment, error) {
 	panic("implement me")
 }
 
@@ -147,7 +140,39 @@ func (*MockDb) FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.NoteFr
 	panic("implement me")
 }
 
-func (m *MockDb) generateUniqueId() int32 {
+func (m *MockDb) AddNoteTag(noteGuid string, tag string) (id int64, err error) {
+	panic("implement me")
+}
+
+func (m *MockDb) GetNoteTagsByNoteGuid(noteGuid string) (tag []string, err error) {
+	panic("implement me")
+}
+
+func (m *MockDb) DeleteNoteFragment(noteFragmentGuid string) error {
+	panic("implement me")
+}
+
+func (m *MockDb) GetNoteFragmentById(id int64) (*ehrpb.NoteFragment, error) {
+	panic("implement me")
+}
+
+func (m *MockDb) GetNoteFragmentsByNoteGuid(noteGuid string) ([]*ehrpb.NoteFragment, error) {
+	panic("implement me")
+}
+
+func (m *MockDb) AddNoteFragmentTag(noteGuid string, tag string) (id int64, err error) {
+	panic("implement me")
+}
+
+func (m *MockDb) GetNoteFragmentTagsByNoteFragmentGuid(noteFragGuid string) (tag []string, err error) {
+	panic("implement me")
+}
+
+func (*MockDb) createSchema() error {
+	panic("implement me")
+}
+
+func (m *MockDb) generateUniqueId() int64 {
 	var idList []int
 	for _, v := range m.db {
 		idList = append(idList, int(v.Id))
@@ -155,7 +180,7 @@ func (m *MockDb) generateUniqueId() int32 {
 	sort.Ints(idList)
 	listLen := len(idList) - 1
 	max := idList[listLen]
-	generatedId := int32(max + 1)
+	generatedId := int64(max + 1)
 	return generatedId
 }
 
@@ -187,10 +212,10 @@ func buildNote1() *ehrpb.Note {
 		Icd_10Code:       "ICD10_Code",
 		Icd_10Long:       "ICD10 Long Description",
 		Description:      "My consumable description.",
-		Status:           ehrpb.NoteFragmentStatus_ACTIVE,
-		Priority:         ehrpb.FragmentPriority_HIGH,
-		Topic:            ehrpb.FragmentTopic_SUBJECTIVE,
-		MarkdownContent:  "This would be markdown content.",
+		Status:           ehrpb.RecordStatus_ACTIVE,
+		Priority:         ehrpb.RecordPriority_HIGH,
+		Topic:            ehrpb.FragmentType_SUBJECTIVE,
+		Content:          "This would be markdown content.",
 		Tags:             []string{"noteFrag1Tag1"},
 	})
 	return note1
@@ -224,10 +249,10 @@ func buildNote2() *ehrpb.Note {
 		Icd_10Code:       "ICD10_Code",
 		Icd_10Long:       "ICD10 Long Description",
 		Description:      "My consumable description.",
-		Status:           ehrpb.NoteFragmentStatus_ACTIVE,
-		Priority:         ehrpb.FragmentPriority_HIGH,
-		Topic:            ehrpb.FragmentTopic_SUBJECTIVE,
-		MarkdownContent:  "This would be markdown content.",
+		Status:           ehrpb.RecordStatus_ACTIVE,
+		Priority:         ehrpb.RecordPriority_HIGH,
+		Topic:            ehrpb.FragmentType_SUBJECTIVE,
+		Content:          "This would be markdown content.",
 		Tags:             []string{"noteFrag2Tag1"},
 	})
 	return note1

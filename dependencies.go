@@ -1,14 +1,23 @@
 package main
 
 import (
-	"github.com/geekmdio/ehrprotorepo/goproto"
+	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
+	"io"
+	"os"
 	"time"
 )
 
+// Establish logger
+var log = logrus.New()
+
+// Set the NoteClerk environmental variable.
+var NoteClerkEnv = os.Getenv(Environment)
+
 // This is the database implementation for the server; can be changed so long as it's interfaces with
-// the DbAccessor interface.
+// the RDBMSAccessor interface.
 var db = &DbPostgres{}
 
 // A mock Db implementation
@@ -21,7 +30,7 @@ func NewNote() *ehrpb.Note {
 		DateCreated: TimestampNow(),
 		NoteGuid:    uuid.New().String(),
 		Fragments:   make([]*ehrpb.NoteFragment, 0),
-		Tags:        make([]string,0),
+		Tags:        make([]string, 0),
 	}
 }
 
@@ -31,15 +40,15 @@ func NewNoteFragment() *ehrpb.NoteFragment {
 		Id:               0,
 		DateCreated:      TimestampNow(),
 		NoteFragmentGuid: uuid.New().String(),
-		IssueGuid:        "IssueGuid not set",
-		Icd_10Code:       "Icd_10Code not set",
-		Icd_10Long:       "Icd_10Long not set",
-		Description:      "Description not set",
-		Status:           ehrpb.NoteFragmentStatus_INCOMPLETE,
-		Priority:         ehrpb.FragmentPriority_NO_PRIORITY,
-		Topic:            ehrpb.FragmentTopic_NO_TOPIC,
-		MarkdownContent:  "MarkdownContent not set",
-		Tags:             make([]string,0),
+		IssueGuid:        "",
+		Icd_10Code:       "",
+		Icd_10Long:       "",
+		Description:      "",
+		Status:           ehrpb.RecordStatus_INCOMPLETE,
+		Priority:         ehrpb.RecordPriority_NO_PRIORITY,
+		Topic:            ehrpb.FragmentType_NO_TOPIC,
+		Content:          "",
+		Tags:             make([]string, 0),
 	}
 }
 
@@ -51,4 +60,22 @@ func TimestampNow() *timestamp.Timestamp {
 		Nanos:   int32(now.UnixNano()),
 	}
 	return ts
+}
+
+// Set default settings for logger
+func InitializeLogger(logPath string) {
+	log.Formatter = &logrus.JSONFormatter{}
+	logFile, err := os.OpenFile(logPath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	if err != nil {
+		log.Fatalf("Cannot access or locate log file at location %v.", logPath)
+	}
+
+	log.SetLevel(logrus.InfoLevel)
+	var writer io.Writer = os.Stdout
+	if Environment != "production" {
+		writer = io.MultiWriter(os.Stdout, logFile)
+		logrus.SetLevel(logrus.DebugLevel)
+	}
+
+	log.Out = writer
 }
