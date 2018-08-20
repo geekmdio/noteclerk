@@ -21,7 +21,7 @@ type NoteClerkServer struct {
 	server      *grpc.Server
 }
 
-func (n *NoteClerkServer) NewNote(ctx context.Context, nr *ehrpb.CreateNoteRequest) (*ehrpb.CreateNoteResponse, error) {
+func (n *NoteClerkServer) CreateNote(ctx context.Context, nr *ehrpb.CreateNoteRequest) (*ehrpb.CreateNoteResponse, error) {
 	cnr := &ehrpb.CreateNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{},
 	}
@@ -91,7 +91,7 @@ func (n *NoteClerkServer) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveN
 	return retNoteRes, nil
 }
 
-func (n *NoteClerkServer) FindNote(ctx context.Context, fnr *ehrpb.FindNoteRequest) (*ehrpb.FindNoteResponse, error) {
+func (n *NoteClerkServer) SearchNote(ctx context.Context, fnr *ehrpb.SearchNoteRequest) (*ehrpb.SearchNoteResponse, error) {
 	filter := NoteFindFilter{
 		VisitGuid:   fnr.VisitGuid,
 		AuthorGuid:  fnr.AuthorGuid,
@@ -99,7 +99,7 @@ func (n *NoteClerkServer) FindNote(ctx context.Context, fnr *ehrpb.FindNoteReque
 		SearchTerms: fnr.SearchTerms,
 	}
 
-	findNoteResponse := &ehrpb.FindNoteResponse{
+	findNoteResponse := &ehrpb.SearchNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{
 			HttpCode:             ehrpb.StatusCodes_OK,
 			Message:              "Successfully found one or more notes matching query.",
@@ -147,6 +147,10 @@ func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteR
 	}
 
 	return updateNoteResponse, nil
+}
+
+func (n *NoteClerkServer) SearchNoteFragments(ctx context.Context, snf *ehrpb.SearchNoteFragmentRequest) (*ehrpb.SearchNoteFragmentResponse, error) {
+	panic("implement me")
 }
 
 func (n *NoteClerkServer) Initialize(config *Config, db RDBMSAccessor) error {

@@ -128,10 +128,6 @@ func (*MockDb) UpdateNoteFragment(note *ehrpb.NoteFragment) error {
 	panic("implement me")
 }
 
-func (*MockDb) DeleteNoteFragment(id int64) error {
-	panic("implement me")
-}
-
 func (*MockDb) AllNoteFragments() ([]*ehrpb.NoteFragment, error) {
 	panic("implement me")
 }
@@ -141,6 +137,35 @@ func (*MockDb) GetNoteFragmentsById(id int64) (*ehrpb.NoteFragment, error) {
 }
 
 func (*MockDb) FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.NoteFragment, error) {
+	panic("implement me")
+}
+
+
+func (m *MockDb) AddNoteTag(noteGuid string, tag string) (id int64, err error) {
+	panic("implement me")
+}
+
+func (m *MockDb) GetNoteTagsByNoteGuid(noteGuid string) (tag []string, err error) {
+	panic("implement me")
+}
+
+func (m *MockDb) DeleteNoteFragment(noteFragmentGuid string) error {
+	panic("implement me")
+}
+
+func (m *MockDb) GetNoteFragmentById(id int64) (*ehrpb.NoteFragment, error) {
+	panic("implement me")
+}
+
+func (m *MockDb) GetNoteFragmentsByNoteGuid(noteGuid string) ([]*ehrpb.NoteFragment, error) {
+	panic("implement me")
+}
+
+func (m *MockDb) AddNoteFragmentTag(noteGuid string, tag string) (id int64, err error) {
+	panic("implement me")
+}
+
+func (m *MockDb) GetNoteFragmentTagsByNoteFragmentGuid(noteFragGuid string) (tag []string, err error) {
 	panic("implement me")
 }
 
