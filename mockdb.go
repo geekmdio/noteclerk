@@ -208,7 +208,7 @@ func buildNote1() *ehrpb.Note {
 		SetTopic(ehrpb.FragmentType_SUBJECTIVE).
 		SetPriority(ehrpb.RecordPriority_HIGH).
 		SetStatus(ehrpb.RecordStatus_ACTIVE).
-		SetMarkdownContent("This is the content of Note 1 Fragment 1.").
+		SetContent("This is the content of Note 1 Fragment 1.").
 		Build()
 	noteFragment.Tags = append(noteFragment.Tags, "noteFrag1Tag1", "noteFrag1Tag2")
 
@@ -239,7 +239,7 @@ func buildNote2() *ehrpb.Note {
 		SetTopic(ehrpb.FragmentType_SUBJECTIVE).
 		SetPriority(ehrpb.RecordPriority_HIGH).
 		SetStatus(ehrpb.RecordStatus_ACTIVE).
-		SetMarkdownContent("This is the content of Note 2 Fragment 1.").
+		SetContent("This is the content of Note 2 Fragment 1.").
 		Build()
 	noteFragment.Tags = append(noteFragment.Tags, "noteFrag2Tag1", "noteFrag2Tag2")
 
