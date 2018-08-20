@@ -1,15 +1,17 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 
 	"google.golang.org/grpc"
 
-	"context"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+
 	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
+	"github.com/geekmdio/noted"
 )
 
 type NoteClerkServer struct {
@@ -77,8 +79,6 @@ func (n *NoteClerkServer) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveN
 	}
 
 	note, err := n.db.GetNoteById(rnr.Id)
-	retNoteRes.Note = note
-
 	if err != nil {
 		newErr := errors.Wrapf(ErrRetrieveNoteFailedToRetrieveFromDb, "%v", err)
 		log.Warn(newErr)
@@ -87,10 +87,16 @@ func (n *NoteClerkServer) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveN
 		return retNoteRes, newErr
 	}
 
+	err = noted.OrganizeNoteFragments(note)
+	if err != nil {
+		log.Warn("Could not organize the note fragments by fragment priority.")
+	}
+	retNoteRes.Note = note
+
 	return retNoteRes, nil
 }
 
-func (n *NoteClerkServer) SearchNote(ctx context.Context, fnr *ehrpb.SearchNoteRequest) (*ehrpb.SearchNoteResponse, error) {
+func (n *NoteClerkServer) SearchNotes(ctx context.Context, fnr *ehrpb.SearchNotesRequest) (*ehrpb.SearchNotesResponse, error) {
 	filter := NoteFindFilter{
 		VisitGuid:   fnr.VisitGuid,
 		AuthorGuid:  fnr.AuthorGuid,
@@ -98,11 +104,18 @@ func (n *NoteClerkServer) SearchNote(ctx context.Context, fnr *ehrpb.SearchNoteR
 		SearchTerms: fnr.SearchTerms,
 	}
 
-	findNoteResponse := &ehrpb.SearchNoteResponse{
+	findNoteResponse := &ehrpb.SearchNotesResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{
 			HttpCode: ehrpb.StatusCodes_OK,
 			Message:  "Successfully found one or more notes matching query.",
 		},
+	}
+
+	for _, v := range findNoteResponse.Notes {
+		err := noted.OrganizeNoteFragments(v)
+		if err != nil {
+			log.Warn("Could not organize the note fragments by fragment priority.")
+		}
 	}
 
 	notes, err := n.db.FindNote(filter)
@@ -114,7 +127,7 @@ func (n *NoteClerkServer) SearchNote(ctx context.Context, fnr *ehrpb.SearchNoteR
 		return findNoteResponse, newErr
 	}
 
-	findNoteResponse.Note = notes
+	findNoteResponse.Notes = notes
 	return findNoteResponse, nil
 }
 
