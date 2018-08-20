@@ -24,7 +24,7 @@ func TestDbPostgres_AddNote(t *testing.T) {
 	if id <= 0 {
 		t.Fatalf("Expected an Id greater than zero, got %v", id)
 	}
-	teardown(t)
+	tearDown(t)
 }
 
 func buildNote() *ehrpb.Note {
@@ -60,13 +60,13 @@ func setup(t *testing.T) {
 	//TODO: Switch to this for config; build into .travis.yml a docker postgres db
 	// https://docs.travis-ci.com/user/docker/
 	cfg := &Config{
-		Version:        "testing",
+		Version:        "under-development",
 		LogPath:        "",
 		ServerProtocol: "tcp",
 		ServerIp:       "localhost",
 		ServerPort:     "50051",
 		DbIp:           "localhost",
-		DbPort:         "5433",
+		DbPort:         "5434",
 		DbUsername:     "integration",
 		DbPassword:     "testing",
 		DbName:         "noteclerk",
@@ -76,16 +76,22 @@ func setup(t *testing.T) {
 	connStr := fmt.Sprintf("user=%v password=%v host=%v dbname=%v sslmode=%v port=%v",
 		cfg.DbUsername, cfg.DbPassword, cfg.DbIp, cfg.DbName, cfg.DbSslMode, cfg.DbPort)
 
-	open, err := sql.Open("postgres", connStr)
+	openDb, err := sql.Open("postgres", connStr)
 	if err != nil {
 		t.Fatalf("Failed to open database connection.")
 	}
 
-	postgresDb.db = open
+	postgresDb.db = openDb
+
+	server := &DbPostgres{
+		db: openDb,
+	}
+
+	server.createSchema()
 
 }
 
-func teardown(t *testing.T) {
+func tearDown(t *testing.T) {
 	err := postgresDb.db.Close()
 	if err != nil {
 		t.Fatalf("Failed to tear down integration testing by closing database.")
