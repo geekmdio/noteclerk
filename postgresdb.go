@@ -213,7 +213,7 @@ func (d *DbPostgres) AddNoteTag(noteGuid string, tag string) (id int64, err erro
 	row := d.db.QueryRow(addNoteTagQuery, noteGuid, tag)
 
 	var newId int64
-	if scanErr := row.Scan(newId); scanErr != nil && scanErr != sql.ErrNoRows {
+	if scanErr := row.Scan(&newId); scanErr != nil && scanErr != sql.ErrNoRows {
 		return 0, errors.Wrapf(ErrPostgresDbAddNoteTagFailedToGetNewId, "%v", scanErr)
 	}
 
@@ -258,7 +258,7 @@ func (d *DbPostgres) AddNoteFragment(nf *ehrpb.NoteFragment) (id int64, guid str
 	row := d.db.QueryRow(addNoteFragmentQuery, nf.DateCreated.Seconds, nf.DateCreated.Nanos,
 		nf.GetNoteFragmentGuid(), nf.GetNoteGuid(), nf.GetIcd_10Code(), nf.GetIcd_10Long(),
 		nf.GetDescription(), nf.GetStatus(), nf.GetPriority(), nf.GetTopic(), nf.GetContent())
-	scanErr := row.Scan(nf.Id)
+	scanErr := row.Scan(&nf.Id)
 	if scanErr != nil && scanErr != sql.ErrNoRows {
 		return 0, "", errors.Wrapf(ErrPostgresDbAddNoteFragmentFailedToGetNewId, "%v", scanErr)
 	}
@@ -308,7 +308,7 @@ func (d *DbPostgres) AddNoteFragmentTag(noteGuid string, tag string) (id int64, 
 	row := d.db.QueryRow(addNoteFragmentTagQuery, noteGuid, tag)
 
 	var newId int64
-	if scanErr := row.Scan(newId); scanErr != nil && scanErr != sql.ErrNoRows {
+	if scanErr := row.Scan(&newId); scanErr != nil && scanErr != sql.ErrNoRows {
 		return 0, errors.Wrapf(ErrPostgresDbAddNoteTagFailedToGetNewId, "%v", scanErr)
 	}
 
