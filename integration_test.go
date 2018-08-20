@@ -73,11 +73,6 @@ func setup(t *testing.T) {
 		DbSslMode:      "disable",
 	}
 
-	cfg, err := LoadConfiguration(fmt.Sprintf("config/config.%v.json", testingEnv))
-	if err != nil {
-		t.Fatalf("Could not log testing configuration to perform integration test.")
-	}
-
 	connStr := fmt.Sprintf("user=%v password=%v host=%v dbname=%v sslmode=%v port=%v",
 		cfg.DbUsername, cfg.DbPassword, cfg.DbIp, cfg.DbName, cfg.DbSslMode, cfg.DbPort)
 
