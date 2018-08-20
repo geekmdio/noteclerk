@@ -57,6 +57,22 @@ func buildNote() *ehrpb.Note {
 }
 
 func setup(t *testing.T) {
+	//TODO: Switch to this for config; build into .travis.yml a docker postgres db
+	// https://docs.travis-ci.com/user/docker/
+	cfg := &Config{
+		Version:        "testing",
+		LogPath:        "",
+		ServerProtocol: "tcp",
+		ServerIp:       "localhost",
+		ServerPort:     "50051",
+		DbIp:           "localhost",
+		DbPort:         "5433",
+		DbUsername:     "integration",
+		DbPassword:     "testing",
+		DbName:         "noteclerk",
+		DbSslMode:      "disable",
+	}
+
 	cfg, err := LoadConfiguration(fmt.Sprintf("config/config.%v.json", testingEnv))
 	if err != nil {
 		t.Fatalf("Could not log testing configuration to perform integration test.")
