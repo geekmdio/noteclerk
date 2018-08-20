@@ -237,11 +237,11 @@ func TestNoteClerkServer_FindNote(t *testing.T) {
 	found, err := s.db.AllNotes()
 	firstNote := found[0]
 
-	findReq := &ehrpb.SearchNoteRequest{
+	findReq := &ehrpb.SearchNotesRequest{
 		VisitGuid: firstNote.GetVisitGuid(),
 	}
 
-	res, err := s.SearchNote(context.Background(), findReq)
+	res, err := s.SearchNotes(context.Background(), findReq)
 	if err != nil {
 		t.Fatalf("Failed to find note.")
 	}
@@ -251,7 +251,7 @@ func TestNoteClerkServer_FindNote(t *testing.T) {
 	}
 
 	noteFound := false
-	for _, n := range res.Note {
+	for _, n := range res.Notes {
 		if n.GetVisitGuid() == firstNote.VisitGuid {
 			noteFound = true
 			break
@@ -267,11 +267,11 @@ func TestNoteClerkServer_FindNote_WithNonExistentGuid_ReturnsError(t *testing.T)
 	s := &NoteClerkServer{}
 	s.Initialize(&Config{}, mockDb)
 
-	findReq := &ehrpb.SearchNoteRequest{
+	findReq := &ehrpb.SearchNotesRequest{
 		VisitGuid: uuid.New().String(),
 	}
 
-	res, err := s.SearchNote(context.Background(), findReq)
+	res, err := s.SearchNotes(context.Background(), findReq)
 	if err == nil {
 		t.Fatalf("A note with this newly generated GUID should not be found in the database.")
 	}

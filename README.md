@@ -1,4 +1,4 @@
-# GeekMD: NoteClerk v0.4.0
+# GeekMD: NoteClerk v0.5.0
 NoteClerk is a micro-service dedicated to managing clinical notes from the Noted library. It uses protcol buffers and 
 gRPC and so the API is relatively language agnostic.
 
@@ -6,6 +6,10 @@ gRPC and so the API is relatively language agnostic.
 |:---:|:---:|:---:|
 |Master|![master-build](https://travis-ci.org/geekmdio/noteclerk.svg?branch=master)| [![codecov-master](https://codecov.io/gh/geekmdio/noteclerk/branch/master/graph/badge.svg)](https://codecov.io/gh/geekmdio/noteclerk) |
 |Development|![dev-build](https://travis-ci.org/geekmdio/noteclerk.svg?branch=development)| [![codecov-development](https://codecov.io/gh/geekmdio/noteclerk/branch/development/graph/badge.svg)](https://codecov.io/gh/geekmdio/noteclerk)  |
+
+### RELEASE NOTES v0.5.0
+- Updated to ehrproto v0.5.0
+    - SearchNote and it's associated messages have been changed to reflect the plural nature of the search results. SearchNote is now SearchNotes, and the slice of Note has been renamed from note to notes.
 
 ### RELEASE NOTES v0.4.0
 - Updated to ehrproto v0.4.0
