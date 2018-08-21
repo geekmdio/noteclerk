@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
+	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/google/uuid"
 	"testing"
-	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
 )
 
 func TestNoteClerkServer_CreateNote(t *testing.T) {

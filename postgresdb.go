@@ -14,6 +14,33 @@ type DbPostgres struct {
 	db *sql.DB
 }
 
+// Initialize() initializes the connection to database. Ensure that the ./config/config.<environment>.json
+// file has been created and properly configured with server and database values. Of note, the '<environment>'
+// can be set to any value, so long as the NOTECLERK_ENVIRONMENT environmental variable's value matches.
+// RETURNS: *sql.db, error
+func (d *DbPostgres) Initialize(config *Config) (*sql.DB, error) {
+	connStr := fmt.Sprintf("user=%v password=%v host=%v dbname=%v sslmode=%v port=%v",
+		config.DbUsername, config.DbPassword, config.DbIp, config.DbName, config.DbSslMode, config.DbPort)
+
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		return nil, errors.Wrapf(ErrPostgresDbInitFailedToOpenConn, "%v", err)
+	}
+	defer db.Close()
+
+	if err = db.Ping(); err != nil {
+		return nil, errors.Wrapf(ErrPostgresDbInitFailedToPingDb, "%v", err)
+	}
+
+	d.db = db
+	schemaErr := d.createSchema()
+	if schemaErr != nil {
+		return nil, errors.Wrapf(ErrPostgresDbInitFailedToCreateSchema, "%v", schemaErr)
+	}
+
+	return d.db, nil
+}
+
 func (d *DbPostgres) GetNoteFragmentsByNoteGuid(noteGuid string) ([]*ehrpb.NoteFragment, error) {
 	rows, err := d.db.Query(getNoteFragmentByNoteGuid, noteGuid)
 	if err != nil {
@@ -82,33 +109,6 @@ func (d *DbPostgres) GetNoteFragmentTagsByNoteFragmentGuid(noteFragGuid string) 
 		tags = append(tags, tmpTag)
 	}
 	return tags, nil
-}
-
-// Initialize() initializes the connection to database. Ensure that the ./config/config.<environment>.json
-// file has been created and properly configured with server and database values. Of note, the '<environment>'
-// can be set to any value, so long as the NOTECLERK_ENVIRONMENT environmental variable's value matches.
-// RETURNS: *sql.db, error
-func (d *DbPostgres) Initialize(config *Config) (*sql.DB, error) {
-	connStr := fmt.Sprintf("user=%v password=%v host=%v dbname=%v sslmode=%v port=%v",
-		config.DbUsername, config.DbPassword, config.DbIp, config.DbName, config.DbSslMode, config.DbPort)
-
-	db, err := sql.Open("postgres", connStr)
-	if err != nil {
-		return nil, errors.Wrapf(ErrPostgresDbInitFailedToOpenConn, "%v", err)
-	}
-	defer db.Close()
-
-	if err = db.Ping(); err != nil {
-		return nil, errors.Wrapf(ErrPostgresDbInitFailedToPingDb, "%v", err)
-	}
-
-	d.db = db
-	schemaErr := d.createSchema()
-	if schemaErr != nil {
-		return nil, errors.Wrapf(ErrPostgresDbInitFailedToCreateSchema, "%v", schemaErr)
-	}
-
-	return d.db, nil
 }
 
 func (d *DbPostgres) AddNote(n *ehrpb.Note) (id int64, err error) {
@@ -213,7 +213,7 @@ func (d *DbPostgres) AddNoteTag(noteGuid string, tag string) (id int64, err erro
 	row := d.db.QueryRow(addNoteTagQuery, noteGuid, tag)
 
 	var newId int64
-	if scanErr := row.Scan(newId); scanErr != nil && scanErr != sql.ErrNoRows {
+	if scanErr := row.Scan(&newId); scanErr != nil && scanErr != sql.ErrNoRows {
 		return 0, errors.Wrapf(ErrPostgresDbAddNoteTagFailedToGetNewId, "%v", scanErr)
 	}
 
@@ -244,7 +244,7 @@ func (d *DbPostgres) GetNoteById(id int64) (*ehrpb.Note, error) {
 	return newNote, nil
 }
 
-func (d *DbPostgres) FindNote(filter NoteFindFilter) ([]*ehrpb.Note, error) {
+func (d *DbPostgres) FindNotes(filter NoteFindFilter) ([]*ehrpb.Note, error) {
 	log.Fatal("Not implemented.")
 	return nil, nil
 }
@@ -258,7 +258,7 @@ func (d *DbPostgres) AddNoteFragment(nf *ehrpb.NoteFragment) (id int64, guid str
 	row := d.db.QueryRow(addNoteFragmentQuery, nf.DateCreated.Seconds, nf.DateCreated.Nanos,
 		nf.GetNoteFragmentGuid(), nf.GetNoteGuid(), nf.GetIcd_10Code(), nf.GetIcd_10Long(),
 		nf.GetDescription(), nf.GetStatus(), nf.GetPriority(), nf.GetTopic(), nf.GetContent())
-	scanErr := row.Scan(nf.Id)
+	scanErr := row.Scan(&nf.Id)
 	if scanErr != nil && scanErr != sql.ErrNoRows {
 		return 0, "", errors.Wrapf(ErrPostgresDbAddNoteFragmentFailedToGetNewId, "%v", scanErr)
 	}
@@ -308,7 +308,7 @@ func (d *DbPostgres) AddNoteFragmentTag(noteGuid string, tag string) (id int64, 
 	row := d.db.QueryRow(addNoteFragmentTagQuery, noteGuid, tag)
 
 	var newId int64
-	if scanErr := row.Scan(newId); scanErr != nil && scanErr != sql.ErrNoRows {
+	if scanErr := row.Scan(&newId); scanErr != nil && scanErr != sql.ErrNoRows {
 		return 0, errors.Wrapf(ErrPostgresDbAddNoteTagFailedToGetNewId, "%v", scanErr)
 	}
 

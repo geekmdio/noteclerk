@@ -7,7 +7,6 @@ import (
 )
 
 func main() {
-	configPath := fmt.Sprintf("config/config.%v.json", strings.ToLower(NoteClerkEnv))
 	log.Formatter = &logrus.JSONFormatter{}
 	log.Infof("Loading configuration file from %v", configPath)
 	config, err := LoadConfiguration(configPath)

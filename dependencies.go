@@ -8,6 +8,8 @@ import (
 	"io"
 	"os"
 	"time"
+	"fmt"
+	"strings"
 )
 
 // Establish logger
@@ -15,6 +17,9 @@ var log = logrus.New()
 
 // Set the NoteClerk environmental variable.
 var NoteClerkEnv = os.Getenv(Environment)
+
+// Configuration path
+var configPath = fmt.Sprintf("config/config.%v.json", strings.ToLower(NoteClerkEnv))
 
 // This is the database implementation for the server; can be changed so long as it's interfaces with
 // the RDBMSAccessor interface.

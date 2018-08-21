@@ -121,7 +121,8 @@ VALUES
 	$6, 
 	$7, 
 	$8
-);`
+)
+RETURNING id;`
 
 const addNoteFragmentQuery = `INSERT INTO "public"."note_fragment" 
 (
@@ -152,7 +153,8 @@ VALUES
 	$9, 
 	$10,
 	$11
-);`
+)
+RETURNING id;`
 
 const addNoteTagQuery = `INSERT INTO "public"."note_tag" 
 (
@@ -165,7 +167,8 @@ VALUES
 	DEFAULT, 
 	$1, 
 	$2
-);`
+)
+RETURNING id;`
 
 const addNoteFragmentTagQuery = `INSERT INTO "public"."note_fragment_tag" 
 (
@@ -178,7 +181,8 @@ VALUES
 	DEFAULT, 
 	$1, 
 	$2
-);`
+)
+RETURNING id;`
 
 const getNoteTagByNoteGuid = `select * from note_tag where note_guid = $1;`
 
@@ -190,8 +194,10 @@ const getNoteByIdQuery = `select * from note where id = $1;`
 
 const updateNoteFragmentStatusToStatusByNoteFragmentGuidQuery = `update note_fragment
 set status = $1
-where note_fragment_guid = $2;`
+where note_fragment_guid = $2
+returning id;`
 
 const updateNoteStatusToStatusByNoteIdQuery = `update note
 set status = $1
-where id = $2;`
+where id = $2
+returning id;`
