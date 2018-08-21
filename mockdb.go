@@ -4,7 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
-	"github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/geekmdio/noted"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"sort"
 )
@@ -103,7 +104,7 @@ func (m *MockDb) GetNoteById(id int64) (*ehrpb.Note, error) {
 }
 
 // Find a note using a number of powerful search filters.
-func (m *MockDb) FindNote(filter NoteFindFilter) ([]*ehrpb.Note, error) {
+func (m *MockDb) FindNotes(filter NoteFindFilter) ([]*ehrpb.Note, error) {
 	var foundNotes []*ehrpb.Note
 	for _, v := range m.db {
 		if v.GetVisitGuid() == filter.VisitGuid ||
@@ -185,75 +186,63 @@ func (m *MockDb) generateUniqueId() int64 {
 }
 
 func buildNote1() *ehrpb.Note {
-	note1 := &ehrpb.Note{
-		Id: 0,
-		DateCreated: &timestamp.Timestamp{
-			Seconds: 1235114,
-			Nanos:   323,
-		},
-		NoteGuid:    "7218e354-9e55-11e8-98d0-529269fb1459",
-		VisitGuid:   "7218e7b4-9e55-11e8-98d0-529269fb1459",
-		AuthorGuid:  "7218ea84-9e55-11e8-98d0-529269fb1459",
-		PatientGuid: "7218eebc-9e55-11e8-98d0-529269fb1459",
-		Type:        ehrpb.NoteType_HISTORY_AND_PHYSICAL,
-		Fragments:   nil,
-		Tags:        nil,
-	}
-	note1.Tags = append(note1.Tags, "note1tag1", "note1tag2")
-	note1.Fragments = append(note1.Fragments, &ehrpb.NoteFragment{
-		Id: 0,
-		DateCreated: &timestamp.Timestamp{
-			Seconds: note1.DateCreated.Seconds + 500,
-			Nanos:   note1.DateCreated.Nanos + 550,
-		},
-		NoteFragmentGuid: "c2af597e-9e55-11e8-98d0-529269fb1459",
-		NoteGuid:         note1.GetNoteGuid(),
-		IssueGuid:        "7218f15a-9e55-11e8-98d0-529269fb1459",
-		Icd_10Code:       "ICD10_Code",
-		Icd_10Long:       "ICD10 Long Description",
-		Description:      "My consumable description.",
-		Status:           ehrpb.RecordStatus_ACTIVE,
-		Priority:         ehrpb.RecordPriority_HIGH,
-		Topic:            ehrpb.FragmentType_SUBJECTIVE,
-		Content:          "This would be markdown content.",
-		Tags:             []string{"noteFrag1Tag1"},
-	})
-	return note1
+	nb := noted.NoteBuilder{}
+	note := nb.Init().
+		SetId(0).
+		SetDateCreated(TimestampNow()).
+		SetType(ehrpb.NoteType_HISTORY_AND_PHYSICAL).
+		SetVisitGuid(uuid.New().String()).
+		SetAuthorGuid(uuid.New().String()).
+		SetPatientGuid(uuid.New().String()).
+		Build()
+	note.Tags = append(note.Tags, "note1tag1", "note1tag2")
+
+	nfb := noted.NoteFragmentBuilder{}
+	noteFragment := nfb.InitFromNote(note).
+		SetDateCreated(TimestampNow()).
+		SetId(0).
+		SetDescription("Note 1 Fragment 1 Description").
+		SetIcd10LongDescription("ICD10 long description").
+		SetIcd10Code("ICD10 Code").
+		SetIssueGuid(uuid.New().String()).
+		SetTopic(ehrpb.FragmentType_SUBJECTIVE).
+		SetPriority(ehrpb.RecordPriority_HIGH).
+		SetStatus(ehrpb.RecordStatus_ACTIVE).
+		SetContent("This is the content of Note 1 Fragment 1.").
+		Build()
+	noteFragment.Tags = append(noteFragment.Tags, "noteFrag1Tag1", "noteFrag1Tag2")
+
+	note.Fragments = append(note.Fragments, noteFragment)
+	return note
 }
 
 func buildNote2() *ehrpb.Note {
-	note1 := &ehrpb.Note{
-		Id: 1,
-		DateCreated: &timestamp.Timestamp{
-			Seconds: 1435114,
-			Nanos:   523,
-		},
-		NoteGuid:    "a0ceabfc-9e55-11e8-98d0-529269fb1459",
-		VisitGuid:   "a0ceb25a-9e55-11e8-98d0-529269fb1459",
-		AuthorGuid:  "a0ceb502-9e55-11e8-98d0-529269fb1459",
-		PatientGuid: "a0ceba84-9e55-11e8-98d0-529269fb1459",
-		Type:        ehrpb.NoteType_HISTORY_AND_PHYSICAL,
-		Fragments:   nil,
-		Tags:        nil,
-	}
-	note1.Tags = append(note1.Tags, "note2tag1", "note2tag2")
-	note1.Fragments = append(note1.Fragments, &ehrpb.NoteFragment{
-		Id: 0,
-		DateCreated: &timestamp.Timestamp{
-			Seconds: note1.DateCreated.Seconds + 500,
-			Nanos:   note1.DateCreated.Nanos + 550,
-		},
-		NoteFragmentGuid: "c2af5c80-9e55-11e8-98d0-529269fb1459",
-		NoteGuid:         note1.GetNoteGuid(),
-		IssueGuid:        "a0cebd04-9e55-11e8-98d0-529269fb1459",
-		Icd_10Code:       "ICD10_Code",
-		Icd_10Long:       "ICD10 Long Description",
-		Description:      "My consumable description.",
-		Status:           ehrpb.RecordStatus_ACTIVE,
-		Priority:         ehrpb.RecordPriority_HIGH,
-		Topic:            ehrpb.FragmentType_SUBJECTIVE,
-		Content:          "This would be markdown content.",
-		Tags:             []string{"noteFrag2Tag1"},
-	})
-	return note1
+	nb := noted.NoteBuilder{}
+	note := nb.Init().
+		SetId(1).
+		SetDateCreated(TimestampNow()).
+		SetType(ehrpb.NoteType_HISTORY_AND_PHYSICAL).
+		SetVisitGuid(uuid.New().String()).
+		SetAuthorGuid(uuid.New().String()).
+		SetPatientGuid(uuid.New().String()).
+		Build()
+	note.Tags = append(note.Tags, "note2tag1", "note2tag2")
+
+	nfb := noted.NoteFragmentBuilder{}
+	noteFragment := nfb.InitFromNote(note).
+		SetDateCreated(TimestampNow()).
+		SetId(1).
+		SetDescription("Note 2 Fragment 1 Description").
+		SetIcd10LongDescription("ICD10 long description").
+		SetIcd10Code("ICD10 Code").
+		SetIssueGuid(uuid.New().String()).
+		SetTopic(ehrpb.FragmentType_SUBJECTIVE).
+		SetPriority(ehrpb.RecordPriority_HIGH).
+		SetStatus(ehrpb.RecordStatus_ACTIVE).
+		SetContent("This is the content of Note 2 Fragment 1.").
+		Build()
+	noteFragment.Tags = append(noteFragment.Tags, "noteFrag2Tag1", "noteFrag2Tag2")
+
+	note.Fragments = append(note.Fragments, noteFragment)
+	return note
 }

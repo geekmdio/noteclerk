@@ -1,0 +1,13 @@
+version: '3.1'
+
+services:
+
+  postgres-noteclerk-integration-testing:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: integration
+      POSTGRES_PASSWORD: testing
+      POSTGRES_DB: noteclerk
+    ports:
+    - "5434:5432"

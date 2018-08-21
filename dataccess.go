@@ -15,7 +15,7 @@ type RDBMSAccessor interface {
 	DeleteNote(id int64) error
 	AllNotes() ([]*ehrpb.Note, error)
 	GetNoteById(id int64) (*ehrpb.Note, error)
-	FindNote(filter NoteFindFilter) ([]*ehrpb.Note, error)
+	FindNotes(filter NoteFindFilter) ([]*ehrpb.Note, error)
 	AddNoteTag(noteGuid string, tag string) (id int64, err error)
 	GetNoteTagsByNoteGuid(noteGuid string) (tag []string, err error)
 	AddNoteFragment(note *ehrpb.NoteFragment) (id int64, guid string, err error)

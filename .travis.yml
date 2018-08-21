@@ -7,6 +7,9 @@ go:
 before_install:
 - go get -t -v ./...
 
+install:
+- sudo docker-compose up -d
+
 script:
 - go test -v -race -coverprofile=coverage.txt -covermode=atomic
 
