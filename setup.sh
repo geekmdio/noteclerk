@@ -2,7 +2,8 @@
 
 # NOTE: You must have the environmental variable NOTECLERK_ENVIRONMENT set.
 # E.g. export NOTECLERK_ENVIRONMENET=development.
-
+# TODO: Create NOTECLERK_LOG_DIR and NOTECLERK_LOG_PATH so that it is also
+# TODO: in ${HOME}/.noteclerk/config.<environment>.json
 VERSION="$(cat VERSION)"
 LOG_DIR="${HOME}/.noteclerk/log"
 LOG_PATH="${LOG_DIR}/server.log"
