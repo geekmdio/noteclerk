@@ -7,6 +7,7 @@ import (
 	"github.com/geekmdio/noted"
 	"github.com/google/uuid"
 	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
+	"github.com/sirupsen/logrus"
 )
 
 var postgresDb = &DbPostgres{}
@@ -57,6 +58,9 @@ func buildNote() *ehrpb.Note {
 }
 
 func setup(t *testing.T) {
+	// Don't clutter the integration tests with logging data
+	log.SetLevel(logrus.FatalLevel)
+
 	//TODO: Switch to this for config; build into .travis.yml a docker postgres db
 	// https://docs.travis-ci.com/user/docker/
 	cfg := &Config{

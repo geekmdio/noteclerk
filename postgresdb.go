@@ -317,6 +317,7 @@ func (d *DbPostgres) AddNoteFragmentTag(noteGuid string, tag string) (id int64, 
 
 // https://www.calhoun.io/updating-and-deleting-postgresql-records-using-gos-sql-package/
 func (d *DbPostgres) createSchema() error {
+
 	err := d.createTable(createNoteTable)
 	if notNilNotTableExists(err) {
 		return errors.Wrapf(ErrPostgresDbCreateSchemaFails, "Target table: note. Error: %v", err)
@@ -345,44 +346,6 @@ func (d *DbPostgres) createSchema() error {
 	if err == ErrPostgresDbInitTableAlreadyExistsErr {
 		log.Warn("Table 'note_fragment_tag' already exists.")
 	}
-
-	//TODO: Remove this.
-	tmpNote := NewNote()
-	tmpNote.Tags = append(tmpNote.Tags, "note1Tag1", "note1Tag2")
-
-	tmpFrag := NewNoteFragment()
-	tmpFrag.NoteGuid = tmpNote.GetNoteGuid()
-	tmpFrag.Tags = append(tmpFrag.Tags, "frag1Tag1", "frag1Tag2")
-	tmpFrag.Content = "This is my content for frag1"
-	err = d.DeleteNoteFragment(tmpFrag.GetNoteFragmentGuid())
-	if err != nil {
-		log.Warn(err)
-	}
-
-	tmpFrag2 := NewNoteFragment()
-	tmpFrag2.NoteGuid = tmpNote.GetNoteGuid()
-	tmpFrag2.Tags = append(tmpFrag2.Tags, "frag2Tag1", "frag2Tag2")
-	tmpFrag2.Content = "This is my content for frag2"
-
-	tmpNote.Fragments = append(tmpNote.Fragments, tmpFrag, tmpFrag2)
-
-	_, err = d.AddNote(tmpNote)
-	if err != nil {
-		log.Warn(err)
-	}
-
-	notes, notesErr := d.AllNotes()
-	if notesErr != nil {
-		log.Warn(notesErr)
-	}
-
-	tmpNote.Tags = append(tmpNote.Tags, "updatedTag")
-	updateErr := d.UpdateNote(tmpNote)
-	if updateErr != nil {
-		log.Warn(updateErr)
-	}
-	fmt.Println(notes)
-	//TODO: End remove
 
 	return nil
 }

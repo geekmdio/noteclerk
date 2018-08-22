@@ -1,7 +1,8 @@
 package main
 
-//TODO: outsource this to loading SQL files
-const createNoteTable = `create table note
+// TODO: Consider moving to SQL files
+const createNoteTable =
+`create table note
 (
   id                   serial            not null
     constraint note_pkey
@@ -26,7 +27,8 @@ create unique index note_note_guid_uindex
   on note (note_guid);
 `
 
-const createNoteFragmentTable = `create table note_fragment
+const createNoteFragmentTable =
+`create table note_fragment
 (
   id                   serial            not null
     constraint note_fragment_pkey
@@ -57,7 +59,8 @@ create unique index note_fragment_note_fragment_guid_uindex
 
 `
 
-const createNoteTagTable = `create table note_tag
+const createNoteTagTable =
+`create table note_tag
 (
 	id serial not null
 		constraint note_tag_pkey
@@ -78,7 +81,8 @@ create unique index note_tag_id_uindex
 
 `
 
-const createNoteFragmentTagTable = `create table note_fragment_tag
+const createNoteFragmentTagTable =
+`create table note_fragment_tag
 (
 	id serial not null
 		constraint note_fragment_tag_pkey
@@ -98,7 +102,8 @@ create unique index note_fragment_tag_id_uindex
 ;
 `
 
-const addNoteQuery = `INSERT INTO "public"."note" 
+const addNoteQuery =
+`INSERT INTO "public"."note" 
 (
 	"id", 
 	"date_created_seconds", 
@@ -124,7 +129,8 @@ VALUES
 )
 RETURNING id;`
 
-const addNoteFragmentQuery = `INSERT INTO "public"."note_fragment" 
+const addNoteFragmentQuery =
+`INSERT INTO "public"."note_fragment" 
 (
 	"id", 
 	"date_created_seconds", 
@@ -156,7 +162,8 @@ VALUES
 )
 RETURNING id;`
 
-const addNoteTagQuery = `INSERT INTO "public"."note_tag" 
+const addNoteTagQuery =
+`INSERT INTO "public"."note_tag" 
 (
 	"id", 
 	"note_guid", 
@@ -170,7 +177,8 @@ VALUES
 )
 RETURNING id;`
 
-const addNoteFragmentTagQuery = `INSERT INTO "public"."note_fragment_tag" 
+const addNoteFragmentTagQuery =
+`INSERT INTO "public"."note_fragment_tag" 
 (
 	"id", 
 	"note_fragment_guid", 
@@ -184,20 +192,26 @@ VALUES
 )
 RETURNING id;`
 
-const getNoteTagByNoteGuid = `select * from note_tag where note_guid = $1;`
+const getNoteTagByNoteGuid =
+`select * from note_tag where note_guid = $1;`
 
-const getNoteFragmentTagsByNoteFragmentGuid = `select * from note_fragment_tag where note_fragment_guid = $1;`
+const getNoteFragmentTagsByNoteFragmentGuid =
+`select * from note_fragment_tag where note_fragment_guid = $1;`
 
-const getNoteFragmentByNoteGuid = `select * from note_fragment where note_guid = $1;`
+const getNoteFragmentByNoteGuid =
+`select * from note_fragment where note_guid = $1;`
 
-const getNoteByIdQuery = `select * from note where id = $1;`
+const getNoteByIdQuery =
+`select * from note where id = $1;`
 
-const updateNoteFragmentStatusToStatusByNoteFragmentGuidQuery = `update note_fragment
+const updateNoteFragmentStatusToStatusByNoteFragmentGuidQuery =
+`update note_fragment
 set status = $1
 where note_fragment_guid = $2
 returning id;`
 
-const updateNoteStatusToStatusByNoteIdQuery = `update note
+const updateNoteStatusToStatusByNoteIdQuery =
+`update note
 set status = $1
 where id = $2
 returning id;`
