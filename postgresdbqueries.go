@@ -2,103 +2,103 @@ package main
 
 // TODO: Consider moving to SQL files
 const createNoteTable =
-`create table note
+`CREATE TABLE note
 (
-  id                   serial            not null
-    constraint note_pkey
-    primary key,
-  date_created_seconds integer           not null,
-  date_created_nanos   integer default 0 not null,
-  note_guid            varchar(38)       not null,
-  visit_guid           varchar(38)       not null,
-  author_guid          varchar(38)       not null,
-  patient_guid         varchar(38)       not null,
-  type                 integer           not null,
-  status               integer           not null
+  id                   serial            NOT NULL
+    CONSTRAINT note_pkey
+    PRIMARY KEY, 
+  date_created_seconds integer           NOT NULL,
+  date_created_nanos   integer default 0 NOT NULL,
+  note_guid            varchar(38)       NOT NULL,
+  visit_guid           varchar(38)       NOT NULL,
+  author_guid          varchar(38)       NOT NULL,
+  patient_guid         varchar(38)       NOT NULL,
+  type                 integer           NOT NULL,
+  status               integer           NOT NULL
 );
 
-alter table note
-  owner to postgres;
+ALTER TABLE note
+  OWNER to postgres;
 
-create unique index note_id_uindex
-  on note (id);
+CREATE UNIQUE INDEX note_id_uindex
+  ON note (id);
 
-create unique index note_note_guid_uindex
-  on note (note_guid);
+CREATE UNIQUE INDEX note_note_guid_uindex
+  ON note (note_guid);
 `
 
 const createNoteFragmentTable =
-`create table note_fragment
+`CREATE TABLE note_fragment
 (
-  id                   serial            not null
-    constraint note_fragment_pkey
-    primary key,
-  date_created_seconds integer           not null,
-  date_created_nanos   integer default 0 not null,
-  note_fragment_guid   varchar(38)       not null,
-  note_guid            varchar(38)       not null
-    constraint note_fragment_note_note_guid_fk
-    references note (note_guid),
-  icd_10code           varchar(15)       not null,
-  icd_10long           varchar(250)      not null,
-  description          varchar(150)      not null,
-  status               integer           not null,
-  priority             integer           not null,
-  topic                integer           not null,
-  content     varchar(2500)     not null
+  id                   serial            NOT NULL
+    CONSTRAINT note_fragment_pkey
+    PRIMARY KEY, 
+  date_created_seconds integer           NOT NULL,
+  date_created_nanos   integer default 0 NOT NULL,
+  note_fragment_guid   varchar(38)       NOT NULL,
+  note_guid            varchar(38)       NOT NULL
+    CONSTRAINT note_fragment_note_note_guid_fk
+    REFERENCES note (note_guid),
+  icd_10code           varchar(15)       NOT NULL,
+  icd_10long           varchar(250)      NOT NULL,
+  description          varchar(150)      NOT NULL,
+  status               integer           NOT NULL,
+  priority             integer           NOT NULL,
+  topic                integer           NOT NULL,
+  content     varchar(2500)     NOT NULL
 );
 
-alter table note_fragment
-  owner to postgres;
+ALTER TABLE note_fragment
+  OWNER to postgres;
 
-create unique index note_fragment_id_uindex
-  on note_fragment (id);
+CREATE UNIQUE INDEX note_fragment_id_uindex
+  ON note_fragment (id);
 
-create unique index note_fragment_note_fragment_guid_uindex
-  on note_fragment (note_fragment_guid);
+CREATE UNIQUE INDEX note_fragment_note_fragment_guid_uindex
+  ON note_fragment (note_fragment_guid);
 
 `
 
 const createNoteTagTable =
-`create table note_tag
+`CREATE TABLE note_tag
 (
-	id serial not null
-		constraint note_tag_pkey
-			primary key,
-	note_guid varchar(38) not null
-		constraint note_tag_note_note_guid_fk
-			references note (note_guid),
-	tag varchar(55) not null
+	id serial NOT NULL
+		CONSTRAINT note_tag_pkey
+			PRIMARY KEY, 
+	note_guid varchar(38) NOT NULL
+		CONSTRAINT note_tag_note_note_guid_fk
+			REFERENCES note (note_guid),
+	tag varchar(55) NOT NULL
 )
 ;
 
-alter table note_tag owner to postgres
+ALTER TABLE note_tag OWNER to postgres
 ;
 
-create unique index note_tag_id_uindex
-	on note_tag (id)
+CREATE UNIQUE INDEX note_tag_id_uindex
+	ON note_tag (id)
 ;
 
 `
 
 const createNoteFragmentTagTable =
-`create table note_fragment_tag
+`CREATE TABLE note_fragment_tag
 (
-	id serial not null
-		constraint note_fragment_tag_pkey
-			primary key,
-	note_fragment_guid varchar(38) not null
-		constraint note_fragment_tag_note_fragment_note_fragment_guid_fk
-			references note_fragment (note_fragment_guid),
-	tag varchar(55) not null
+	id serial NOT NULL
+		CONSTRAINT note_fragment_tag_pkey
+			PRIMARY KEY, 
+	note_fragment_guid varchar(38) NOT NULL
+		CONSTRAINT note_fragment_tag_note_fragment_note_fragment_guid_fk
+			REFERENCES note_fragment (note_fragment_guid),
+	tag varchar(55) NOT NULL
 )
 ;
 
-alter table note_fragment_tag owner to postgres
+ALTER TABLE note_fragment_tag OWNER to postgres
 ;
 
-create unique index note_fragment_tag_id_uindex
-	on note_fragment_tag (id)
+CREATE UNIQUE INDEX note_fragment_tag_id_uindex
+	ON note_fragment_tag (id)
 ;
 `
 
@@ -193,25 +193,25 @@ VALUES
 RETURNING id;`
 
 const getNoteTagByNoteGuid =
-`select * from note_tag where note_guid = $1;`
+`SELECT * from note_tag WHERE note_guid = $1;`
 
 const getNoteFragmentTagsByNoteFragmentGuid =
-`select * from note_fragment_tag where note_fragment_guid = $1;`
+`SELECT * from note_fragment_tag WHERE note_fragment_guid = $1;`
 
 const getNoteFragmentByNoteGuid =
-`select * from note_fragment where note_guid = $1;`
+`SELECT * from note_fragment WHERE note_guid = $1;`
 
 const getNoteByIdQuery =
-`select * from note where id = $1;`
+`SELECT * from note WHERE id = $1;`
 
 const updateNoteFragmentStatusToStatusByNoteFragmentGuidQuery =
-`update note_fragment
-set status = $1
-where note_fragment_guid = $2
-returning id;`
+`UPDATE note_fragment
+SET status = $1
+WHERE note_fragment_guid = $2
+RETURNING id;`
 
 const updateNoteStatusToStatusByNoteIdQuery =
-`update note
-set status = $1
-where id = $2
-returning id;`
+`UPDATE note
+SET status = $1
+WHERE id = $2
+RETURNING id;`
