@@ -63,7 +63,7 @@ func setup(t *testing.T) {
 
 	cfg := &Config{
 		Version:        "under-development",
-		LogPath:        "",
+		LogPath:        "/dev/null",
 		ServerProtocol: "tcp",
 		ServerIp:       "localhost",
 		ServerPort:     "50051",

@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 
-# NOTE: You must have the environmental variable NOTECLERK_ENVIRONMENT set.
-# E.g. export NOTECLERK_ENVIRONMENET=development.
-# TODO: Create NOTECLERK_LOG_DIR and NOTECLERK_LOG_PATH so that it is also
-# TODO: in ${HOME}/.noteclerk/config.<environment>.json
+# NOTE: You must have the environmental variable NOTECLERK_ENVIRONMENT set and
+# NOTECLERK_DATA should also be set.
+# E.g. export NOTECLERK_ENVIRONMENET=development.; export NOTECLERK_DATA=$HOME/.noteclerk
 VERSION="$(cat VERSION)"
-LOG_DIR="${HOME}/.noteclerk/log"
+LOG_DIR="${NOTECLERK_DATA}/log"
 LOG_PATH="${LOG_DIR}/server.log"
 SERVER_PROTOCOL="tcp"
 SERVER_IP="localhost"
@@ -17,7 +16,7 @@ DB_PASSWORD="PASSWORD_REQUIRED"
 DB_NAME="noteclerk"
 DB_SSL_MODE="disable"
 CONFIG_DIRECOTRY="config"
-CONFIG_FILE_PATH="${CONFIG_DIRECOTRY}/config.${NOTECLERK_ENVIRONMENT}.json"
+CONFIG_FILE_PATH="${NOTECLERK_DATA}/config.${NOTECLERK_ENVIRONMENT}.json"
 
 get_user_input() {
     # Generate log directory and file based on input

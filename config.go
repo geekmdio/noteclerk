@@ -9,6 +9,7 @@ import (
 // environment and matched to a configuration file. E.g. NOTECLERK_ENVIRONMENT=production
 // will match to './config/config.production.json'.
 const Environment = "NOTECLERK_ENVIRONMENT"
+const DataRoot = "NOTECLERK_DATA"
 
 // This struct is the model for a JSON configuration file that should be located in
 // ./config/config.<environment>.json, where '.' indicates the server root, and where
