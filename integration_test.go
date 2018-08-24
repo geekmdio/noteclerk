@@ -61,8 +61,6 @@ func setup(t *testing.T) {
 	// Don't clutter the integration tests with logging data
 	log.SetLevel(logrus.FatalLevel)
 
-	//TODO: Switch to this for config; build into .travis.yml a docker postgres db
-	// https://docs.travis-ci.com/user/docker/
 	cfg := &Config{
 		Version:        "under-development",
 		LogPath:        "",
@@ -87,6 +85,7 @@ func setup(t *testing.T) {
 
 	postgresDb.db = openDb
 
+	// Below here ensures that the database and it's tables are setup for the integration tests.
 	server := &DbPostgres{
 		db: openDb,
 	}
