@@ -139,7 +139,12 @@ ensure_config_directory_exists() {
 
 ensure_env_set() {
     if [ "${NOTECLERK_ENVIRONMENT}" == "" ]; then
-        echo "NOTECLERK_ENVIRONMENT environmental variable is not set. Please set this environmental variable and run again."
+        echo "NOTECLERK_ENVIRONMENT environmental variable is not set. Please set this environmental variable to a development stage and run again."
+        exit 1
+    fi
+
+    if [ "${NOTECLERK_DATA}" == "" ]; then
+        echo "NOTECLERK_DATA environmental variable is not set. Please set this environmental variable to a directory and run again."
         exit 1
     fi
 }
