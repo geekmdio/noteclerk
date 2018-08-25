@@ -194,14 +194,16 @@ VALUES
 	$2
 )
 RETURNING id;`
+const getAllNotesQuery =
+`SELECT * FROM note;`
 
-const getNoteTagByNoteGuid =
+const getNoteTagByNoteGuidQuery =
 `SELECT * from note_tag WHERE note_guid = $1;`
 
-const getNoteFragmentTagsByNoteFragmentGuid =
+const getNoteFragmentTagsByNoteFragmentGuidQuery =
 `SELECT * from note_fragment_tag WHERE note_fragment_guid = $1;`
 
-const getNoteFragmentByNoteGuid =
+const getNoteFragmentByNoteGuidQuery =
 `SELECT * from note_fragment WHERE note_guid = $1;`
 
 const getNoteByIdQuery =
@@ -218,3 +220,9 @@ const updateNoteStatusToStatusByNoteIdQuery =
 SET status = $1
 WHERE id = $2
 RETURNING id;`
+
+const getNotesByFindQuery =
+`SELECT * FROM note
+WHERE author_guid LIKE $1
+AND visit_guid LIKE $2
+AND patient_guid LIKE $3;`

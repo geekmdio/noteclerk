@@ -42,7 +42,7 @@ func (d *DbPostgres) Initialize(config *Config) (*sql.DB, error) {
 }
 
 func (d *DbPostgres) GetNoteFragmentsByNoteGuid(noteGuid string) ([]*ehrpb.NoteFragment, error) {
-	rows, err := d.db.Query(getNoteFragmentByNoteGuid, noteGuid)
+	rows, err := d.db.Query(getNoteFragmentByNoteGuidQuery, noteGuid)
 	if err != nil {
 		//TODO: Custom error
 		return nil, err
@@ -70,7 +70,7 @@ func (d *DbPostgres) GetNoteFragmentsByNoteGuid(noteGuid string) ([]*ehrpb.NoteF
 }
 
 func (d *DbPostgres) GetNoteTagsByNoteGuid(noteGuid string) (tag []string, err error) {
-	rows, err := d.db.Query(getNoteTagByNoteGuid, noteGuid)
+	rows, err := d.db.Query(getNoteTagByNoteGuidQuery, noteGuid)
 	if err != nil {
 		return nil, errors.Wrapf(ErrPostgresDbGetNoteTagsByNoteGuidFailsToQueryResults, "%v", err)
 	}
@@ -91,7 +91,7 @@ func (d *DbPostgres) GetNoteTagsByNoteGuid(noteGuid string) (tag []string, err e
 }
 
 func (d *DbPostgres) GetNoteFragmentTagsByNoteFragmentGuid(noteFragGuid string) (tag []string, err error) {
-	rows, err := d.db.Query(getNoteFragmentTagsByNoteFragmentGuid, noteFragGuid)
+	rows, err := d.db.Query(getNoteFragmentTagsByNoteFragmentGuidQuery, noteFragGuid)
 	if err != nil {
 		return nil, errors.Wrapf(ErrPostgresDbGetNoteFragmentTagsByNoteFragmentGuidFailsToQueryResults, "%v", err)
 	}
@@ -176,7 +176,7 @@ func (d *DbPostgres) DeleteNote(id int64) error {
 }
 
 func (d *DbPostgres) AllNotes() ([]*ehrpb.Note, error) {
-	rows, err := d.db.Query("SELECT * FROM note;")
+	rows, err := d.db.Query(getAllNotesQuery)
 	if err != nil {
 		// TODO: Custom error giving more context.
 		return nil, err
@@ -244,9 +244,62 @@ func (d *DbPostgres) GetNoteById(id int64) (*ehrpb.Note, error) {
 	return newNote, nil
 }
 
+// TODO: Include note content and tags in search
 func (d *DbPostgres) FindNotes(filter NoteFindFilter) ([]*ehrpb.Note, error) {
-	log.Fatal("Not implemented.")
-	return nil, nil
+	notes := make([]*ehrpb.Note, 0)
+	// ensure valid guids
+	_, err := uuid.Parse(filter.VisitGuid)
+	if err != nil && filter.VisitGuid != ""{
+		return notes, err
+	}
+	_, err = uuid.Parse(filter.PatientGuid)
+	if err != nil && filter.PatientGuid != ""{
+		return notes, err
+	}
+	_, err = uuid.Parse(filter.AuthorGuid)
+	if err != nil && filter.AuthorGuid != "" {
+		return notes, err
+	}
+	// Prepare search wildcard if guid not provided
+	if filter.AuthorGuid == "" {
+		filter.AuthorGuid = "%"
+	}
+	if filter.VisitGuid == "" {
+		filter.VisitGuid = "%"
+	}
+	if filter.PatientGuid == "" {
+		filter.PatientGuid = "%"
+	}
+	rows, err := d.db.Query(getNotesByFindQuery, filter.AuthorGuid, filter.VisitGuid, filter.PatientGuid)
+	if err != nil {
+		// TODO: Custom error giving more context.
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		tmpNote := NewNote()
+		err := rows.Scan(&tmpNote.Id, &tmpNote.DateCreated.Seconds, &tmpNote.DateCreated.Nanos,
+			&tmpNote.NoteGuid, &tmpNote.VisitGuid, &tmpNote.AuthorGuid,
+			&tmpNote.PatientGuid, &tmpNote.Type, &tmpNote.Status)
+		if err != nil {
+			//TODO: Custom error giving more context.
+			return nil, err
+		}
+		tmpNote.Tags, err = d.GetNoteTagsByNoteGuid(tmpNote.GetNoteGuid())
+		if err != nil {
+			return nil, err
+		}
+
+		tmpNote.Fragments, err = d.GetNoteFragmentsByNoteGuid(tmpNote.GetNoteGuid())
+		if err != nil {
+			return nil, err
+		}
+
+		notes = append(notes, tmpNote)
+
+	}
+	return notes, nil
 }
 
 func (d *DbPostgres) AllNoteFragments() ([]*ehrpb.NoteFragment, error) {

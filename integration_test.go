@@ -55,6 +55,33 @@ func TestDbPostgres_DeleteNote(t *testing.T) {
 	tearDown(t)
 }
 
+func TestDbPostgres_FindNotes(t *testing.T) {
+	setup(t)
+
+	note := buildNote()
+	postgresDb.AddNote(note)
+
+	visitGuid := "" // note.GetVisitGuid()
+	patientGuid := "" // note.GetPatientGuid()
+	authorGuid := note.GetAuthorGuid()
+
+	findQuery := NoteFindFilter{
+		VisitGuid:   visitGuid,
+		AuthorGuid:  authorGuid,
+		PatientGuid: patientGuid,
+		SearchTerms: "",
+	}
+
+	notes, err := postgresDb.FindNotes(findQuery)
+	if err != nil {
+		t.Fatalf("Failed to find notes. Error: %v", err)
+	}
+
+	fmt.Println(notes)
+
+	tearDown(t)
+}
+
 func buildNote() *ehrpb.Note {
 	nb := &noted.NoteBuilder{}
 	note := nb.Init().
