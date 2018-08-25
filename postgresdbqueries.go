@@ -38,7 +38,8 @@ const createNoteFragmentTable =
   note_fragment_guid   varchar(38)       NOT NULL,
   note_guid            varchar(38)       NOT NULL
     CONSTRAINT note_fragment_note_note_guid_fk
-    REFERENCES note (note_guid),
+    REFERENCES note (note_guid)
+	ON DELETE CASCADE,
   icd_10code           varchar(15)       NOT NULL,
   icd_10long           varchar(250)      NOT NULL,
   description          varchar(150)      NOT NULL,
@@ -67,7 +68,8 @@ const createNoteTagTable =
 			PRIMARY KEY, 
 	note_guid varchar(38) NOT NULL
 		CONSTRAINT note_tag_note_note_guid_fk
-			REFERENCES note (note_guid),
+			REFERENCES note (note_guid)
+			ON DELETE CASCADE,
 	tag varchar(55) NOT NULL
 )
 ;
@@ -89,7 +91,8 @@ const createNoteFragmentTagTable =
 			PRIMARY KEY, 
 	note_fragment_guid varchar(38) NOT NULL
 		CONSTRAINT note_fragment_tag_note_fragment_note_fragment_guid_fk
-			REFERENCES note_fragment (note_fragment_guid),
+			REFERENCES note_fragment (note_fragment_guid)
+			ON DELETE CASCADE,
 	tag varchar(55) NOT NULL
 )
 ;

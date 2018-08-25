@@ -364,5 +364,5 @@ func (d *DbPostgres) createTable(query string) error {
 }
 
 func notNilNotTableExists(err error) bool {
-	return err != nil && err != ErrPostgresDbInitTableAlreadyExistsErr
+	return err != nil
 }
