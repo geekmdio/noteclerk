@@ -2,7 +2,7 @@ package main
 
 // TODO: Consider moving to SQL files
 const createNoteTable =
-`CREATE TABLE note
+`CREATE TABLE IF NOT EXISTS note
 (
   id                   serial            NOT NULL
     CONSTRAINT note_pkey
@@ -28,7 +28,7 @@ CREATE UNIQUE INDEX note_note_guid_uindex
 `
 
 const createNoteFragmentTable =
-`CREATE TABLE note_fragment
+`CREATE TABLE IF NOT EXISTS note_fragment
 (
   id                   serial            NOT NULL
     CONSTRAINT note_fragment_pkey
@@ -60,7 +60,7 @@ CREATE UNIQUE INDEX note_fragment_note_fragment_guid_uindex
 `
 
 const createNoteTagTable =
-`CREATE TABLE note_tag
+`CREATE TABLE IF NOT EXISTS note_tag
 (
 	id serial NOT NULL
 		CONSTRAINT note_tag_pkey
@@ -82,7 +82,7 @@ CREATE UNIQUE INDEX note_tag_id_uindex
 `
 
 const createNoteFragmentTagTable =
-`CREATE TABLE note_fragment_tag
+`CREATE TABLE IF NOT EXISTS note_fragment_tag
 (
 	id serial NOT NULL
 		CONSTRAINT note_fragment_tag_pkey

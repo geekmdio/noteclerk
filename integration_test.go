@@ -32,6 +32,10 @@ func TestDbPostgres_UpdateNote(t *testing.T) {
 	setup(t)
 	note := buildNote()
 
+	id, _ := postgresDb.AddNote(note)
+	note.Id = id
+	note.Fragments[0].Content = "Updated content"
+
 	err := postgresDb.UpdateNote(note)
 	if err != nil {
 		t.Fatalf("Failed to add note to datbase. Error: %v", err)
@@ -39,21 +43,33 @@ func TestDbPostgres_UpdateNote(t *testing.T) {
 	tearDown(t)
 }
 
+func TestDbPostgres_DeleteNote(t *testing.T) {
+	setup(t)
+	note := buildNote()
+
+	id, _ := postgresDb.AddNote(note)
+	err := postgresDb.DeleteNote(id)
+	if err != nil {
+		t.Fatalf("Failed to delete note. Error: %v", err)
+	}
+	tearDown(t)
+}
+
 func buildNote() *ehrpb.Note {
 	nb := &noted.NoteBuilder{}
 	note := nb.Init().
+		SetId(0).
+		SetDateCreated(TimestampNow()).
 		SetPatientGuid(uuid.New().String()).
 		SetAuthorGuid(uuid.New().String()).
 		SetVisitGuid(uuid.New().String()).
-		SetId(0).
-		SetDateCreated(TimestampNow()).
 		SetType(ehrpb.NoteType_HISTORY_AND_PHYSICAL).
 		Build()
 	note.Tags = append(note.Tags, "tag1", "tag2")
 	fb := &noted.NoteFragmentBuilder{}
 	frag := fb.InitFromNote(note).
-		SetDateCreated(TimestampNow()).
 		SetId(0).
+		SetDateCreated(TimestampNow()).
 		SetStatus(ehrpb.RecordStatus_ACTIVE).
 		SetPriority(ehrpb.RecordPriority_HIGH).
 		SetTopic(ehrpb.FragmentType_MEDICAL_HISTORY).
