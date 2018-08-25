@@ -28,6 +28,17 @@ func TestDbPostgres_AddNote(t *testing.T) {
 	tearDown(t)
 }
 
+func TestDbPostgres_UpdateNote(t *testing.T) {
+	setup(t)
+	note := buildNote()
+
+	err := postgresDb.UpdateNote(note)
+	if err != nil {
+		t.Fatalf("Failed to add note to datbase. Error: %v", err)
+	}
+	tearDown(t)
+}
+
 func buildNote() *ehrpb.Note {
 	nb := &noted.NoteBuilder{}
 	note := nb.Init().
