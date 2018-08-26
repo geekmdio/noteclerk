@@ -21,10 +21,21 @@ const (
 	DbPostgresAddNoteTagFailsScan                    = 15
 	DbPostgresAddNoteFragmentFailsScan               = 16
 	DbPostgresAddNoteFragmentFailsAddNoteTags        = 17
-	DbPostgresAddNoteFragmentTagFailsScan = 18
+	DbPostgresAddNoteFragmentTagFailsScan            = 18
+	NoteClerkServerCreateNoteFailsAddNoteToDb = 19
+	NoteClerkServerDeleteNoteFailsDeleteNoteFromDb = 20
+	NoteClerkServerRetrieveNoteFailsToGetNoteFromDb = 21
+	NoteClerkServerSearchNotesFailsToFindNotesInDb = 22
+	NoteClerkServerUpdateNoteFailsDueToIdMismatch = 23
+	NoteClerkServerUpdateNoteFailsToUpdateNoteInDb = 24
+	NoteClerkServerInitializeFailsDbInitialization = 25
+	NoteClerkServerInitializeFailsCreateListener = 26
+	NoteClerkServerInitializeFailsInitializingRpcServer = 27
+	NoteClerkServerConstructorFailsDueToNilDb = 28
+	NoteClerkServerConstructorFailsDueToNilConfig = 29
 )
 
-var ErrorMap = map[NoteClerkError]string{
+var ErrMapStr = map[NoteClerkError]string{
 	DbPostgresInitializeFailsOpenConn:                "DbPostgres.Initialize failed to open a database connection",
 	DbPostgresInitializeFailsDbPing:                  "DbPostgres.Initialize failed to ping the database.",
 	DbPostgresInitializeFailsSchemaCreation:          "DbPostgres.Initialize failed to create the database schema.",
@@ -43,5 +54,16 @@ var ErrorMap = map[NoteClerkError]string{
 	DbPostgresAddNoteTagFailsScan:                    "DbPostgres.AddNoteTag fails to scan new Id",
 	DbPostgresAddNoteFragmentFailsScan:               "DbPostgres.AddNoteFragment fails to scan new Id",
 	DbPostgresAddNoteFragmentFailsAddNoteTags:        "DbPostgres.AddNoteFragment fails to add note fragment tags.",
-	DbPostgresAddNoteFragmentTagFailsScan: "DbPostgres.AddNoteFragmentTag fails to scan Id",
+	DbPostgresAddNoteFragmentTagFailsScan:            "DbPostgres.AddNoteFragmentTag fails to scan Id",
+	NoteClerkServerCreateNoteFailsAddNoteToDb: "NoteClerkServer.CreateNote fails to add the new note to the database.",
+	NoteClerkServerDeleteNoteFailsDeleteNoteFromDb: "NoteClerkServer.DeleteNote fails to delete the requested note from the database.",
+	NoteClerkServerRetrieveNoteFailsToGetNoteFromDb: "NoteClerkServer.RetrieveNote fails to retrieve requested note from the database.",
+	NoteClerkServerSearchNotesFailsToFindNotesInDb: "NoteClerkServer.SearchNotes",
+	NoteClerkServerUpdateNoteFailsDueToIdMismatch: "NoteClerkServer.UpdateNote fails to update due to a mismatch between the Id of the presented note and the Id stated as the note to update.",
+	NoteClerkServerUpdateNoteFailsToUpdateNoteInDb: "NoteClerkServer.UpdateNote fails to update the note in the database.",
+	NoteClerkServerInitializeFailsDbInitialization: "NoteClerkServer.Initialize failed to initialize the database.",
+	NoteClerkServerInitializeFailsCreateListener: "NoteClerkServer.Initialize fails to create a listener.",
+	NoteClerkServerInitializeFailsInitializingRpcServer: "NoteClerkServer.Initialize fails to create a gRPC server on the listener.",
+	NoteClerkServerConstructorFailsDueToNilDb: "NoteClerkServer.constructor fails to populate fields due to a nil database being received.",
+	NoteClerkServerConstructorFailsDueToNilConfig: "NoteClerkServer.constructor fails to populate fields due to a nil config being received.",
 }

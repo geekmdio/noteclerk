@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
 	"github.com/sirupsen/logrus"
+	"strings"
 )
 
 var postgresDb = &DbPostgres{}
@@ -29,12 +30,14 @@ func TestCreateTable_WhichDoesNotExist_ReturnsNil(t *testing.T) {
 
 	createQuery := `CREATE TABLE create_table_returns_nil (id serial NOT NULL);`
 
-	if err := postgresDb.createTable(createQuery); err != nil {
-		t.Fatalf("Create table should not return error when given proper query. Error: %v", err)
+	err := postgresDb.createTable(createQuery)
+	errMsg := fmt.Sprintf("%v", err)
+	if !strings.Contains(errMsg, ErrMapStr[DbPostgresCreateTableFailsAlreadyExists]) {
+		t.Fatalf("Create table should return %v, but returned %v", ErrMapStr[DbPostgresCreateTableFailsAlreadyExists], err)
 	}
 
 	dropQuery := `DROP TABLE create_table_returns_nil;`
-	_, err := postgresDb.db.Exec(dropQuery)
+	_, err = postgresDb.db.Exec(dropQuery)
 	if err != nil {
 		t.Fatalf("Failed to drop table. Error: %v", err)
 	}
@@ -51,9 +54,9 @@ func TestCreateTable_WhichAlreadyExists_ReturnsProperError(t *testing.T) {
 		t.Fatalf("Create table should not return error when given proper query. Error: %v", err)
 	}
 
-	expected := ErrTableAlreadyExists
-	if err := postgresDb.createTable(createQuery); err != expected {
-		t.Fatalf("Create table should return %v. Actual error: %v", expected, err)
+
+	if err := postgresDb.createTable(createQuery); err != nil {
+		t.Fatalf("Create table should return an error. Actual error: %v", err)
 	}
 
 	dropQuery := `DROP TABLE create_table_returns_nil;`

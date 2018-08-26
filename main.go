@@ -15,7 +15,7 @@ func main() {
 	}
 	InitializeLogger(config.LogPath)
 	if NoteClerkEnv == "" {
-		log.Panic(ErrEnvironmentNotSet)
+		log.Panic("NOTECLERK_ENVIRONMENT environmental variable must be set.")
 	}
 
 	initStatement := fmt.Sprintf("NoteClerk v%v is launching in %v", config.Version, strings.ToUpper(NoteClerkEnv))

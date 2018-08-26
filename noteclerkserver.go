@@ -32,14 +32,14 @@ func (n *NoteClerkServer) CreateNote(ctx context.Context, nr *ehrpb.CreateNoteRe
 	noteToAdd.NoteGuid = uuid.New().String()
 	noteToAdd.DateCreated = TimestampNow()
 
-	id, addErr := n.db.AddNote(noteToAdd)
-	if addErr != nil {
-		newErr := errors.Wrapf(ErrNewNoteNotAddedToDb, "%v", addErr)
-		log.Warn(newErr)
+	id, err := n.db.AddNote(noteToAdd)
+	if err != nil {
+		err := errors.WithMessage(err, ErrMapStr[NoteClerkServerCreateNoteFailsAddNoteToDb])
+		log.Warn(err)
 		cnr.Status.HttpCode = ehrpb.StatusCodes_NOT_MODIFIED
 		cnr.Status.Message = "Failed to insert new note into database."
 		cnr.Note = nil
-		return nil, newErr
+		return nil, err
 	}
 
 	cnr.Note = noteToAdd
@@ -58,20 +58,20 @@ func (n *NoteClerkServer) DeleteNote(ctx context.Context, dnr *ehrpb.DeleteNoteR
 		},
 	}
 
-	deleteErr := n.db.DeleteNote(dnr.Id)
-	if deleteErr != nil {
-		newErr := errors.Wrapf(ErrDeleteNoteFailsUpdateStatus, "%v", deleteErr)
-		log.Warn(newErr)
+	err := n.db.DeleteNote(dnr.Id)
+	if err != nil {
+		err := errors.WithMessage(err, ErrMapStr[NoteClerkServerDeleteNoteFailsDeleteNoteFromDb])
+		log.Warn(err)
 		dnRes.Status.HttpCode = ehrpb.StatusCodes_NOT_MODIFIED
 		dnRes.Status.Message = "Failed to delete note from the database."
-		return dnRes, newErr
+		return dnRes, err
 	}
 
 	return dnRes, nil
 }
 
 func (n *NoteClerkServer) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveNoteRequest) (*ehrpb.RetrieveNoteResponse, error) {
-	retNoteRes := &ehrpb.RetrieveNoteResponse{
+	res := &ehrpb.RetrieveNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{
 			HttpCode: ehrpb.StatusCodes_OK,
 			Message:  "Successfully retrieved note from database.",
@@ -80,20 +80,20 @@ func (n *NoteClerkServer) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveN
 
 	note, err := n.db.GetNoteById(rnr.Id)
 	if err != nil {
-		newErr := errors.Wrapf(ErrRetrieveNoteFailsRetrieveFromDb, "%v", err)
-		log.Warn(newErr)
-		retNoteRes.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
-		retNoteRes.Status.Message = "Failed to retrieve note from database."
-		return retNoteRes, newErr
+		err := errors.WithMessage(err, ErrMapStr[NoteClerkServerRetrieveNoteFailsToGetNoteFromDb])
+		log.Warn(err)
+		res.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
+		res.Status.Message = "Failed to retrieve note from database."
+		return res, err
 	}
 
 	err = noted.OrganizeNoteFragments(note)
 	if err != nil {
 		log.Warn("Could not organize the note fragments by fragment priority.")
 	}
-	retNoteRes.Note = note
+	res.Note = note
 
-	return retNoteRes, nil
+	return res, nil
 }
 
 func (n *NoteClerkServer) SearchNotes(ctx context.Context, fnr *ehrpb.SearchNotesRequest) (*ehrpb.SearchNotesResponse, error) {
@@ -104,31 +104,31 @@ func (n *NoteClerkServer) SearchNotes(ctx context.Context, fnr *ehrpb.SearchNote
 		SearchTerms: fnr.SearchTerms,
 	}
 
-	findNoteResponse := &ehrpb.SearchNotesResponse{
+	res := &ehrpb.SearchNotesResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{
 			HttpCode: ehrpb.StatusCodes_OK,
 			Message:  "Successfully found one or more notes matching query.",
 		},
 	}
 
-	for _, v := range findNoteResponse.Notes {
+	notes, err := n.db.FindNotes(filter)
+	if err != nil {
+		err := errors.WithMessage(err, ErrMapStr[NoteClerkServerSearchNotesFailsToFindNotesInDb])
+		log.Warn(err)
+		res.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
+		res.Status.Message = "Failed to locate notes matching query"
+		return res, err
+	}
+
+	for _, v := range res.Notes {
 		err := noted.OrganizeNoteFragments(v)
 		if err != nil {
 			log.Warn("Could not organize the note fragments by fragment priority.")
 		}
 	}
 
-	notes, err := n.db.FindNotes(filter)
-	if err != nil {
-		newErr := errors.Wrapf(ErrFindNoteFailedToFindInDb, "%v", err)
-		log.Warn(newErr)
-		findNoteResponse.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
-		findNoteResponse.Status.Message = "Failed to locate notes matching query"
-		return findNoteResponse, newErr
-	}
-
-	findNoteResponse.Notes = notes
-	return findNoteResponse, nil
+	res.Notes = notes
+	return res, nil
 }
 
 func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteRequest) (*ehrpb.UpdateNoteResponse, error) {
@@ -141,7 +141,7 @@ func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteR
 	}
 
 	if unr.Id != unr.Note.Id {
-		newErr := ErrUpdateNoteFailedFromIdMismatch
+		newErr := errors.New(ErrMapStr[NoteClerkServerUpdateNoteFailsDueToIdMismatch])
 		log.Warn(newErr)
 		updateNoteResponse.Status.HttpCode = ehrpb.StatusCodes_CONFLICT
 		updateNoteResponse.Status.Message = "Failed to update note. The id provided for the update note request does not match the id of the note."
@@ -150,7 +150,7 @@ func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteR
 
 	err := n.db.UpdateNote(unr.Note)
 	if err != nil {
-		newErr := errors.Wrapf(ErrUpdateNoteFailedToUpdateInDb, "%v", err)
+		newErr := errors.WithMessage(err, ErrMapStr[NoteClerkServerUpdateNoteFailsToUpdateNoteInDb])
 		log.Warn(newErr)
 		updateNoteResponse.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
 		updateNoteResponse.Status.Message = "UpdateNote failed. Unable to update note in the database."
@@ -174,7 +174,7 @@ func (n *NoteClerkServer) Initialize(config *Config, db RDBMSAccessor) error {
 	// Initialize server database
 	err := n.db.Initialize(config)
 	if err != nil {
-		return errors.Wrapf(ErrDbInitFails, "%v", err)
+		return errors.WithMessage(err, ErrMapStr[NoteClerkServerInitializeFailsDbInitialization])
 	}
 	log.Info("Successfully connected to database.")
 
@@ -186,14 +186,14 @@ func (n *NoteClerkServer) Initialize(config *Config, db RDBMSAccessor) error {
 	// Create listener
 	lis, err := net.Listen(n.getProtocol(), n.getConnectionAddr())
 	if err != nil {
-		return errors.Wrapf(ErrListenerInitFails, "Connection Address: %v. Error: %v", n.getConnectionAddr(), err)
+		return errors.WithMessage(err, ErrMapStr[NoteClerkServerInitializeFailsCreateListener])
 	}
 	log.Info("Successfully created a listener.")
 
 	// Serve
 	log.Info("Starting gRPC server.")
 	if err = n.server.Serve(lis); err != nil {
-		return errors.Wrapf(ErrFailToServeOnListener, "Connection Address: %v. Error: %v", n.getConnectionAddr(), err)
+		return errors.WithMessage(err, ErrMapStr[NoteClerkServerInitializeFailsInitializingRpcServer])
 	}
 
 	return nil
@@ -201,10 +201,10 @@ func (n *NoteClerkServer) Initialize(config *Config, db RDBMSAccessor) error {
 
 func (n *NoteClerkServer) constructor(config *Config, db RDBMSAccessor) error {
 	if db == nil {
-		return ErrServerInitFailsDbNil
+		return errors.New(ErrMapStr[NoteClerkServerConstructorFailsDueToNilDb])
 	}
 	if config == nil {
-		return ErrServerInitFailsFromNilConfig
+		return errors.New(ErrMapStr[NoteClerkServerConstructorFailsDueToNilConfig])
 	}
 
 	n.ip = config.ServerIp
