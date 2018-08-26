@@ -14,6 +14,58 @@ var postgresDb = &DbPostgres{}
 
 const testingEnv = "testing"
 
+func TestCreateTable_ReturnsError_WithImproperQuery(t *testing.T) {
+	setup(t)
+
+	if err := postgresDb.createTable("CREATE BLAH"); err == nil {
+		t.Fatalf("Should not be able to create table from improper query.")
+	}
+
+	tearDown(t)
+}
+
+func TestCreateTable_WhichDoesNotExist_ReturnsNil(t *testing.T) {
+	setup(t)
+
+	createQuery := `CREATE TABLE create_table_returns_nil (id serial NOT NULL);`
+
+	if err := postgresDb.createTable(createQuery); err != nil {
+		t.Fatalf("Create table should not return error when given proper query. Error: %v", err)
+	}
+
+	dropQuery := `DROP TABLE create_table_returns_nil;`
+	_, err := postgresDb.db.Exec(dropQuery)
+	if err != nil {
+		t.Fatalf("Failed to drop table. Error: %v", err)
+	}
+
+	tearDown(t)
+}
+
+func TestCreateTable_WhichAlreadyExists_ReturnsProperError(t *testing.T) {
+	setup(t)
+
+	createQuery := `CREATE TABLE create_table_returns_nil (id serial NOT NULL);`
+
+	if err := postgresDb.createTable(createQuery); err != nil {
+		t.Fatalf("Create table should not return error when given proper query. Error: %v", err)
+	}
+
+	expected := ErrTableAlreadyExists
+	if err := postgresDb.createTable(createQuery); err != expected {
+		t.Fatalf("Create table should return %v. Actual error: %v", expected, err)
+	}
+
+	dropQuery := `DROP TABLE create_table_returns_nil;`
+	_, err := postgresDb.db.Exec(dropQuery)
+	if err != nil {
+		t.Fatalf("Failed to drop table. Error: %v", err)
+	}
+
+	tearDown(t)
+}
+
+
 func TestDbPostgres_AddNote(t *testing.T) {
 	setup(t)
 	note := buildNote()
@@ -77,8 +129,9 @@ func TestDbPostgres_FindNotes(t *testing.T) {
 		t.Fatalf("Failed to find notes. Error: %v", err)
 	}
 
-	fmt.Println(notes)
-
+	if len(notes) < 1 {
+		t.Fatalf("Should return at least one note, but did not.")
+	}
 	tearDown(t)
 }
 

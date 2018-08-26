@@ -60,7 +60,7 @@ func (n *NoteClerkServer) DeleteNote(ctx context.Context, dnr *ehrpb.DeleteNoteR
 
 	deleteErr := n.db.DeleteNote(dnr.Id)
 	if deleteErr != nil {
-		newErr := errors.Wrapf(ErrDeleteNoteFailedToDeleteFromDb, "%v", deleteErr)
+		newErr := errors.Wrapf(ErrDeleteNoteFailsUpdateStatus, "%v", deleteErr)
 		log.Warn(newErr)
 		dnRes.Status.HttpCode = ehrpb.StatusCodes_NOT_MODIFIED
 		dnRes.Status.Message = "Failed to delete note from the database."
@@ -80,7 +80,7 @@ func (n *NoteClerkServer) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveN
 
 	note, err := n.db.GetNoteById(rnr.Id)
 	if err != nil {
-		newErr := errors.Wrapf(ErrRetrieveNoteFailedToRetrieveFromDb, "%v", err)
+		newErr := errors.Wrapf(ErrRetrieveNoteFailsRetrieveFromDb, "%v", err)
 		log.Warn(newErr)
 		retNoteRes.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
 		retNoteRes.Status.Message = "Failed to retrieve note from database."
@@ -201,7 +201,7 @@ func (n *NoteClerkServer) Initialize(config *Config, db RDBMSAccessor) error {
 
 func (n *NoteClerkServer) constructor(config *Config, db RDBMSAccessor) error {
 	if db == nil {
-		return ErrServerCannotInitWithNilDatabase
+		return ErrServerInitFailsDbNil
 	}
 	if config == nil {
 		return ErrServerInitFailsFromNilConfig
