@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
 )
 
@@ -9,7 +8,7 @@ import (
 // Any changes to the database implementation should implement this interface, and if the new struct will take over
 // as the preferred database implementation, it should be assigned to 'db' in dependencies.go.
 type RDBMSAccessor interface {
-	Initialize(config *Config) (*sql.DB, error)
+	Initialize(config *Config) error
 	AddNote(note *ehrpb.Note) (id int64, err error)
 	UpdateNote(note *ehrpb.Note) error
 	DeleteNote(id int64) error

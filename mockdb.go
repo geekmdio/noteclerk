@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
 	"github.com/geekmdio/noted"
@@ -16,12 +15,12 @@ type MockDb struct {
 }
 
 // The database should be initialized after instantiation for all structs implementing the RDBMSAccessor interface.
-func (m *MockDb) Initialize(config *Config) (*sql.DB, error) {
+func (m *MockDb) Initialize(config *Config) error {
 	var notes []*ehrpb.Note
 	notes = append(notes, buildNote1(), buildNote2())
 	m.db = notes
 
-	return nil, nil
+	return nil
 }
 
 // Add a note to the mock database.

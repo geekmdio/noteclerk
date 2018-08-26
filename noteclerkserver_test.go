@@ -8,6 +8,14 @@ import (
 	"testing"
 )
 
+func TestDbPostgres_InitializeWithEmptyConfig_ThrowsError(t *testing.T) {
+	config := &Config{}
+	db := &DbPostgres{}
+	if err := db.Initialize(config); err == nil {
+		t.Fatalf("Initializing with a blank config should return an error, but returned %v", err)
+	}
+}
+
 func TestNoteClerkServer_CreateNote(t *testing.T) {
 	s := &NoteClerkServer{}
 	s.Initialize(&Config{}, mockDb)
@@ -283,7 +291,7 @@ func TestNoteClerkServer_FindNote_WithNonExistentGuid_ReturnsError(t *testing.T)
 
 func TestNoteClerkServer_UpdateNote(t *testing.T) {
 	mockDb := mockDb
-	_, err := mockDb.Initialize(nil)
+	err := mockDb.Initialize(nil)
 	if err != nil {
 		t.Fatalf("Failed to initialize mock database.")
 	}

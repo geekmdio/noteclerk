@@ -1,34 +1,47 @@
 package main
 
-import "github.com/pkg/errors"
+type NoteClerkError int8
 
-var (
-	ErrServerInitFailsFromNilConfig    = errors.New("ERROR 0: Configuration provided to server is nil and could not be used for instantiation.")
-	ErrNewNoteNotAddedToDb             = errors.New("ERROR 1: NewNote could not add note to database.")
-	ErrDeleteNoteFailsUpdateStatus     = errors.New("ERROR 2: DeleteNote could not set the status to deleted in the database.")
-	ErrRetrieveNoteFailsRetrieveFromDb = errors.New("ERROR 3: RetrieveNote could not retrieve note from database.")
-	ErrFindNoteFailedToFindInDb        = errors.New("ERROR 4: FindNotes could not locate notes in the database matching the query.")
-	ErrUpdateNoteFailedFromIdMismatch  = errors.New("ERROR 5: UpdateNote discovered the id requested for update did not match the id of the provided note and the update request was rejected.")
-	ErrUpdateNoteFailedToUpdateInDb    = errors.New("ERROR 6: UpdateNote could not update the note in the database.")
-	ErrDbInitFails                        = errors.New("ERROR 7: Initialize could not initialize server due to database initialization failure.")
-	ErrListenerInitFails                  = errors.New("ERROR 8: Initialize could not initialize server due to failure to establish a listener.")
-	ErrFailToServeOnListener              = errors.New("ERROR 9: Initialize could not initialize server due to a failure to serve on the provided listener.")
-	ErrInitFailsOpenConn                  = errors.New("ERROR 10: Initialize could not open a connection to the database using the provided connection string.")
-	ErrInitFailsPingDb                    = errors.New("ERROR 11: Initialize failed to ping the database. Successful database connection is unlikely.")
-	ErrAddNoteFailsScan                   = errors.New("ERROR 12: AddNote failed to scan a new Id; successful add to database is unlikely.")
-	ErrAddNoteFailsAdd                    = errors.New("ERROR 13: AddNote failed to add note fragments from the note to the database. Consider deleting note.")
-	ErrAddNoteFragmentFailsScan           = errors.New("ERROR 14: AddNoteFragment failed to scan a new Id; successful add to the database is unlikely.")
-	ErrCreateTableFails                   = errors.New("ERROR 15: createTable failed to create a table with the given query.")
-	ErrCreateSchemaFails                  = errors.New("ERROR 16: createSchema failed to create the full database schema with the given set of queries.")
-	//ErrCreateSchemaFails 			   = errors.New("ERROR 17: Initialize failed to create the database schema.") // Deprecated
-	ErrTableAlreadyExists              = errors.New("ERROR 18: Table already exists and will not be replaced.")
-	ErrEnvironmentNotSet               = errors.New("ERROR 19: The NOTECLERK_ENVIRONMENT environmental variable has not been set.")
-	ErrAddNoteTagFailsScan             = errors.New("ERROR 20: AddNoteTag failed to scan a new Id; successful add to database unlikely.")
-	ErrAddNoteFailsAddTagToDb          = errors.New("ERROR 21: AddNote failed to add new note tags to database.")
-	ErrAddNoteFragmentFailsAddTagToDb  = errors.New("ERROR 22: AddNoteFragment failed to add tags to database.")
-	ErrGetFragTagsByFragGuidFailsQuery = errors.New("ERROR 23: GetNoteFragmentTagsByNoteFragmentGuid had an error during query.")
-	ErrGetFragTagsByFragGuidFailsScan  = errors.New("ERROR 24: GetNoteFragmentTagsByNoteFragmentGuid failed to scan row to retrieve tag.")
-	ErrGetNoteTagsByNoteGuidFailsQuery = errors.New("ERROR 23: GetNoteTagsByNoteGuid had an error during query.")
-	ErrGetNoteTagsByNoteGuidFailsScan  = errors.New("ERROR 24: GetNoteTagsByNoteGuid failed to scan row to retrieve tag.")
-	ErrServerInitFailsDbNil            = errors.New("ERROR 25: Initialize function has received a nil database and cannot initialize.")
+const (
+	DbPostgresInitializeFailsOpenConn                = 0
+	DbPostgresInitializeFailsDbPing                  = 1
+	DbPostgresInitializeFailsSchemaCreation          = 2
+	DbPostgresCreateSchemaFailsTableCreation         = 3
+	DbPostgresCreateTableFailsAlreadyExists          = 4
+	DbPostgresCreateTableFailsDueToUnexpectedError   = 5
+	DbPostgresAddNoteFailsScan                       = 6
+	DbPostgresAddNoteFailsToAddNoteTags              = 7
+	DbPostgresAddNoteFailsToAddNoteFragments         = 8
+	DbPostgresUpdateNoteFailsToChangeStatusToDeleted = 9
+	DbPostgresUpdateNoteFailsToAddUpdatedNote        = 10
+	DbPostgresGetNoteFragTagByNoteGuidQueryFails     = 11
+	DbPostgresGetNoteFragTagByNoteGuidFailsRowScan   = 12
+	DbPostgresGetNoteTagsByNoteGuidQueryFails        = 13
+	DbPostgresGetNoteTagsByNoteGuidFailsRowScan      = 14
+	DbPostgresAddNoteTagFailsScan                    = 15
+	DbPostgresAddNoteFragmentFailsScan               = 16
+	DbPostgresAddNoteFragmentFailsAddNoteTags        = 17
+	DbPostgresAddNoteFragmentTagFailsScan = 18
 )
+
+var ErrorMap = map[NoteClerkError]string{
+	DbPostgresInitializeFailsOpenConn:                "DbPostgres.Initialize failed to open a database connection",
+	DbPostgresInitializeFailsDbPing:                  "DbPostgres.Initialize failed to ping the database.",
+	DbPostgresInitializeFailsSchemaCreation:          "DbPostgres.Initialize failed to create the database schema.",
+	DbPostgresCreateSchemaFailsTableCreation:         "DbPostgres.createSchema failed to create table.",
+	DbPostgresCreateTableFailsAlreadyExists:          "DbPostgres.createTable failed to create table; requested table already exists.",
+	DbPostgresCreateTableFailsDueToUnexpectedError:   "DbPostgres.createTable failed to create table; error was unexpected.",
+	DbPostgresAddNoteFailsScan:                       "DbPostgres.AddNote failed to successfully scan query result for new Id.",
+	DbPostgresAddNoteFailsToAddNoteTags:              "DbPostgres.AddNote failed to add tags to the database.",
+	DbPostgresAddNoteFailsToAddNoteFragments:         "DbPostgres.AddNote failed to add note fragments to the database",
+	DbPostgresUpdateNoteFailsToChangeStatusToDeleted: "DbPostgres.UpdateNote failed to change note status to deleted",
+	DbPostgresUpdateNoteFailsToAddUpdatedNote:        "DbPostgres.UpdateNote fails to add the updated note.",
+	DbPostgresGetNoteFragTagByNoteGuidQueryFails:     "DbPostgres.GetNoteFragmentTagsByNoteFragmentGuid query failed.",
+	DbPostgresGetNoteFragTagByNoteGuidFailsRowScan:   "DbPostgres.GetNoteFragmentTagsByNoteFragmentGuid fails scan of row.",
+	DbPostgresGetNoteTagsByNoteGuidQueryFails:        "DbPostgres.GetNoteTagsByNoteGuid query failed.",
+	DbPostgresGetNoteTagsByNoteGuidFailsRowScan:      "DbPostgres.GetNoteTagsByNoteGuid fails scan of row.",
+	DbPostgresAddNoteTagFailsScan:                    "DbPostgres.AddNoteTag fails to scan new Id",
+	DbPostgresAddNoteFragmentFailsScan:               "DbPostgres.AddNoteFragment fails to scan new Id",
+	DbPostgresAddNoteFragmentFailsAddNoteTags:        "DbPostgres.AddNoteFragment fails to add note fragment tags.",
+	DbPostgresAddNoteFragmentTagFailsScan: "DbPostgres.AddNoteFragmentTag fails to scan Id",
+}

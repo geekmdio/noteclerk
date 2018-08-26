@@ -172,7 +172,7 @@ func (n *NoteClerkServer) Initialize(config *Config, db RDBMSAccessor) error {
 	}
 
 	// Initialize server database
-	_, err := n.db.Initialize(config)
+	err := n.db.Initialize(config)
 	if err != nil {
 		return errors.Wrapf(ErrDbInitFails, "%v", err)
 	}
