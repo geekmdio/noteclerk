@@ -14,6 +14,9 @@ import (
 	"github.com/geekmdio/noted"
 )
 
+// NoteClerkServer implements the gRPC NoteServiceServer interface. It has basic CRUD functionality, plus the ability to search
+// both Notes and, independently of Notes, NoteFragments. The ability to search NoteFragment's specifically gives a
+// much higher degree of resolution to search findings and exclude the less relevant data.
 type NoteClerkServer struct {
 	db       RDBMSAccessor
 	ip       string
@@ -23,6 +26,11 @@ type NoteClerkServer struct {
 	server   *grpc.Server
 }
 
+// CreateNote is a method contracted by the NoteServiceServer interface. It therefore complies with gRPC conventions.
+// The CreateNoteRequest object carries only a Note to be added. This Note should not have an Id assigned to it, or it
+// will likely generate an error when there is an attempt to add it to the database. The CreateNoteResponse contains
+// a status, which includes a message and a HttpCode.
+// RETURNS: CreateNoteResponse, error
 func (n *NoteClerkServer) CreateNote(ctx context.Context, nr *ehrpb.CreateNoteRequest) (*ehrpb.CreateNoteResponse, error) {
 	cnr := &ehrpb.CreateNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{},
@@ -50,11 +58,15 @@ func (n *NoteClerkServer) CreateNote(ctx context.Context, nr *ehrpb.CreateNoteRe
 	return cnr, nil
 }
 
+// DeleteNote is a method contracted by the NoteServiceServer interface. It therefore complies with gRPC conventions.
+// The DeleteNoteRequest object carries only the Id of the target note. The DeleteNoteResponse contains only
+// a status, which includes a message and a HttpCode.
+// RETURNS: DeleteNoteResponse, error
 func (n *NoteClerkServer) DeleteNote(ctx context.Context, dnr *ehrpb.DeleteNoteRequest) (*ehrpb.DeleteNoteResponse, error) {
 	dnRes := &ehrpb.DeleteNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{
 			HttpCode: ehrpb.StatusCodes_OK,
-			Message:  "Successfully marked note as deleted in the database.",
+			Message:  "Successfully changed the notes status to deleted in the database.",
 		},
 	}
 
@@ -63,13 +75,17 @@ func (n *NoteClerkServer) DeleteNote(ctx context.Context, dnr *ehrpb.DeleteNoteR
 		err := errors.WithMessage(err, ErrMapStr[NoteClerkServerDeleteNoteFailsDeleteNoteFromDb])
 		log.Warn(err)
 		dnRes.Status.HttpCode = ehrpb.StatusCodes_NOT_MODIFIED
-		dnRes.Status.Message = "Failed to delete note from the database."
+		dnRes.Status.Message = "Failed to change the notes status to deleted in the database."
 		return dnRes, err
 	}
 
 	return dnRes, nil
 }
 
+// RetrieveNote is a method contracted by the NoteServiceServer interface. It therefore complies with gRPC conventions.
+// The RetrieveNoteRequest object carries only the Id of the target note. The RetrieveNoteResponse contains a Note and
+// a status, which includes a message and a HttpCode.
+// RETURNS: RetrieveNoteResponse, error
 func (n *NoteClerkServer) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveNoteRequest) (*ehrpb.RetrieveNoteResponse, error) {
 	res := &ehrpb.RetrieveNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{
@@ -96,6 +112,11 @@ func (n *NoteClerkServer) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveN
 	return res, nil
 }
 
+// SearchNotes is a method contracted by the NoteServiceServer interface. It therefore complies with gRPC conventions.
+// The SearchNotesRequest object carries GUID's for patient, author, and visit in addition to a field for
+// search terms which can scan through contents of not fragments and tags. The SearchNotesResponse contains a slice of
+// Note and a status, which includes a message and a HttpCode.
+// RETURNS: SearchNotesResponse, error
 func (n *NoteClerkServer) SearchNotes(ctx context.Context, fnr *ehrpb.SearchNotesRequest) (*ehrpb.SearchNotesResponse, error) {
 	filter := NoteFindFilter{
 		VisitGuid:   fnr.VisitGuid,
@@ -131,6 +152,11 @@ func (n *NoteClerkServer) SearchNotes(ctx context.Context, fnr *ehrpb.SearchNote
 	return res, nil
 }
 
+// UpdateNote is a method contracted by the NoteServiceServer interface. It therefore complies with gRPC conventions.
+// The UpdateNoteRequest object carries a field for the Id of the target note, and an updated version of the note
+// which should have an Id matching the Id field of the UpdateNoteRequest. The UpdateNoteResponse contains a
+// status, which includes a message and a HttpCode.
+// RETURNS: UpdateNoteResponse, error
 func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteRequest) (*ehrpb.UpdateNoteResponse, error) {
 
 	updateNoteResponse := &ehrpb.UpdateNoteResponse{
@@ -160,10 +186,19 @@ func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteR
 	return updateNoteResponse, nil
 }
 
+// SearchNoteFragments is a method contracted by the NoteServiceServer interface. It therefore complies with gRPC conventions.
+// The SearchNoteFragmentsRequest object carries fields for GUID's of patient, author, visit, and note. There is also a
+// search terms field, where search terms will be evaluated against note fragment content and tags. The
+// SearchNoteFragmentsResponse contains a slice of NoteFragment and a status, which includes a message and a HttpCode.
+// RETURNS: SearchNoteFragmentsResponse, error
 func (n *NoteClerkServer) SearchNoteFragments(ctx context.Context, snf *ehrpb.SearchNoteFragmentRequest) (*ehrpb.SearchNoteFragmentResponse, error) {
 	panic("implement me")
 }
 
+// Initialize takes a configuration file and a struct which implements the RDBMSAccessor interface. That is, generally
+// a SQL database using any supported driver. The configuration file carries various useful information, but in the
+// context of the Initialize function it's responsible for providing important server and RDBMS connection settings.
+// RETURNS: error
 func (n *NoteClerkServer) Initialize(config *Config, db RDBMSAccessor) error {
 	// Build up the server's fields
 	conErr := n.constructor(config, db)
@@ -199,6 +234,8 @@ func (n *NoteClerkServer) Initialize(config *Config, db RDBMSAccessor) error {
 	return nil
 }
 
+// constructor populates fields belonging to the NoteClerkServer struct. It also validates the state of the
+// database and configuration files.
 func (n *NoteClerkServer) constructor(config *Config, db RDBMSAccessor) error {
 	if db == nil {
 		return errors.New(ErrMapStr[NoteClerkServerConstructorFailsDueToNilDb])

@@ -70,6 +70,10 @@ func TestNoteClerkServer_CreateNote(t *testing.T) {
 	}
 }
 
+func TestNoteClerkServer_CreateNote_WithNoteThatAlreadyHasId_ReturnsError(t *testing.T) {
+	t.Fatal("Implement me")
+}
+
 func TestNoteClerkServer_CreateNote_WithFragmentsRetainsFragments(t *testing.T) {
 	s := &NoteClerkServer{}
 	s.Initialize(&Config{}, mockDb)
