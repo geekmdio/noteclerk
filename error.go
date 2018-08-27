@@ -36,6 +36,7 @@ const (
 	LoadConfigurationFailsReadFile                      = 30
 	LoadConfigurationFailsJsonMarshal                   = 31
 	InitializeLoggerFailsOpenLogFile                    = 32
+	NoteClerkServerCreateNoteRejectsNoteDueToId = 33
 )
 
 var ErrMapStr = map[NoteClerkError]string{
@@ -72,4 +73,5 @@ var ErrMapStr = map[NoteClerkError]string{
 	LoadConfigurationFailsReadFile:                "LoadConfiguration was unable to load a file at the given path.",
 	LoadConfigurationFailsJsonMarshal:             "LoadConfiguration failed to unmarshal the files presumed JSON contents into the configuration structure.",
 	InitializeLoggerFailsOpenLogFile:              "InitializeLogger fails to open the logging file; please check the config for that a proper path has been set.",
+	NoteClerkServerCreateNoteRejectsNoteDueToId: "NoteClerkServer.CreateNote expects an Id of zero for note objects being that are requested to be submit to the database. Non-zero values suggested the note may exist already. Please confirm this is a new Note and Create is needed rather than an Update operation.",
 }

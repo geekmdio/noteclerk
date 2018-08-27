@@ -8,6 +8,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 	"strings"
+	"github.com/geekmdio/noted"
 )
 
 type DbPostgres struct {
@@ -49,7 +50,7 @@ func (d *DbPostgres) GetNoteFragmentsByNoteGuid(noteGuid string) ([]*ehrpb.NoteF
 
 	noteFragments := make([]*ehrpb.NoteFragment, 0)
 	for rows.Next() {
-		tmp := NewNoteFragment()
+		tmp := noted.NewNoteFragment()
 		err := rows.Scan(&tmp.Id, &tmp.DateCreated.Seconds, &tmp.DateCreated.Nanos, &tmp.NoteFragmentGuid,
 			&tmp.NoteGuid, &tmp.Icd_10Code, &tmp.Icd_10Long, &tmp.Description, &tmp.Status,
 			&tmp.Priority, &tmp.Topic, &tmp.Content)
@@ -185,7 +186,7 @@ func (d *DbPostgres) AllNotes() ([]*ehrpb.Note, error) {
 
 	var notes []*ehrpb.Note
 	for rows.Next() {
-		tmpNote := NewNote()
+		tmpNote := noted.NewNote()
 		err := rows.Scan(&tmpNote.Id, &tmpNote.DateCreated.Seconds, &tmpNote.DateCreated.Nanos,
 			&tmpNote.NoteGuid, &tmpNote.VisitGuid, &tmpNote.AuthorGuid,
 			&tmpNote.PatientGuid, &tmpNote.Type, &tmpNote.Status)
@@ -223,7 +224,7 @@ func (d *DbPostgres) AddNoteTag(noteGuid string, tag string) (id int64, err erro
 func (d *DbPostgres) GetNoteById(id int64) (*ehrpb.Note, error) {
 	row := d.db.QueryRow(getNoteByIdQuery, id)
 
-	newNote := NewNote()
+	newNote := noted.NewNote()
 	err := row.Scan(&newNote.Id, &newNote.DateCreated.Seconds, &newNote.DateCreated.Nanos, &newNote.NoteGuid,
 		&newNote.VisitGuid, &newNote.AuthorGuid, &newNote.PatientGuid, &newNote.Type, &newNote.Status)
 
@@ -261,8 +262,7 @@ func (d *DbPostgres) FindNotes(filter NoteFindFilter) ([]*ehrpb.Note, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		// TODO: Move responsibilty of NewNote to the Noted library.
-		tmpNote := NewNote()
+		tmpNote := noted.NewNote()
 		err := rows.Scan(&tmpNote.Id, &tmpNote.DateCreated.Seconds, &tmpNote.DateCreated.Nanos,
 			&tmpNote.NoteGuid, &tmpNote.VisitGuid, &tmpNote.AuthorGuid,
 			&tmpNote.PatientGuid, &tmpNote.Type, &tmpNote.Status)

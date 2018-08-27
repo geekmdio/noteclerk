@@ -135,7 +135,6 @@ func buildNote() *ehrpb.Note {
 	nb := &noted.NoteBuilder{}
 	note := nb.Init().
 		SetId(0).
-		SetDateCreated(TimestampNow()).
 		SetPatientGuid(uuid.New().String()).
 		SetAuthorGuid(uuid.New().String()).
 		SetVisitGuid(uuid.New().String()).
@@ -145,7 +144,6 @@ func buildNote() *ehrpb.Note {
 	fb := &noted.NoteFragmentBuilder{}
 	frag := fb.InitFromNote(note).
 		SetId(0).
-		SetDateCreated(TimestampNow()).
 		SetStatus(ehrpb.RecordStatus_ACTIVE).
 		SetPriority(ehrpb.RecordPriority_HIGH).
 		SetTopic(ehrpb.FragmentType_MEDICAL_HISTORY).

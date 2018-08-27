@@ -188,7 +188,6 @@ func buildNote1() *ehrpb.Note {
 	nb := noted.NoteBuilder{}
 	note := nb.Init().
 		SetId(0).
-		SetDateCreated(TimestampNow()).
 		SetType(ehrpb.NoteType_HISTORY_AND_PHYSICAL).
 		SetVisitGuid(uuid.New().String()).
 		SetAuthorGuid(uuid.New().String()).
@@ -198,7 +197,6 @@ func buildNote1() *ehrpb.Note {
 
 	nfb := noted.NoteFragmentBuilder{}
 	noteFragment := nfb.InitFromNote(note).
-		SetDateCreated(TimestampNow()).
 		SetId(0).
 		SetDescription("Note 1 Fragment 1 Description").
 		SetIcd10LongDescription("ICD10 long description").
@@ -219,7 +217,6 @@ func buildNote2() *ehrpb.Note {
 	nb := noted.NoteBuilder{}
 	note := nb.Init().
 		SetId(1).
-		SetDateCreated(TimestampNow()).
 		SetType(ehrpb.NoteType_HISTORY_AND_PHYSICAL).
 		SetVisitGuid(uuid.New().String()).
 		SetAuthorGuid(uuid.New().String()).
@@ -229,7 +226,6 @@ func buildNote2() *ehrpb.Note {
 
 	nfb := noted.NoteFragmentBuilder{}
 	noteFragment := nfb.InitFromNote(note).
-		SetDateCreated(TimestampNow()).
 		SetId(1).
 		SetDescription("Note 2 Fragment 1 Description").
 		SetIcd10LongDescription("ICD10 long description").

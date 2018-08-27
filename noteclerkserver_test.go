@@ -6,6 +6,7 @@ import (
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/google/uuid"
 	"testing"
+	"github.com/geekmdio/noted"
 )
 
 func TestDbPostgres_InitializeWithEmptyConfig_ThrowsError(t *testing.T) {
@@ -71,7 +72,25 @@ func TestNoteClerkServer_CreateNote(t *testing.T) {
 }
 
 func TestNoteClerkServer_CreateNote_WithNoteThatAlreadyHasId_ReturnsError(t *testing.T) {
-	t.Fatal("Implement me")
+	s := &NoteClerkServer{}
+	s.Initialize(&Config{}, mockDb)
+	c := context.Background()
+	cnr := &ehrpb.CreateNoteRequest{
+		Note: &ehrpb.Note{
+			Id:          1,                      // This should throw an error
+			DateCreated: &timestamp.Timestamp{},
+			NoteGuid:    "",
+			VisitGuid:   uuid.New().String(),
+			AuthorGuid:  uuid.New().String(),
+			PatientGuid: uuid.New().String(),
+			Type:        ehrpb.NoteType_CONTINUED_CARE_DOCUMENTATION,
+		},
+	}
+	_, err := s.CreateNote(c, cnr)
+
+	if err == nil {
+		t.Fatalf("Should return an error when a note with a similar Id already exists, but error was %v", err)
+	}
 }
 
 func TestNoteClerkServer_CreateNote_WithFragmentsRetainsFragments(t *testing.T) {
@@ -79,9 +98,9 @@ func TestNoteClerkServer_CreateNote_WithFragmentsRetainsFragments(t *testing.T) 
 	s.Initialize(&Config{}, mockDb)
 
 	expectedFragId := int64(44)
-	noteFrag := NewNoteFragment()
+	noteFrag := noted.NewNoteFragment()
 	noteFrag.Id = expectedFragId
-	cnr := &ehrpb.CreateNoteRequest{Note: NewNote()}
+	cnr := &ehrpb.CreateNoteRequest{Note: noted.NewNote()}
 
 	cnr.Note.Fragments = append(cnr.Note.Fragments, noteFrag)
 	res, err := s.CreateNote(context.Background(), cnr)
@@ -130,7 +149,7 @@ func TestNoteClerkServer_CreateNote_WithNonZeroIdIsRejected(t *testing.T) {
 	s := &NoteClerkServer{}
 	s.Initialize(&Config{}, mockDb)
 	cnr := &ehrpb.CreateNoteRequest{
-		Note: NewNote(),
+		Note: noted.NewNote(),
 	}
 	cnr.Note.Id = 1
 	res, err := s.CreateNote(context.Background(), cnr)
@@ -332,7 +351,7 @@ func TestNoteClerkServer_UpdateNote_NoteDoesNotExistReturnsError(t *testing.T) {
 	s := &NoteClerkServer{}
 	s.Initialize(&Config{}, mockDb)
 
-	note := NewNote()
+	note := noted.NewNote()
 	note.Id = -1
 	updateReq := &ehrpb.UpdateNoteRequest{
 		Id:   note.Id,
@@ -353,7 +372,7 @@ func TestNoteClerkServer_UpdateNote_NoteIdDoesntMatchUpdateId(t *testing.T) {
 	s := &NoteClerkServer{}
 	s.Initialize(&Config{}, mockDb)
 
-	note := NewNote()
+	note := noted.NewNote()
 	note.Id = 0
 	updateReq := &ehrpb.UpdateNoteRequest{
 		Id:   1,

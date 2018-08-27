@@ -38,7 +38,11 @@ func (n *NoteClerkServer) CreateNote(ctx context.Context, nr *ehrpb.CreateNoteRe
 
 	noteToAdd := nr.Note
 	noteToAdd.NoteGuid = uuid.New().String()
-	noteToAdd.DateCreated = TimestampNow()
+	noteToAdd.DateCreated = noted.TimestampNow()
+
+	if nr.Note.GetId() > 0 {
+		return nil, errors.New(ErrMapStr[NoteClerkServerCreateNoteRejectsNoteDueToId])
+	}
 
 	id, err := n.db.AddNote(noteToAdd)
 	if err != nil {
