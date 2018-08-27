@@ -43,25 +43,20 @@ func (d *DbPostgres) Initialize(config *Config) error {
 func (d *DbPostgres) GetNoteFragmentsByNoteGuid(noteGuid string) ([]*ehrpb.NoteFragment, error) {
 	rows, err := d.db.Query(getNoteFragmentByNoteGuidQuery, noteGuid)
 	if err != nil {
-		//TODO: Custom error
-		return nil, err
+		return nil, errors.WithMessage(err, ErrMapStr[DbPostgresGetNoteFragmentsByNoteGuidFailsQuery])
 	}
 	defer rows.Close()
 
 	noteFragments := make([]*ehrpb.NoteFragment, 0)
 	for rows.Next() {
 		tmp := noted.NewNoteFragment()
-		err := rows.Scan(&tmp.Id, &tmp.DateCreated.Seconds, &tmp.DateCreated.Nanos, &tmp.NoteFragmentGuid,
+		if err := rows.Scan(&tmp.Id, &tmp.DateCreated.Seconds, &tmp.DateCreated.Nanos, &tmp.NoteFragmentGuid,
 			&tmp.NoteGuid, &tmp.Icd_10Code, &tmp.Icd_10Long, &tmp.Description, &tmp.Status,
-			&tmp.Priority, &tmp.Topic, &tmp.Content)
-		if err != nil {
-			//TODO: Custom error
-			return nil, err
+			&tmp.Priority, &tmp.Topic, &tmp.Content); err != nil {
+			return nil, errors.WithMessage(err, ErrMapStr[DbPostgresGetNoteFragmentsByNoteGuidFailsScan])
 		}
-		tmp.Tags, err = d.GetNoteFragmentTagsByNoteFragmentGuid(tmp.GetNoteFragmentGuid())
-		if err != nil {
-			//TODO: Custom error
-			return nil, err
+		if tmp.Tags, err = d.GetNoteFragmentTagsByNoteFragmentGuid(tmp.GetNoteFragmentGuid()); err != nil {
+			return nil, errors.WithMessage(err, ErrMapStr[DBPostgresGetNoteFragmentsByNoteGuidFailsGetTags])
 		}
 		noteFragments = append(noteFragments, tmp)
 	}
