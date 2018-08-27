@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
+	"github.com/pkg/errors"
 )
 
 // This is the environmental variable in the OS that should be se to your preferred
@@ -33,13 +34,13 @@ func LoadConfiguration(path string) (c *Config, err error) {
 
 	file, err := ioutil.ReadFile(path)
 	if err != nil {
-		return &Config{}, err
+		return &Config{}, errors.WithMessage(err, ErrMapStr[LoadConfigurationFailsReadFile])
 	}
 
 	conf := &Config{}
-	unmarshalErr := json.Unmarshal(file, conf)
-	if unmarshalErr != nil {
-		return &Config{}, unmarshalErr
+	err = json.Unmarshal(file, conf)
+	if err != nil {
+		return &Config{}, errors.WithMessage(err, ErrMapStr[LoadConfigurationFailsJsonMarshal])
 	}
 
 	return conf, nil

@@ -10,6 +10,7 @@ import (
 	"time"
 	"fmt"
 	"strings"
+	"github.com/pkg/errors"
 )
 
 // Establish logger
@@ -68,12 +69,12 @@ func TimestampNow() *timestamp.Timestamp {
 	return ts
 }
 
-// et default settings for logger
-func InitializeLogger(logPath string) {
+// Get default settings for logger
+func InitializeLogger(logPath string) error {
 	log.Formatter = &logrus.JSONFormatter{}
 	logFile, err := os.OpenFile(logPath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
-		log.Fatalf("Cannot access or locate log file at location %v.", logPath)
+		return errors.WithMessage(err, ErrMapStr[InitializeLoggerFailsOpenLogFile])
 	}
 
 	log.SetLevel(logrus.InfoLevel)
@@ -84,4 +85,6 @@ func InitializeLogger(logPath string) {
 	}
 
 	log.Out = writer
+
+	return nil
 }

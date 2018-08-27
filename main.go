@@ -13,7 +13,10 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	InitializeLogger(config.LogPath)
+	if err := InitializeLogger(config.LogPath); err != nil {
+		log.Fatalf("Unable to load the configuration file %v", config.LogPath)
+	}
+
 	if NoteClerkEnv == "" {
 		log.Panic("NOTECLERK_ENVIRONMENT environmental variable must be set.")
 	}

@@ -12,8 +12,6 @@ import (
 
 var postgresDb = &DbPostgres{}
 
-const testingEnv = "testing"
-
 func TestCreateTable_ReturnsError_WithImproperQuery(t *testing.T) {
 	setup(t)
 

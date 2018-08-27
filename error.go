@@ -24,23 +24,26 @@ const (
 	DbPostgresAddNoteFragmentTagFailsScan            = 18
 	NoteClerkServerCreateNoteFailsAddNoteToDb = 19
 	NoteClerkServerDeleteNoteFailsDeleteNoteFromDb = 20
-	NoteClerkServerRetrieveNoteFailsToGetNoteFromDb = 21
-	NoteClerkServerSearchNotesFailsToFindNotesInDb = 22
-	NoteClerkServerUpdateNoteFailsDueToIdMismatch = 23
-	NoteClerkServerUpdateNoteFailsToUpdateNoteInDb = 24
-	NoteClerkServerInitializeFailsDbInitialization = 25
-	NoteClerkServerInitializeFailsCreateListener = 26
+	NoteClerkServerRetrieveNoteFailsToGetNoteFromDb     = 21
+	NoteClerkServerSearchNotesFailsToFindNotesInDb      = 22
+	NoteClerkServerUpdateNoteFailsDueToIdMismatch       = 23
+	NoteClerkServerUpdateNoteFailsToUpdateNoteInDb      = 24
+	NoteClerkServerInitializeFailsDbInitialization      = 25
+	NoteClerkServerInitializeFailsCreateListener        = 26
 	NoteClerkServerInitializeFailsInitializingRpcServer = 27
-	NoteClerkServerConstructorFailsDueToNilDb = 28
-	NoteClerkServerConstructorFailsDueToNilConfig = 29
+	NoteClerkServerConstructorFailsDueToNilDb           = 28
+	NoteClerkServerConstructorFailsDueToNilConfig       = 29
+	LoadConfigurationFailsReadFile                      = 30
+	LoadConfigurationFailsJsonMarshal                   = 31
+	InitializeLoggerFailsOpenLogFile                    = 32
 )
 
 var ErrMapStr = map[NoteClerkError]string{
-	DbPostgresInitializeFailsOpenConn:                "DbPostgres.Initialize failed to open a database connection",
-	DbPostgresInitializeFailsDbPing:                  "DbPostgres.Initialize failed to ping the database.",
-	DbPostgresInitializeFailsSchemaCreation:          "DbPostgres.Initialize failed to create the database schema.",
-	DbPostgresCreateSchemaFailsTableCreation:         "DbPostgres.createSchema failed to create table.",
-	DbPostgresCreateTableFailsAlreadyExists:          "DbPostgres.createTable failed to create table; requested table already exists.",
+	DbPostgresInitializeFailsOpenConn:             "DbPostgres.Initialize failed to open a database connection",
+	DbPostgresInitializeFailsDbPing:               "DbPostgres.Initialize failed to ping the database.",
+	DbPostgresInitializeFailsSchemaCreation:       "DbPostgres.Initialize failed to create the database schema.",
+	DbPostgresCreateSchemaFailsTableCreation:      "DbPostgres.createSchema failed to create table.",
+	DbPostgresCreateTableFailsAlreadyExists:       "DbPostgres.createTable failed to create table; requested table already exists.",
 	DbPostgresCreateTableFailsDueToUnexpectedError:   "DbPostgres.createTable failed to create table; error was unexpected.",
 	DbPostgresAddNoteFailsScan:                       "DbPostgres.AddNote failed to successfully scan query result for new Id.",
 	DbPostgresAddNoteFailsToAddNoteTags:              "DbPostgres.AddNote failed to add tags to the database.",
@@ -64,6 +67,9 @@ var ErrMapStr = map[NoteClerkError]string{
 	NoteClerkServerInitializeFailsDbInitialization: "NoteClerkServer.Initialize failed to initialize the database.",
 	NoteClerkServerInitializeFailsCreateListener: "NoteClerkServer.Initialize fails to create a listener.",
 	NoteClerkServerInitializeFailsInitializingRpcServer: "NoteClerkServer.Initialize fails to create a gRPC server on the listener.",
-	NoteClerkServerConstructorFailsDueToNilDb: "NoteClerkServer.constructor fails to populate fields due to a nil database being received.",
+	NoteClerkServerConstructorFailsDueToNilDb:     "NoteClerkServer.constructor fails to populate fields due to a nil database being received.",
 	NoteClerkServerConstructorFailsDueToNilConfig: "NoteClerkServer.constructor fails to populate fields due to a nil config being received.",
+	LoadConfigurationFailsReadFile:                "LoadConfiguration was unable to load a file at the given path.",
+	LoadConfigurationFailsJsonMarshal:             "LoadConfiguration failed to unmarshal the files presumed JSON contents into the configuration structure.",
+	InitializeLoggerFailsOpenLogFile:              "InitializeLogger fails to open the logging file; please check the config for that a proper path has been set.",
 }
