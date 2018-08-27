@@ -29,7 +29,9 @@ type Config struct {
 	DbSslMode      string
 }
 
-// Load the configuration JSON and return the Config struct.
+// Load the configuration JSON and return the Config struct. See the Config struct to view the fields that the JSON
+// configuration file is responsible for persisting.
+// RETURN: Config, error
 func LoadConfiguration(path string) (c *Config, err error) {
 
 	file, err := ioutil.ReadFile(path)
