@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
 	"github.com/sirupsen/logrus"
-	"strings"
 )
 
 var postgresDb = &DbPostgres{}
@@ -28,19 +27,16 @@ func TestCreateTable_ReturnsError_WithImproperQuery(t *testing.T) {
 func TestCreateTable_WhichDoesNotExist_ReturnsNil(t *testing.T) {
 	setup(t)
 
-	createQuery := `CREATE TABLE create_table_returns_nil (id serial NOT NULL);`
+	dropQuery := `DROP TABLE TestCreateTable_WhichDoesNotExist_ReturnsNil;`
+	postgresDb.db.Exec(dropQuery)
 
+	createQuery := `CREATE TABLE TestCreateTable_WhichDoesNotExist_ReturnsNil (id serial NOT NULL);`
 	err := postgresDb.createTable(createQuery)
-	errMsg := fmt.Sprintf("%v", err)
-	if !strings.Contains(errMsg, ErrMapStr[DbPostgresCreateTableFailsAlreadyExists]) {
-		t.Fatalf("Create table should return %v, but returned %v", ErrMapStr[DbPostgresCreateTableFailsAlreadyExists], err)
+	if err != nil {
+		t.Fatalf("Create table should return nil, but returned error '%v'", err)
 	}
 
-	dropQuery := `DROP TABLE create_table_returns_nil;`
-	_, err = postgresDb.db.Exec(dropQuery)
-	if err != nil {
-		t.Fatalf("Failed to drop table. Error: %v", err)
-	}
+	postgresDb.db.Exec(dropQuery)
 
 	tearDown(t)
 }
@@ -48,22 +44,21 @@ func TestCreateTable_WhichDoesNotExist_ReturnsNil(t *testing.T) {
 func TestCreateTable_WhichAlreadyExists_ReturnsProperError(t *testing.T) {
 	setup(t)
 
-	createQuery := `CREATE TABLE create_table_returns_nil (id serial NOT NULL);`
+	dropQuery := `DROP TABLE create_table_returns_error;`
+	postgresDb.db.Exec(dropQuery)
+
+	createQuery := `CREATE TABLE create_table_returns_error (id serial NOT NULL);`
 
 	if err := postgresDb.createTable(createQuery); err != nil {
 		t.Fatalf("Create table should not return error when given proper query. Error: %v", err)
 	}
 
 
-	if err := postgresDb.createTable(createQuery); err != nil {
+	if err := postgresDb.createTable(createQuery); err == nil {
 		t.Fatalf("Create table should return an error. Actual error: %v", err)
 	}
 
-	dropQuery := `DROP TABLE create_table_returns_nil;`
-	_, err := postgresDb.db.Exec(dropQuery)
-	if err != nil {
-		t.Fatalf("Failed to drop table. Error: %v", err)
-	}
+	postgresDb.db.Exec(dropQuery)
 
 	tearDown(t)
 }
