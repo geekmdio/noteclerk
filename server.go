@@ -14,10 +14,10 @@ import (
 	"github.com/geekmdio/noted"
 )
 
-// NoteClerkServer implements the gRPC NoteServiceServer interface. It has basic CRUD functionality, plus the ability to search
+// Server implements the gRPC NoteServiceServer interface. It has basic CRUD functionality, plus the ability to search
 // both Notes and, independently of Notes, NoteFragments. The ability to search NoteFragment's specifically gives a
 // much higher degree of resolution to search findings and exclude the less relevant data.
-type NoteClerkServer struct {
+type Server struct {
 	db       RDBMSAccessor
 	ip       string
 	port     string
@@ -31,7 +31,7 @@ type NoteClerkServer struct {
 // will likely generate an error when there is an attempt to add it to the database. The CreateNoteResponse contains
 // a status, which includes a message and a HttpCode.
 // RETURNS: CreateNoteResponse, error
-func (n *NoteClerkServer) CreateNote(ctx context.Context, nr *ehrpb.CreateNoteRequest) (*ehrpb.CreateNoteResponse, error) {
+func (n *Server) CreateNote(ctx context.Context, nr *ehrpb.CreateNoteRequest) (*ehrpb.CreateNoteResponse, error) {
 	cnr := &ehrpb.CreateNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{},
 	}
@@ -66,7 +66,7 @@ func (n *NoteClerkServer) CreateNote(ctx context.Context, nr *ehrpb.CreateNoteRe
 // The DeleteNoteRequest object carries only the Id of the target note. The DeleteNoteResponse contains only
 // a status, which includes a message and a HttpCode.
 // RETURNS: DeleteNoteResponse, error
-func (n *NoteClerkServer) DeleteNote(ctx context.Context, dnr *ehrpb.DeleteNoteRequest) (*ehrpb.DeleteNoteResponse, error) {
+func (n *Server) DeleteNote(ctx context.Context, dnr *ehrpb.DeleteNoteRequest) (*ehrpb.DeleteNoteResponse, error) {
 	dnRes := &ehrpb.DeleteNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{
 			HttpCode: ehrpb.StatusCodes_OK,
@@ -90,7 +90,7 @@ func (n *NoteClerkServer) DeleteNote(ctx context.Context, dnr *ehrpb.DeleteNoteR
 // The RetrieveNoteRequest object carries only the Id of the target note. The RetrieveNoteResponse contains a Note and
 // a status, which includes a message and a HttpCode.
 // RETURNS: RetrieveNoteResponse, error
-func (n *NoteClerkServer) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveNoteRequest) (*ehrpb.RetrieveNoteResponse, error) {
+func (n *Server) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveNoteRequest) (*ehrpb.RetrieveNoteResponse, error) {
 	res := &ehrpb.RetrieveNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{
 			HttpCode: ehrpb.StatusCodes_OK,
@@ -121,7 +121,7 @@ func (n *NoteClerkServer) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveN
 // search terms which can scan through contents of not fragments and tags. The SearchNotesResponse contains a slice of
 // Note and a status, which includes a message and a HttpCode.
 // RETURNS: SearchNotesResponse, error
-func (n *NoteClerkServer) SearchNotes(ctx context.Context, fnr *ehrpb.SearchNotesRequest) (*ehrpb.SearchNotesResponse, error) {
+func (n *Server) SearchNotes(ctx context.Context, fnr *ehrpb.SearchNotesRequest) (*ehrpb.SearchNotesResponse, error) {
 	filter := NoteFindFilter{
 		VisitGuid:   fnr.VisitGuid,
 		AuthorGuid:  fnr.AuthorGuid,
@@ -161,7 +161,7 @@ func (n *NoteClerkServer) SearchNotes(ctx context.Context, fnr *ehrpb.SearchNote
 // which should have an Id matching the Id field of the UpdateNoteRequest. The UpdateNoteResponse contains a
 // status, which includes a message and a HttpCode.
 // RETURNS: UpdateNoteResponse, error
-func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteRequest) (*ehrpb.UpdateNoteResponse, error) {
+func (n *Server) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteRequest) (*ehrpb.UpdateNoteResponse, error) {
 
 	updateNoteResponse := &ehrpb.UpdateNoteResponse{
 		Status: &ehrpb.NoteServiceResponseStatus{
@@ -195,7 +195,7 @@ func (n *NoteClerkServer) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteR
 // search terms field, where search terms will be evaluated against note fragment content and tags. The
 // SearchNoteFragmentsResponse contains a slice of NoteFragment and a status, which includes a message and a HttpCode.
 // RETURNS: SearchNoteFragmentsResponse, error
-func (n *NoteClerkServer) SearchNoteFragments(ctx context.Context, snf *ehrpb.SearchNoteFragmentRequest) (*ehrpb.SearchNoteFragmentResponse, error) {
+func (n *Server) SearchNoteFragments(ctx context.Context, snf *ehrpb.SearchNoteFragmentRequest) (*ehrpb.SearchNoteFragmentResponse, error) {
 	panic("implement me")
 }
 
@@ -203,7 +203,7 @@ func (n *NoteClerkServer) SearchNoteFragments(ctx context.Context, snf *ehrpb.Se
 // a SQL database using any supported driver. The configuration file carries various useful information, but in the
 // context of the Initialize function it's responsible for providing important server and RDBMS connection settings.
 // RETURNS: error
-func (n *NoteClerkServer) Initialize(config *Config, db RDBMSAccessor) error {
+func (n *Server) Initialize(config *Config, db RDBMSAccessor) error {
 	// Build up the server's fields
 	conErr := n.constructor(config, db)
 	if conErr != nil {
@@ -238,9 +238,9 @@ func (n *NoteClerkServer) Initialize(config *Config, db RDBMSAccessor) error {
 	return nil
 }
 
-// constructor populates fields belonging to the NoteClerkServer struct. It also validates the state of the
+// constructor populates fields belonging to the Server struct. It also validates the state of the
 // database and configuration files.
-func (n *NoteClerkServer) constructor(config *Config, db RDBMSAccessor) error {
+func (n *Server) constructor(config *Config, db RDBMSAccessor) error {
 	if db == nil {
 		return errors.New(ErrMapStr[NoteClerkServerConstructorFailsDueToNilDb])
 	}
@@ -257,18 +257,18 @@ func (n *NoteClerkServer) constructor(config *Config, db RDBMSAccessor) error {
 	return nil
 }
 
-func (n *NoteClerkServer) getIp() string {
+func (n *Server) getIp() string {
 	return n.ip
 }
 
-func (n *NoteClerkServer) getPort() string {
+func (n *Server) getPort() string {
 	return n.port
 }
 
-func (n *NoteClerkServer) getProtocol() string {
+func (n *Server) getProtocol() string {
 	return n.protocol
 }
 
-func (n *NoteClerkServer) getConnectionAddr() string {
+func (n *Server) getConnectionAddr() string {
 	return n.connAddr
 }

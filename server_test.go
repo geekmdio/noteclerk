@@ -18,7 +18,7 @@ func TestDbPostgres_InitializeWithEmptyConfig_ThrowsError(t *testing.T) {
 }
 
 func TestNoteClerkServer_CreateNote(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 	c := context.Background()
 	cnr := &ehrpb.CreateNoteRequest{
@@ -72,7 +72,7 @@ func TestNoteClerkServer_CreateNote(t *testing.T) {
 }
 
 func TestNoteClerkServer_CreateNote_WithNoteThatAlreadyHasId_ReturnsError(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 	c := context.Background()
 	cnr := &ehrpb.CreateNoteRequest{
@@ -94,7 +94,7 @@ func TestNoteClerkServer_CreateNote_WithNoteThatAlreadyHasId_ReturnsError(t *tes
 }
 
 func TestNoteClerkServer_CreateNote_WithFragmentsRetainsFragments(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
 	expectedFragId := int64(44)
@@ -119,7 +119,7 @@ func TestNoteClerkServer_CreateNote_WithFragmentsRetainsFragments(t *testing.T) 
 }
 
 func TestNoteClerkServer_CreateNote_WithTagsRetainsTags(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 	c := context.Background()
 	expectedTag := "mytag"
@@ -146,7 +146,7 @@ func TestNoteClerkServer_CreateNote_WithTagsRetainsTags(t *testing.T) {
 }
 
 func TestNoteClerkServer_CreateNote_WithNonZeroIdIsRejected(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 	cnr := &ehrpb.CreateNoteRequest{
 		Note: noted.NewNote(),
@@ -164,7 +164,7 @@ func TestNoteClerkServer_CreateNote_WithNonZeroIdIsRejected(t *testing.T) {
 }
 
 func TestNoteClerkServer_DeleteNote(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
 	idToDelete := int64(0)
@@ -194,7 +194,7 @@ func TestNoteClerkServer_DeleteNote(t *testing.T) {
 }
 
 func TestNoteClerkServer_DeleteNote_WhichDoestExistReturnsError(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
 	idToDelete := int64(-1)
@@ -214,7 +214,7 @@ func TestNoteClerkServer_DeleteNote_WhichDoestExistReturnsError(t *testing.T) {
 }
 
 func TestNoteClerkServer_RetrieveNote(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
 	expectedId := int64(1)
@@ -242,7 +242,7 @@ func TestNoteClerkServer_RetrieveNote(t *testing.T) {
 }
 
 func TestNoteClerkServer_RetrieveNote_ByIdThatDoesntExist_ReturnsError(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
 	expectedId := int64(-1)
@@ -262,7 +262,7 @@ func TestNoteClerkServer_RetrieveNote_ByIdThatDoesntExist_ReturnsError(t *testin
 }
 
 func TestNoteClerkServer_FindNote(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
 	found, err := s.db.AllNotes()
@@ -295,7 +295,7 @@ func TestNoteClerkServer_FindNote(t *testing.T) {
 }
 
 func TestNoteClerkServer_FindNote_WithNonExistentGuid_ReturnsError(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
 	findReq := &ehrpb.SearchNotesRequest{
@@ -325,7 +325,7 @@ func TestNoteClerkServer_UpdateNote(t *testing.T) {
 		Id: firstNote.Id,
 	}
 
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.db = mockDb
 	res, _ := s.RetrieveNote(context.Background(), retReq)
 
@@ -348,7 +348,7 @@ func TestNoteClerkServer_UpdateNote(t *testing.T) {
 }
 
 func TestNoteClerkServer_UpdateNote_NoteDoesNotExistReturnsError(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
 	note := noted.NewNote()
@@ -369,7 +369,7 @@ func TestNoteClerkServer_UpdateNote_NoteDoesNotExistReturnsError(t *testing.T) {
 }
 
 func TestNoteClerkServer_UpdateNote_NoteIdDoesntMatchUpdateId(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
 	note := noted.NewNote()
@@ -390,7 +390,7 @@ func TestNoteClerkServer_UpdateNote_NoteIdDoesntMatchUpdateId(t *testing.T) {
 }
 
 func TestNoteClerkServer_Initialize_WithNilConfig_ReturnsError(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	err := s.Initialize(nil, mockDb)
 	if err == nil {
 		t.Fatalf("Initialize should throw error with nil config file.")
@@ -398,7 +398,7 @@ func TestNoteClerkServer_Initialize_WithNilConfig_ReturnsError(t *testing.T) {
 }
 
 func TestNoteClerkServer_Initialize_WithNilDb_ReturnsError(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	err := s.Initialize(&Config{}, nil)
 	if err == nil {
 		t.Fatalf("Initialize should throw error with nil database.")

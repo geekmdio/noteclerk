@@ -15,8 +15,7 @@ func main() {
 
 	initStatement(config)
 
-	s := &NoteClerkServer{}
-	if err := s.Initialize(config, db); err != nil {
+	if err := server.Initialize(config, db); err != nil {
 		log.Fatal(err)
 	}
 }

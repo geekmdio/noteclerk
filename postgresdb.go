@@ -393,9 +393,7 @@ func (d *DbPostgres) createSchema() error {
 	if notNilNotTableExists(err) {
 		return errors.Wrapf(err, "%v. Target Table: note", ErrMapStr[DbPostgresCreateSchemaFailsTableCreation])
 	}
-	//if err == ErrTableAlreadyExists {
-	//	log.Warn("Table 'note' already exists.")
-	//}
+
 	err = d.createTable(createNoteTagTable)
 	if notNilNotTableExists(err) {
 		return errors.Wrapf(err, "%v. Target Table: note_tag", ErrMapStr[DbPostgresCreateSchemaFailsTableCreation])
@@ -428,5 +426,7 @@ func (d *DbPostgres) createTable(query string) error {
 }
 
 func notNilNotTableExists(err error) bool {
-	return err != nil
+	errMsg := fmt.Sprintf("%v", err)
+	alreadyExistsError := strings.Contains(errMsg, "relation") && strings.Contains(errMsg, "already exists")
+	return err != nil && !alreadyExistsError
 }

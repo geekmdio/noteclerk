@@ -2,7 +2,21 @@ package main
 
 import (
 	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
+	"context"
 )
+
+// NoteClerkServer interface implements the gRPC server NoteServiceServer interface and adds an initialize feature.
+// Any structures implementing this interface can be injected into the server global singleton variable in the
+// dependencies.
+type NoteClerkServer interface {
+	CreateNote(context.Context, *ehrpb.CreateNoteRequest) (*ehrpb.CreateNoteResponse, error)
+	RetrieveNote(context.Context, *ehrpb.RetrieveNoteRequest) (*ehrpb.RetrieveNoteResponse, error)
+	UpdateNote(context.Context, *ehrpb.UpdateNoteRequest) (*ehrpb.UpdateNoteResponse, error)
+	DeleteNote(context.Context, *ehrpb.DeleteNoteRequest) (*ehrpb.DeleteNoteResponse, error)
+	SearchNotes(context.Context, *ehrpb.SearchNotesRequest) (*ehrpb.SearchNotesResponse, error)
+	SearchNoteFragments(context.Context, *ehrpb.SearchNoteFragmentRequest) (*ehrpb.SearchNoteFragmentResponse, error)
+	Initialize(config *Config, db RDBMSAccessor) error
+}
 
 // RDBMSAccessor has all methods necessary for Note transactions and, as an interface, can easily be mocked.
 // Any changes to the database implementation should implement this interface, and if the new struct will take over

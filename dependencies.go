@@ -34,6 +34,10 @@ var db = &DbPostgres{}
 // A mock Db implementation
 var mockDb = &MockDb{}
 
+// Inject server service into singleton. This can be replaced by any server that implements the NoteClerkServer
+// interfaces, which itself implements the NoteServiceServer interface, a gRPC service interface.
+var server NoteClerkServer = &Server{}
+
 // Initialize the logger with a set of default settings. Takes a path to a log file, which is set in the config above,
 // and opens the file pointed to by the log path.
 // RETURNS: error
