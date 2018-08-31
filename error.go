@@ -31,22 +31,28 @@ const (
 	NoteClerkServerInitializeFailsDbInitialization      = 25
 	NoteClerkServerInitializeFailsCreateListener        = 26
 	NoteClerkServerInitializeFailsInitializingRpcServer = 27
-	NoteClerkServerConstructorFailsDueToNilDb           = 28
-	NoteClerkServerConstructorFailsDueToNilConfig       = 29
-	LoadConfigurationFailsReadFile                      = 30
-	LoadConfigurationFailsJsonMarshal                   = 31
-	InitializeLoggerFailsOpenLogFile                    = 32
-	NoteClerkServerCreateNoteRejectsNoteDueToId         = 33
-	DbPostgresGetNoteFragmentsByNoteGuidFailsQuery = 34
-	DbPostgresGetNoteFragmentsByNoteGuidFailsScan = 35
-	DBPostgresGetNoteFragmentsByNoteGuidFailsGetTags = 36
+	NoteClerkServerConstructorFailsDueToNilDb        = 28
+	NoteClerkServerConstructorFailsDueToNilConfig    = 29
+	LoadConfigurationFailsReadFile                   = 30
+	LoadConfigurationFailsJsonMarshal                = 31
+	InitializeLoggerFailsOpenLogFile                 = 32
+	NoteClerkServerCreateNoteRejectsNoteDueToId      = 33
+	DbPostgresGetNoteFragmentsByNoteGuidFailsQuery   = 34
+	DbPostgresGetNoteFragmentsByNoteGuidFailsScan    = 35
+	DbPostgresGetNoteFragmentsByNoteGuidFailsGetTags = 36
+	DbPostgresAllNotesFailsQuery                     = 37
+	DbPostgresAllNotesFailsScan                      = 38
+	DbPostgresFindNotesFailsQuery = 39
+	DbPostgresFindNotesFailsScan = 40
+	DbPostgresFindNotesFailsGetTags = 41
+	DbPostgresFindNotesFailsGetNoteFragments = 42
 )
 
 var ErrMapStr = map[NoteClerkError]string{
-	DbPostgresInitializeFailsOpenConn:                   "DbPostgres.Initialize failed to open a database connection",
-	DbPostgresInitializeFailsDbPing:                     "DbPostgres.Initialize failed to ping the database.",
-	DbPostgresInitializeFailsSchemaCreation:             "DbPostgres.Initialize failed to create the database schema.",
-	DbPostgresCreateSchemaFailsTableCreation:            "DbPostgres.createSchema failed to create table.",
+	DbPostgresInitializeFailsOpenConn:                "DbPostgres.Initialize failed to open a database connection",
+	DbPostgresInitializeFailsDbPing:                  "DbPostgres.Initialize failed to ping the database.",
+	DbPostgresInitializeFailsSchemaCreation:          "DbPostgres.Initialize failed to create the database schema.",
+	DbPostgresCreateSchemaFailsTableCreation:         "DbPostgres.createSchema failed to create table.",
 	DbPostgresCreateTableFailsAlreadyExists:             "DbPostgres.createTable failed to create table; requested table already exists.",
 	DbPostgresCreateTableFailsDueToUnexpectedError:      "DbPostgres.createTable failed to create table; error was unexpected.",
 	DbPostgresAddNoteFailsScan:                          "DbPostgres.AddNote failed to successfully scan query result for new Id.",
@@ -76,8 +82,14 @@ var ErrMapStr = map[NoteClerkError]string{
 	LoadConfigurationFailsReadFile:                      "LoadConfiguration was unable to load a file at the given path.",
 	LoadConfigurationFailsJsonMarshal:                   "LoadConfiguration failed to unmarshal the files presumed JSON contents into the configuration structure.",
 	InitializeLoggerFailsOpenLogFile:                    "InitializeLogger fails to open the logging file; please check the config for that a proper path has been set.",
-	NoteClerkServerCreateNoteRejectsNoteDueToId:         "Server.CreateNote expects an Id of zero. Non-zero values suggest the note may exist already. Please confirm this is a new Note and Create is needed rather than an Update operation.",
-	DbPostgresGetNoteFragmentsByNoteGuidFailsQuery: "DbPostgres.GetNoteFragmentsByNoteGuid failed to successfully return a query result with the given GUID string.",
-	DbPostgresGetNoteFragmentsByNoteGuidFailsScan: "DbPostgres.GetNoteFragmentsByNoteGuid failed to scan results for the note fragment.",
-	DBPostgresGetNoteFragmentsByNoteGuidFailsGetTags: "DbPostgres.GetNoteFragmentsByNoteGuid failed to retrieve tags.",
+	NoteClerkServerCreateNoteRejectsNoteDueToId:      "Server.CreateNote expects an Id of zero. Non-zero values suggest the note may exist already. Please confirm this is a new Note and Create is needed rather than an Update operation.",
+	DbPostgresGetNoteFragmentsByNoteGuidFailsQuery:   "DbPostgres.GetNoteFragmentsByNoteGuid failed to successfully return a query result with the given GUID string.",
+	DbPostgresGetNoteFragmentsByNoteGuidFailsScan:    "DbPostgres.GetNoteFragmentsByNoteGuid failed to scan results for the note fragment.",
+	DbPostgresGetNoteFragmentsByNoteGuidFailsGetTags: "DbPostgres.GetNoteFragmentsByNoteGuid failed to retrieve tags.",
+	DbPostgresAllNotesFailsQuery:                     "DbPostgres.AllNotes failed to complete the query to retrieve all notes",
+	DbPostgresAllNotesFailsScan: "DbPostgres.AllNotes failed to scan one or more result rows from the result set.",
+	DbPostgresFindNotesFailsQuery: "DbPostgres.FindNotes fails to complete query based on data provided in search filter.",
+	DbPostgresFindNotesFailsScan: "DbPostgres.FindNotes fails to scan one or more result rows from the result set.",
+	DbPostgresFindNotesFailsGetTags: "DbPostgres.FindNotes fails to get tags.",
+	DbPostgresFindNotesFailsGetNoteFragments: "DbPostgres.FindNotes fails to get note fragments.",
 }

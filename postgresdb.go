@@ -56,7 +56,7 @@ func (d *DbPostgres) GetNoteFragmentsByNoteGuid(noteGuid string) ([]*ehrpb.NoteF
 			return nil, errors.WithMessage(err, ErrMapStr[DbPostgresGetNoteFragmentsByNoteGuidFailsScan])
 		}
 		if tmp.Tags, err = d.GetNoteFragmentTagsByNoteFragmentGuid(tmp.GetNoteFragmentGuid()); err != nil {
-			return nil, errors.WithMessage(err, ErrMapStr[DBPostgresGetNoteFragmentsByNoteGuidFailsGetTags])
+			return nil, errors.WithMessage(err, ErrMapStr[DbPostgresGetNoteFragmentsByNoteGuidFailsGetTags])
 		}
 		noteFragments = append(noteFragments, tmp)
 	}
@@ -174,8 +174,7 @@ func (d *DbPostgres) DeleteNote(id int64) error {
 func (d *DbPostgres) AllNotes() ([]*ehrpb.Note, error) {
 	rows, err := d.db.Query(getAllNotesQuery)
 	if err != nil {
-		// TODO: Custom error giving more context.
-		return nil, err
+		return nil, errors.WithMessage(err, ErrMapStr[DbPostgresAllNotesFailsQuery])
 	}
 	defer rows.Close()
 
@@ -186,8 +185,7 @@ func (d *DbPostgres) AllNotes() ([]*ehrpb.Note, error) {
 			&tmpNote.NoteGuid, &tmpNote.VisitGuid, &tmpNote.AuthorGuid,
 			&tmpNote.PatientGuid, &tmpNote.Type, &tmpNote.Status)
 		if err != nil {
-			//TODO: Custom error giving more context.
-			return nil, err
+			return nil, errors.WithMessage(err, ErrMapStr[DbPostgresAllNotesFailsScan])
 		}
 		tmpNote.Tags, err = d.GetNoteTagsByNoteGuid(tmpNote.GetNoteGuid())
 		if err != nil {
@@ -216,6 +214,7 @@ func (d *DbPostgres) AddNoteTag(noteGuid string, tag string) (id int64, err erro
 	return newId, nil
 }
 
+//TODO: either extend the current functionality to get by guid, or switch to get by guid.
 func (d *DbPostgres) GetNoteById(id int64) (*ehrpb.Note, error) {
 	row := d.db.QueryRow(getNoteByIdQuery, id)
 
@@ -251,8 +250,7 @@ func (d *DbPostgres) FindNotes(filter NoteFindFilter) ([]*ehrpb.Note, error) {
 
 	rows, err := d.db.Query(getNotesByFindQuery, filter.AuthorGuid, filter.VisitGuid, filter.PatientGuid)
 	if err != nil {
-		// TODO: Custom error giving more context.
-		return nil, err
+		return nil, errors.WithMessage(err, ErrMapStr[DbPostgresFindNotesFailsQuery])
 	}
 	defer rows.Close()
 
@@ -262,17 +260,16 @@ func (d *DbPostgres) FindNotes(filter NoteFindFilter) ([]*ehrpb.Note, error) {
 			&tmpNote.NoteGuid, &tmpNote.VisitGuid, &tmpNote.AuthorGuid,
 			&tmpNote.PatientGuid, &tmpNote.Type, &tmpNote.Status)
 		if err != nil {
-			//TODO: Custom error giving more context.
-			return nil, err
+			return nil, errors.WithMessage(err, ErrMapStr[DbPostgresFindNotesFailsScan])
 		}
 		tmpNote.Tags, err = d.GetNoteTagsByNoteGuid(tmpNote.GetNoteGuid())
 		if err != nil {
-			return nil, err
+			return nil, errors.WithMessage(err, ErrMapStr[DbPostgresFindNotesFailsGetTags])
 		}
 
 		tmpNote.Fragments, err = d.GetNoteFragmentsByNoteGuid(tmpNote.GetNoteGuid())
 		if err != nil {
-			return nil, err
+			return nil, errors.WithMessage(err, ErrMapStr[DbPostgresFindNotesFailsGetNoteFragments])
 		}
 
 		notes = append(notes, tmpNote)
