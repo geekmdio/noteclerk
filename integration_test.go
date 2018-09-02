@@ -1,13 +1,13 @@
 package main
 
 import (
-	"testing"
-	"fmt"
 	"database/sql"
+	"fmt"
+	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
 	"github.com/geekmdio/noted"
 	"github.com/google/uuid"
-	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
 	"github.com/sirupsen/logrus"
+	"testing"
 )
 
 var postgresDb = &DbPostgres{}
@@ -51,7 +51,6 @@ func TestCreateTable_WhichAlreadyExists_ReturnsProperError(t *testing.T) {
 		t.Fatalf("Create table should not return error when given proper query. Error: %v", err)
 	}
 
-
 	if err := postgresDb.createTable(createQuery); err == nil {
 		t.Fatalf("Create table should return an error. Actual error: %v", err)
 	}
@@ -60,7 +59,6 @@ func TestCreateTable_WhichAlreadyExists_ReturnsProperError(t *testing.T) {
 
 	tearDown(t)
 }
-
 
 func TestDbPostgres_AddNote(t *testing.T) {
 	setup(t)
@@ -109,7 +107,7 @@ func TestDbPostgres_FindNotes(t *testing.T) {
 	note := buildNote()
 	postgresDb.AddNote(note)
 
-	visitGuid := "" // note.GetVisitGuid()
+	visitGuid := ""   // note.GetVisitGuid()
 	patientGuid := "" // note.GetPatientGuid()
 	authorGuid := note.GetAuthorGuid()
 
@@ -128,6 +126,24 @@ func TestDbPostgres_FindNotes(t *testing.T) {
 	if len(notes) < 1 {
 		t.Fatalf("Should return at least one note, but did not.")
 	}
+	tearDown(t)
+}
+
+func TestDbPostgres_AllNoteFragments(t *testing.T) {
+	setup(t)
+
+	note := buildNote()
+	postgresDb.AddNote(note)
+
+	frags, err := postgresDb.AllNoteFragments()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(frags) < 1 {
+		t.Fatalf("Should have at leats one note fragment.")
+	}
+
 	tearDown(t)
 }
 

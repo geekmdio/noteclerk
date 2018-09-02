@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
+	"github.com/geekmdio/noted"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/google/uuid"
 	"testing"
-	"github.com/geekmdio/noted"
 )
 
 func TestDbPostgres_InitializeWithEmptyConfig_ThrowsError(t *testing.T) {
@@ -77,7 +77,7 @@ func TestNoteClerkServer_CreateNote_WithNoteThatAlreadyHasId_ReturnsError(t *tes
 	c := context.Background()
 	cnr := &ehrpb.CreateNoteRequest{
 		Note: &ehrpb.Note{
-			Id:          1,                      // This should throw an error
+			Id:          1, // This should throw an error
 			DateCreated: &timestamp.Timestamp{},
 			NoteGuid:    "",
 			VisitGuid:   uuid.New().String(),

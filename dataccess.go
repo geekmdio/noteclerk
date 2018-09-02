@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
 	"context"
+	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
 )
 
 // NoteClerkServer interface implements the gRPC server NoteServiceServer interface and adds an initialize feature.

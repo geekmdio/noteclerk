@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
+	"github.com/geekmdio/noted"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 	"strings"
-	"github.com/geekmdio/noted"
 )
 
 type DbPostgres struct {
@@ -309,7 +309,7 @@ func (d *DbPostgres) AllNoteFragments() ([]*ehrpb.NoteFragment, error) {
 	rows, err := d.db.Query(getAllNoteFragmentsQuery)
 
 	if err != nil {
-		return nil, errors.WithMessage(err, ErrMapStr[DbPostgresAllNotesFailsQuery])
+		return nil, errors.WithMessage(err, ErrMapStr[DbPostgresAllNoteFragmentsQueryFails])
 	}
 	defer rows.Close()
 
@@ -319,9 +319,9 @@ func (d *DbPostgres) AllNoteFragments() ([]*ehrpb.NoteFragment, error) {
 		err := rows.Scan(&tmpFrag.Id, &tmpFrag.DateCreated.Seconds, &tmpFrag.DateCreated.Nanos,
 			&tmpFrag.NoteFragmentGuid, &tmpFrag.NoteGuid, &tmpFrag.Icd_10Code, &tmpFrag.Icd_10Long,
 			&tmpFrag.Description, &tmpFrag.Status, &tmpFrag.Priority, &tmpFrag.Topic, &tmpFrag.Content)
-		//TODO: custom err message
+
 		if err != nil {
-			return nil, errors.WithMessage(err, "need a custom message")
+			return nil, errors.WithMessage(err, ErrMapStr[DbPostgresAllNoteFragmentsFailsScanRow])
 		}
 
 		tmpFrag.Tags, err = d.GetNoteFragmentTagsByNoteFragmentGuid(tmpFrag.GetNoteGuid())

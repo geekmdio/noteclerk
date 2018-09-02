@@ -1,12 +1,12 @@
 package main
 
 import (
+	"fmt"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"io"
 	"os"
-	"fmt"
 	"strings"
-	"github.com/pkg/errors"
 )
 
 // Inject preferred logger into the log global variable singleton. NOTE: at the time of development, this log singleton

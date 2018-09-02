@@ -33,7 +33,7 @@ func (m *MockDb) AddNote(note *ehrpb.Note) (id int64, guid string, err error) {
 
 	m.db = append(m.db, note)
 
-	return note.GetId(), note.GetNoteGuid(),nil
+	return note.GetId(), note.GetNoteGuid(), nil
 }
 
 // Update a note which already exists in the mock database.

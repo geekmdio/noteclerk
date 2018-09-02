@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"github.com/pkg/errors"
+	"io/ioutil"
 )
 
 // This is the environmental variable in the OS that should be se to your preferred

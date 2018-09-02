@@ -1,8 +1,7 @@
 package main
 
 // TODO: Consider moving to SQL files
-const createNoteTable =
-`CREATE TABLE IF NOT EXISTS note
+const createNoteTable = `CREATE TABLE IF NOT EXISTS note
 (
   id                   serial            NOT NULL
     CONSTRAINT note_pkey
@@ -27,8 +26,7 @@ CREATE UNIQUE INDEX note_note_guid_uindex
   ON note (note_guid);
 `
 
-const createNoteFragmentTable =
-`CREATE TABLE IF NOT EXISTS note_fragment
+const createNoteFragmentTable = `CREATE TABLE IF NOT EXISTS note_fragment
 (
   id                   serial            NOT NULL
     CONSTRAINT note_fragment_pkey
@@ -60,8 +58,7 @@ CREATE UNIQUE INDEX note_fragment_note_fragment_guid_uindex
 
 `
 
-const createNoteTagTable =
-`CREATE TABLE IF NOT EXISTS note_tag
+const createNoteTagTable = `CREATE TABLE IF NOT EXISTS note_tag
 (
 	id serial NOT NULL
 		CONSTRAINT note_tag_pkey
@@ -83,8 +80,7 @@ CREATE UNIQUE INDEX note_tag_id_uindex
 
 `
 
-const createNoteFragmentTagTable =
-`CREATE TABLE IF NOT EXISTS note_fragment_tag
+const createNoteFragmentTagTable = `CREATE TABLE IF NOT EXISTS note_fragment_tag
 (
 	id serial NOT NULL
 		CONSTRAINT note_fragment_tag_pkey
@@ -105,8 +101,7 @@ CREATE UNIQUE INDEX note_fragment_tag_id_uindex
 ;
 `
 
-const addNoteQuery =
-`INSERT INTO "public"."note" 
+const addNoteQuery = `INSERT INTO "public"."note" 
 (
 	"id", 
 	"date_created_seconds", 
@@ -132,8 +127,7 @@ VALUES
 )
 RETURNING id;`
 
-const addNoteFragmentQuery =
-`INSERT INTO "public"."note_fragment" 
+const addNoteFragmentQuery = `INSERT INTO "public"."note_fragment" 
 (
 	"id", 
 	"date_created_seconds", 
@@ -165,8 +159,7 @@ VALUES
 )
 RETURNING id;`
 
-const addNoteTagQuery =
-`INSERT INTO "public"."note_tag" 
+const addNoteTagQuery = `INSERT INTO "public"."note_tag" 
 (
 	"id", 
 	"note_guid", 
@@ -180,8 +173,7 @@ VALUES
 )
 RETURNING id;`
 
-const addNoteFragmentTagQuery =
-`INSERT INTO "public"."note_fragment_tag" 
+const addNoteFragmentTagQuery = `INSERT INTO "public"."note_fragment_tag" 
 (
 	"id", 
 	"note_fragment_guid", 
@@ -194,38 +186,29 @@ VALUES
 	$2
 )
 RETURNING id;`
-const getAllNotesQuery =
-`SELECT * FROM note;`
+const getAllNotesQuery = `SELECT * FROM note;`
 
-const getAllNoteFragmentsQuery =
-	`SELECT * FROM note_fragment;`
+const getAllNoteFragmentsQuery = `SELECT * FROM note_fragment;`
 
-const getNoteTagByNoteGuidQuery =
-`SELECT * from note_tag WHERE note_guid = $1;`
+const getNoteTagByNoteGuidQuery = `SELECT * from note_tag WHERE note_guid = $1;`
 
-const getNoteFragmentTagsByNoteFragmentGuidQuery =
-`SELECT * from note_fragment_tag WHERE note_fragment_guid = $1;`
+const getNoteFragmentTagsByNoteFragmentGuidQuery = `SELECT * from note_fragment_tag WHERE note_fragment_guid = $1;`
 
-const getNoteFragmentByNoteGuidQuery =
-`SELECT * from note_fragment WHERE note_guid = $1;`
+const getNoteFragmentByNoteGuidQuery = `SELECT * from note_fragment WHERE note_guid = $1;`
 
-const getNoteByGuidQuery =
-`SELECT * from note WHERE note_guid = $1;`
+const getNoteByGuidQuery = `SELECT * from note WHERE note_guid = $1;`
 
-const updateNoteFragmentStatusToStatusByNoteFragmentGuidQuery =
-`UPDATE note_fragment
+const updateNoteFragmentStatusToStatusByNoteFragmentGuidQuery = `UPDATE note_fragment
 SET status = $1
 WHERE note_fragment_guid = $2
 RETURNING id;`
 
-const updateNoteStatusToStatusByNoteGuidQuery =
-`UPDATE note
+const updateNoteStatusToStatusByNoteGuidQuery = `UPDATE note
 SET status = $1
 WHERE note_guid = $2
 RETURNING id;`
 
-const getNotesByFindQuery =
-`SELECT * FROM note
+const getNotesByFindQuery = `SELECT * FROM note
 WHERE author_guid LIKE $1
 AND visit_guid LIKE $2
 AND patient_guid LIKE $3;`
