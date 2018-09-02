@@ -66,7 +66,7 @@ func TestDbPostgres_AddNote(t *testing.T) {
 	setup(t)
 	note := buildNote()
 
-	id, err := postgresDb.AddNote(note)
+	id, _, err := postgresDb.AddNote(note)
 	if err != nil {
 		t.Fatalf("Failed to add note to datbase. Error: %v", err)
 	}
@@ -80,7 +80,7 @@ func TestDbPostgres_UpdateNote(t *testing.T) {
 	setup(t)
 	note := buildNote()
 
-	id, _ := postgresDb.AddNote(note)
+	id, _, _ := postgresDb.AddNote(note)
 	note.Id = id
 	note.Fragments[0].Content = "Updated content"
 
@@ -95,8 +95,8 @@ func TestDbPostgres_DeleteNote(t *testing.T) {
 	setup(t)
 	note := buildNote()
 
-	id, _ := postgresDb.AddNote(note)
-	err := postgresDb.DeleteNote(id)
+	postgresDb.AddNote(note)
+	err := postgresDb.DeleteNote(note.GetNoteGuid())
 	if err != nil {
 		t.Fatalf("Failed to delete note. Error: %v", err)
 	}

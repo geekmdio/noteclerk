@@ -44,7 +44,7 @@ func (n *Server) CreateNote(ctx context.Context, nr *ehrpb.CreateNoteRequest) (*
 		return nil, errors.New(ErrMapStr[NoteClerkServerCreateNoteRejectsNoteDueToId])
 	}
 
-	id, err := n.db.AddNote(noteToAdd)
+	id, _, err := n.db.AddNote(noteToAdd)
 	if err != nil {
 		err := errors.WithMessage(err, ErrMapStr[NoteClerkServerCreateNoteFailsAddNoteToDb])
 		log.Warn(err)
@@ -74,7 +74,7 @@ func (n *Server) DeleteNote(ctx context.Context, dnr *ehrpb.DeleteNoteRequest) (
 		},
 	}
 
-	err := n.db.DeleteNote(dnr.Id)
+	err := n.db.DeleteNote(dnr.GetGuid())
 	if err != nil {
 		err := errors.WithMessage(err, ErrMapStr[NoteClerkServerDeleteNoteFailsDeleteNoteFromDb])
 		log.Warn(err)
@@ -98,7 +98,7 @@ func (n *Server) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveNoteReques
 		},
 	}
 
-	note, err := n.db.GetNoteById(rnr.Id)
+	note, err := n.db.GetNoteByGuid(rnr.GetGuid())
 	if err != nil {
 		err := errors.WithMessage(err, ErrMapStr[NoteClerkServerRetrieveNoteFailsToGetNoteFromDb])
 		log.Warn(err)

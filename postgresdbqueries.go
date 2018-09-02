@@ -206,8 +206,8 @@ const getNoteFragmentTagsByNoteFragmentGuidQuery =
 const getNoteFragmentByNoteGuidQuery =
 `SELECT * from note_fragment WHERE note_guid = $1;`
 
-const getNoteByIdQuery =
-`SELECT * from note WHERE id = $1;`
+const getNoteByGuidQuery =
+`SELECT * from note WHERE note_guid = $1;`
 
 const updateNoteFragmentStatusToStatusByNoteFragmentGuidQuery =
 `UPDATE note_fragment
@@ -215,10 +215,10 @@ SET status = $1
 WHERE note_fragment_guid = $2
 RETURNING id;`
 
-const updateNoteStatusToStatusByNoteIdQuery =
+const updateNoteStatusToStatusByNoteGuidQuery =
 `UPDATE note
 SET status = $1
-WHERE id = $2
+WHERE note_guid = $2
 RETURNING id;`
 
 const getNotesByFindQuery =

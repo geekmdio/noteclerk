@@ -23,11 +23,11 @@ type NoteClerkServer interface {
 // as the preferred database implementation, it should be assigned to 'db' in dependencies.go.
 type RDBMSAccessor interface {
 	Initialize(config *Config) error
-	AddNote(note *ehrpb.Note) (id int64, err error)
+	AddNote(note *ehrpb.Note) (id int64, guid string, err error)
 	UpdateNote(note *ehrpb.Note) error
-	DeleteNote(id int64) error
+	DeleteNote(guid string) error
 	AllNotes() ([]*ehrpb.Note, error)
-	GetNoteById(id int64) (*ehrpb.Note, error)
+	GetNoteByGuid(guid string) (*ehrpb.Note, error)
 	FindNotes(filter NoteFindFilter) ([]*ehrpb.Note, error)
 	AddNoteTag(noteGuid string, tag string) (id int64, err error)
 	GetNoteTagsByNoteGuid(noteGuid string) (tag []string, err error)
@@ -35,7 +35,7 @@ type RDBMSAccessor interface {
 	UpdateNoteFragment(note *ehrpb.NoteFragment) error
 	DeleteNoteFragment(noteFragmentGuid string) error
 	AllNoteFragments() ([]*ehrpb.NoteFragment, error)
-	GetNoteFragmentById(id int64) (*ehrpb.NoteFragment, error)
+	GetNoteFragmentByGuid(guid string) (*ehrpb.NoteFragment, error)
 	GetNoteFragmentsByNoteGuid(noteGuid string) ([]*ehrpb.NoteFragment, error)
 	FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.NoteFragment, error)
 	AddNoteFragmentTag(noteGuid string, tag string) (id int64, err error)

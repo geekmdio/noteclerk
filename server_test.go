@@ -167,9 +167,11 @@ func TestNoteClerkServer_DeleteNote(t *testing.T) {
 	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
-	idToDelete := int64(0)
+	notes, _ := s.db.AllNotes()
+
+	guidToDelete := notes[0].GetNoteGuid()
 	delReq := &ehrpb.DeleteNoteRequest{
-		Id: idToDelete,
+		Guid: guidToDelete,
 	}
 
 	res, err := s.DeleteNote(context.Background(), delReq)
@@ -184,7 +186,7 @@ func TestNoteClerkServer_DeleteNote(t *testing.T) {
 	allNotes, _ := s.db.AllNotes()
 	idPresent := false
 	for _, n := range allNotes {
-		if n.Id == idToDelete {
+		if n.GetNoteGuid() == guidToDelete {
 			idPresent = true
 		}
 	}
@@ -217,10 +219,11 @@ func TestNoteClerkServer_RetrieveNote(t *testing.T) {
 	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
-	expectedId := int64(1)
+	notes, _ := s.db.AllNotes()
+	expectedGuid := notes[0].NoteGuid
 
 	retReq := &ehrpb.RetrieveNoteRequest{
-		Id: expectedId,
+		Guid: expectedGuid,
 	}
 
 	res, err := s.RetrieveNote(context.Background(), retReq)
@@ -236,8 +239,8 @@ func TestNoteClerkServer_RetrieveNote(t *testing.T) {
 		t.Fatalf("No note was retrieved")
 	}
 
-	if res.Note.Id != expectedId {
-		t.Fatalf("The note Id was %v, but should have been %v", res.Note.Id, expectedId)
+	if res.Note.GetNoteGuid() != expectedGuid {
+		t.Fatalf("The note Id was %v, but should have been %v", res.Note.Id, expectedGuid)
 	}
 }
 
@@ -322,7 +325,7 @@ func TestNoteClerkServer_UpdateNote(t *testing.T) {
 	firstNote := mockDb.db[0]
 
 	retReq := &ehrpb.RetrieveNoteRequest{
-		Id: firstNote.Id,
+		Guid: firstNote.GetNoteGuid(),
 	}
 
 	s := &Server{}

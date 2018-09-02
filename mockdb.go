@@ -24,15 +24,16 @@ func (m *MockDb) Initialize(config *Config) error {
 }
 
 // Add a note to the mock database.
-func (m *MockDb) AddNote(note *ehrpb.Note) (id int64, err error) {
+func (m *MockDb) AddNote(note *ehrpb.Note) (id int64, guid string, err error) {
 	if note.Id > 0 {
-		return 0, errors.New("note has index greater than 0 and is rejected")
+		//TODO: Create error
+		return 0, "", errors.New("note has index greater than 0 and is rejected")
 	}
 	note.Id = m.generateUniqueId()
 
 	m.db = append(m.db, note)
 
-	return note.Id, nil
+	return note.GetId(), note.GetNoteGuid(),nil
 }
 
 // Update a note which already exists in the mock database.
@@ -48,6 +49,7 @@ func (m *MockDb) UpdateNote(note *ehrpb.Note) error {
 		}
 	}
 
+	//TODO: Create error
 	if !found {
 		return errors.New("cannot update note because it could not be found")
 	}
@@ -57,19 +59,20 @@ func (m *MockDb) UpdateNote(note *ehrpb.Note) error {
 }
 
 // Delete a note from the mock database.
-func (m *MockDb) DeleteNote(id int64) error {
+func (m *MockDb) DeleteNote(guid string) error {
 	var index int
 	var found bool
 	for k, n := range m.db {
-		if n.Id == id {
+		if n.GetNoteGuid() == guid {
 			index = k
 			found = true
 			break
 		}
 	}
 
+	//TODO: Create error
 	if !found {
-		return fmt.Errorf("note with id %v not located in database", id)
+		return fmt.Errorf("note with guid %v not located in database", guid)
 	}
 
 	var newDb []*ehrpb.Note
@@ -85,11 +88,11 @@ func (m *MockDb) AllNotes() ([]*ehrpb.Note, error) {
 }
 
 // Get's a Note by it's Id, which should be unique.
-func (m *MockDb) GetNoteById(id int64) (*ehrpb.Note, error) {
+func (m *MockDb) GetNoteByGuid(guid string) (*ehrpb.Note, error) {
 	var foundNote *ehrpb.Note
 	found := false
 	for _, v := range m.db {
-		if v.Id == id {
+		if v.GetNoteGuid() == guid {
 			foundNote = v
 			found = true
 		}
@@ -152,7 +155,7 @@ func (m *MockDb) DeleteNoteFragment(noteFragmentGuid string) error {
 	panic("implement me")
 }
 
-func (m *MockDb) GetNoteFragmentById(id int64) (*ehrpb.NoteFragment, error) {
+func (m *MockDb) GetNoteFragmentByGuid(guid string) (*ehrpb.NoteFragment, error) {
 	panic("implement me")
 }
 
