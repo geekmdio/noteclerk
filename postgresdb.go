@@ -214,7 +214,6 @@ func (d *DbPostgres) AddNoteTag(noteGuid string, tag string) (id int64, err erro
 	return newId, nil
 }
 
-//TODO: either extend the current functionality to get by guid, or switch to get by guid.
 func (d *DbPostgres) GetNoteByGuid(guid string) (*ehrpb.Note, error) {
 	row := d.db.QueryRow(getNoteByGuidQuery, guid)
 
@@ -307,8 +306,33 @@ func validateNoteFormFilterFields(queryFilter NoteFindFilter) error {
 }
 
 func (d *DbPostgres) AllNoteFragments() ([]*ehrpb.NoteFragment, error) {
-	log.Fatal("Not implemented.")
-	return nil, nil
+	rows, err := d.db.Query(getAllNoteFragmentsQuery)
+
+	if err != nil {
+		return nil, errors.WithMessage(err, ErrMapStr[DbPostgresAllNotesFailsQuery])
+	}
+	defer rows.Close()
+
+	var notes []*ehrpb.NoteFragment
+	for rows.Next() {
+		tmpFrag := noted.NewNoteFragment()
+		err := rows.Scan(&tmpFrag.Id, &tmpFrag.DateCreated.Seconds, &tmpFrag.DateCreated.Nanos,
+			&tmpFrag.NoteFragmentGuid, &tmpFrag.NoteGuid, &tmpFrag.Icd_10Code, &tmpFrag.Icd_10Long,
+			&tmpFrag.Description, &tmpFrag.Status, &tmpFrag.Priority, &tmpFrag.Topic, &tmpFrag.Content)
+		//TODO: custom err message
+		if err != nil {
+			return nil, errors.WithMessage(err, "need a custom message")
+		}
+
+		tmpFrag.Tags, err = d.GetNoteFragmentTagsByNoteFragmentGuid(tmpFrag.GetNoteGuid())
+		if err != nil {
+			return nil, err
+		}
+
+		notes = append(notes, tmpFrag)
+
+	}
+	return notes, nil
 }
 
 func (d *DbPostgres) AddNoteFragment(nf *ehrpb.NoteFragment) (id int64, guid string, err error) {

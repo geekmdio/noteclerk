@@ -197,6 +197,9 @@ RETURNING id;`
 const getAllNotesQuery =
 `SELECT * FROM note;`
 
+const getAllNoteFragmentsQuery =
+	`SELECT * FROM note_fragment;`
+
 const getNoteTagByNoteGuidQuery =
 `SELECT * from note_tag WHERE note_guid = $1;`
 
