@@ -179,7 +179,7 @@ func TestDbPostgres_FindNotes_ByPatientGuid(t *testing.T) {
 	tearDown(t)
 }
 
-func TestDbPostgres_FindNotes_BySearchTerms(t *testing.T) {
+func TestDbPostgres_FindNotes_BySearchTermsFailsDueToNotImplemented(t *testing.T) {
 	setup(t)
 
 	note := buildNote()
@@ -193,12 +193,12 @@ func TestDbPostgres_FindNotes_BySearchTerms(t *testing.T) {
 	}
 
 	notes, err := postgresDb.FindNotes(findQuery)
-	if err != nil {
-		t.Fatalf("Failed to find notes. Error: %v", err)
+	if err == nil {
+		t.Fatalf("The search by terms feature should fail, it is not implemented. The error should be nil. Error: %v", err)
 	}
 
-	if len(notes) < 1 {
-		t.Fatalf("Should return at least one note, but did not.")
+	if len(notes) >= 1 {
+		t.Fatalf("Zero notes should be returned, or an error should be thrown. The search by terms feature is not yet implemented.")
 	}
 	tearDown(t)
 }

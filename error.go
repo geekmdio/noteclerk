@@ -3,7 +3,7 @@ package main
 import "github.com/pkg/errors"
 
 // A type created to provide enum-like functionality for errors.
-type NoteClerkErrorConst int8
+type NoteClerkError int8
 
 // Error types mapped to a constant number.
 const (
@@ -55,8 +55,8 @@ const (
 	ErrLoadConfigurationAbortsAfterJsonMarshalDueToEmptyConfig = 45
 )
 
-// Map NoteClerkErrorConst constants to a string messages, which can be used to produce precise error messages.
-var errToMsg = map[NoteClerkErrorConst]string{
+// Map NoteClerkError constants to a string messages, which can be used to produce precise error messages.
+var errToMsg = map[NoteClerkError]string{
 	ErrDbPostgresInitializeFailsOpenConn:                       "DbPostgres.Initialize failed to open a database connection",
 	ErrDbPostgresInitializeFailsDbPing:                         "DbPostgres.Initialize failed to ping the database.",
 	ErrDbPostgresInitializeFailsSchemaCreation:                 "DbPostgres.Initialize failed to create the database schema.",
@@ -105,10 +105,13 @@ var errToMsg = map[NoteClerkErrorConst]string{
 	ErrLoadConfigurationAbortsAfterJsonMarshalDueToEmptyConfig: "LoadConfiguration is aborting due to receiving an empty configuration file.",
 }
 
-func NoteClerkErrWrap(err error, nce NoteClerkErrorConst) error {
+func NoteClerkErrWrap(err error, nce NoteClerkError) error {
+	if err == nil {
+		return NoteClerkErrNew(nce)
+	}
 	return errors.WithMessage(err, errToMsg[nce])
 }
 
-func NoteClerkErr(nce NoteClerkErrorConst) error {
+func NoteClerkErrNew(nce NoteClerkError) error {
 	return errors.New(errToMsg[nce])
 }

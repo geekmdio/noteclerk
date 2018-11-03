@@ -8,7 +8,6 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 
 	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
 	"github.com/geekmdio/noted"
@@ -41,7 +40,7 @@ func (n *Server) CreateNote(ctx context.Context, nr *ehrpb.CreateNoteRequest) (*
 	noteToAdd.DateCreated = noted.TimestampNow()
 
 	if nr.Note.GetId() > 0 {
-		return nil, NoteClerkErr(ErrNoteClerkServerCreateNoteRejectsNoteDueToId)
+		return nil, NoteClerkErrNew(ErrNoteClerkServerCreateNoteRejectsNoteDueToId)
 	}
 
 	id, _, err := n.db.AddNote(noteToAdd)
@@ -171,7 +170,7 @@ func (n *Server) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteRequest) (
 	}
 
 	if unr.Id != unr.Note.Id {
-		newErr := NoteClerkErr(ErrNoteClerkServerUpdateNoteFailsDueToIdMismatch)
+		newErr := NoteClerkErrNew(ErrNoteClerkServerUpdateNoteFailsDueToIdMismatch)
 		log.Warn(newErr)
 		updateNoteResponse.Status.HttpCode = ehrpb.StatusCodes_CONFLICT
 		updateNoteResponse.Status.Message = "Failed to update note. The id provided for the update note request does not match the id of the note."
@@ -242,10 +241,10 @@ func (n *Server) Initialize(config *Config, db RDBMSAccessor) error {
 // database and configuration files.
 func (n *Server) constructor(config *Config, db RDBMSAccessor) error {
 	if db == nil {
-		return NoteClerkErr(ErrNoteClerkServerConstructorFailsDueToNilDb)
+		return NoteClerkErrNew(ErrNoteClerkServerConstructorFailsDueToNilDb)
 	}
 	if config == nil {
-		return NoteClerkErr(ErrNoteClerkServerConstructorFailsDueToNilConfig)
+		return NoteClerkErrNew(ErrNoteClerkServerConstructorFailsDueToNilConfig)
 	}
 
 	n.ip = config.ServerIp

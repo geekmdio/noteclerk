@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"io"
 	"os"
