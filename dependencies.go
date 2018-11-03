@@ -45,7 +45,7 @@ func InitializeLogger(logPath string) error {
 	log.Formatter = &logrus.JSONFormatter{}
 	logFile, err := os.OpenFile(logPath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
-		return errors.WithMessage(err, NoteClerkErrToStrMap[ErrInitializeLoggerFailsOpenLogFile])
+		return NoteClerkErrWrap(err, ErrInitializeLoggerFailsOpenLogFile)
 	}
 
 	log.SetLevel(logrus.InfoLevel)

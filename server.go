@@ -41,12 +41,12 @@ func (n *Server) CreateNote(ctx context.Context, nr *ehrpb.CreateNoteRequest) (*
 	noteToAdd.DateCreated = noted.TimestampNow()
 
 	if nr.Note.GetId() > 0 {
-		return nil, errors.New(NoteClerkErrToStrMap[ErrNoteClerkServerCreateNoteRejectsNoteDueToId])
+		return nil, NoteClerkErr(ErrNoteClerkServerCreateNoteRejectsNoteDueToId)
 	}
 
 	id, _, err := n.db.AddNote(noteToAdd)
 	if err != nil {
-		err := errors.WithMessage(err, NoteClerkErrToStrMap[ErrNoteClerkServerCreateNoteFailsAddNoteToDb])
+		err := NoteClerkErrWrap(err, ErrNoteClerkServerCreateNoteFailsAddNoteToDb)
 		log.Warn(err)
 		cnr.Status.HttpCode = ehrpb.StatusCodes_NOT_MODIFIED
 		cnr.Status.Message = "Failed to insert new note into database."
@@ -76,7 +76,7 @@ func (n *Server) DeleteNote(ctx context.Context, dnr *ehrpb.DeleteNoteRequest) (
 
 	err := n.db.DeleteNote(dnr.GetGuid())
 	if err != nil {
-		err := errors.WithMessage(err, NoteClerkErrToStrMap[ErrNoteClerkServerDeleteNoteFailsDeleteNoteFromDb])
+		err := NoteClerkErrWrap(err, ErrNoteClerkServerDeleteNoteFailsDeleteNoteFromDb)
 		log.Warn(err)
 		dnRes.Status.HttpCode = ehrpb.StatusCodes_NOT_MODIFIED
 		dnRes.Status.Message = "Failed to change the notes status to deleted in the database."
@@ -100,7 +100,7 @@ func (n *Server) RetrieveNote(ctx context.Context, rnr *ehrpb.RetrieveNoteReques
 
 	note, err := n.db.GetNoteByGuid(rnr.GetGuid())
 	if err != nil {
-		err := errors.WithMessage(err, NoteClerkErrToStrMap[ErrNoteClerkServerRetrieveNoteFailsToGetNoteFromDb])
+		err := NoteClerkErrWrap(err, ErrNoteClerkServerRetrieveNoteFailsToGetNoteFromDb)
 		log.Warn(err)
 		res.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
 		res.Status.Message = "Failed to retrieve note from database."
@@ -138,7 +138,7 @@ func (n *Server) SearchNotes(ctx context.Context, fnr *ehrpb.SearchNotesRequest)
 
 	notes, err := n.db.FindNotes(filter)
 	if err != nil {
-		err := errors.WithMessage(err, NoteClerkErrToStrMap[ErrNoteClerkServerSearchNotesFailsToFindNotesInDb])
+		err := NoteClerkErrWrap(err, ErrNoteClerkServerSearchNotesFailsToFindNotesInDb)
 		log.Warn(err)
 		res.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
 		res.Status.Message = "Failed to locate notes matching query"
@@ -171,7 +171,7 @@ func (n *Server) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteRequest) (
 	}
 
 	if unr.Id != unr.Note.Id {
-		newErr := errors.New(NoteClerkErrToStrMap[ErrNoteClerkServerUpdateNoteFailsDueToIdMismatch])
+		newErr := NoteClerkErr(ErrNoteClerkServerUpdateNoteFailsDueToIdMismatch)
 		log.Warn(newErr)
 		updateNoteResponse.Status.HttpCode = ehrpb.StatusCodes_CONFLICT
 		updateNoteResponse.Status.Message = "Failed to update note. The id provided for the update note request does not match the id of the note."
@@ -180,7 +180,7 @@ func (n *Server) UpdateNote(ctx context.Context, unr *ehrpb.UpdateNoteRequest) (
 
 	err := n.db.UpdateNote(unr.Note)
 	if err != nil {
-		newErr := errors.WithMessage(err, NoteClerkErrToStrMap[ErrNoteClerkServerUpdateNoteFailsToUpdateNoteInDb])
+		newErr := NoteClerkErrWrap(err, ErrNoteClerkServerUpdateNoteFailsToUpdateNoteInDb)
 		log.Warn(newErr)
 		updateNoteResponse.Status.HttpCode = ehrpb.StatusCodes_NOT_FOUND
 		updateNoteResponse.Status.Message = "UpdateNote failed. Unable to update note in the database."
@@ -213,7 +213,7 @@ func (n *Server) Initialize(config *Config, db RDBMSAccessor) error {
 	// Initialize server database
 	err := n.db.Initialize(config)
 	if err != nil {
-		return errors.WithMessage(err, NoteClerkErrToStrMap[ErrNoteClerkServerInitializeFailsDbInitialization])
+		return NoteClerkErrWrap(err, ErrNoteClerkServerInitializeFailsDbInitialization)
 	}
 	log.Info("Successfully connected to database.")
 
@@ -225,14 +225,14 @@ func (n *Server) Initialize(config *Config, db RDBMSAccessor) error {
 	// Create listener
 	lis, err := net.Listen(n.getProtocol(), n.getConnectionAddr())
 	if err != nil {
-		return errors.WithMessage(err, NoteClerkErrToStrMap[ErrNoteClerkServerInitializeFailsCreateListener])
+		return NoteClerkErrWrap(err, ErrNoteClerkServerInitializeFailsCreateListener)
 	}
 	log.Info("Successfully created a listener.")
 
 	// Serve
 	log.Info("Starting gRPC server.")
 	if err = n.server.Serve(lis); err != nil {
-		return errors.WithMessage(err, NoteClerkErrToStrMap[ErrNoteClerkServerInitializeFailsInitializingRpcServer])
+		return NoteClerkErrWrap(err, ErrNoteClerkServerInitializeFailsInitializingRpcServer)
 	}
 
 	return nil
@@ -242,10 +242,10 @@ func (n *Server) Initialize(config *Config, db RDBMSAccessor) error {
 // database and configuration files.
 func (n *Server) constructor(config *Config, db RDBMSAccessor) error {
 	if db == nil {
-		return errors.New(NoteClerkErrToStrMap[ErrNoteClerkServerConstructorFailsDueToNilDb])
+		return NoteClerkErr(ErrNoteClerkServerConstructorFailsDueToNilDb)
 	}
 	if config == nil {
-		return errors.New(NoteClerkErrToStrMap[ErrNoteClerkServerConstructorFailsDueToNilConfig])
+		return NoteClerkErr(ErrNoteClerkServerConstructorFailsDueToNilConfig)
 	}
 
 	n.ip = config.ServerIp
