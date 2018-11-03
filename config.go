@@ -36,13 +36,21 @@ func LoadConfiguration(path string) (c *Config, err error) {
 
 	file, err := ioutil.ReadFile(path)
 	if err != nil {
-		return &Config{}, errors.WithMessage(err, ErrMapStr[LoadConfigurationFailsReadFile])
+		return &Config{}, errors.WithMessage(err, ErrMapStr[ErrLoadConfigurationFailsReadFile])
 	}
 
 	conf := &Config{}
 	err = json.Unmarshal(file, conf)
 	if err != nil {
-		return &Config{}, errors.WithMessage(err, ErrMapStr[LoadConfigurationFailsJsonMarshal])
+		return &Config{}, errors.WithMessage(err, ErrMapStr[ErrLoadConfigurationFailsJsonMarshal])
+	}
+
+	configIsEmpty := conf.DbSslMode == "" || conf.DbIp == "" || conf.DbPort == "" || conf.ServerPort == "" ||
+		conf.ServerProtocol == "" || conf.ServerIp == "" || conf.Version == "" || conf.LogPath == "" ||
+		conf.DbName == "" || conf.DbPassword == "" || conf.DbUsername == ""
+
+	if configIsEmpty {
+		return &Config{}, errors.WithMessage(err, ErrMapStr[ErrLoadConfigurationAbortsAfterJsonMarshalDueToEmptyConfig])
 	}
 
 	return conf, nil
