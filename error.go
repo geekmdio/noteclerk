@@ -1,7 +1,9 @@
 package main
 
+// A type created to provide enum-like functionality for errors.
 type NoteClerkError int8
 
+// Error types mapped to a constant number.
 const (
 	ErrDbPostgresInitializeFailsOpenConn                       = 0
 	ErrDbPostgresInitializeFailsDbPing                         = 1
@@ -51,7 +53,8 @@ const (
 	ErrLoadConfigurationAbortsAfterJsonMarshalDueToEmptyConfig = 45
 )
 
-var ErrMapStr = map[NoteClerkError]string{
+// Map NoteClerkError constants to a string, which can later be used to produce precise error messages.
+var NoteClerkErrToStrMap = map[NoteClerkError]string{
 	ErrDbPostgresInitializeFailsOpenConn:                       "DbPostgres.Initialize failed to open a database connection",
 	ErrDbPostgresInitializeFailsDbPing:                         "DbPostgres.Initialize failed to ping the database.",
 	ErrDbPostgresInitializeFailsSchemaCreation:                 "DbPostgres.Initialize failed to create the database schema.",

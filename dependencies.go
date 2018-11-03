@@ -45,12 +45,12 @@ func InitializeLogger(logPath string) error {
 	log.Formatter = &logrus.JSONFormatter{}
 	logFile, err := os.OpenFile(logPath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
-		return errors.WithMessage(err, ErrMapStr[ErrInitializeLoggerFailsOpenLogFile])
+		return errors.WithMessage(err, NoteClerkErrToStrMap[ErrInitializeLoggerFailsOpenLogFile])
 	}
 
 	log.SetLevel(logrus.InfoLevel)
 	var writer io.Writer = os.Stdout
-	if Environment != "production" {
+	if strings.ToLower(Environment) != "production" {
 		writer = io.MultiWriter(os.Stdout, logFile)
 		logrus.SetLevel(logrus.DebugLevel)
 	}

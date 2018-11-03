@@ -25,16 +25,16 @@ func (d *DbPostgres) Initialize(config *Config) error {
 
 	var err error
 	if d.db, err = sql.Open("postgres", connStr); err != nil {
-		return errors.WithMessage(err, ErrMapStr[ErrDbPostgresInitializeFailsOpenConn])
+		return errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresInitializeFailsOpenConn])
 	}
 	defer d.db.Close()
 
 	if err = d.db.Ping(); err != nil {
-		return errors.WithMessage(err, ErrMapStr[ErrDbPostgresInitializeFailsDbPing])
+		return errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresInitializeFailsDbPing])
 	}
 
 	if schemaErr := d.createSchema(); schemaErr != nil {
-		return errors.WithMessage(schemaErr, ErrMapStr[ErrDbPostgresInitializeFailsSchemaCreation])
+		return errors.WithMessage(schemaErr, NoteClerkErrToStrMap[ErrDbPostgresInitializeFailsSchemaCreation])
 	}
 
 	return nil
@@ -43,7 +43,7 @@ func (d *DbPostgres) Initialize(config *Config) error {
 func (d *DbPostgres) GetNoteFragmentsByNoteGuid(noteGuid string) ([]*ehrpb.NoteFragment, error) {
 	rows, err := d.db.Query(getNoteFragmentByNoteGuidQuery, noteGuid)
 	if err != nil {
-		return nil, errors.WithMessage(err, ErrMapStr[ErrDbPostgresGetNoteFragmentsByNoteGuidFailsQuery])
+		return nil, errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresGetNoteFragmentsByNoteGuidFailsQuery])
 	}
 	defer rows.Close()
 
@@ -53,10 +53,10 @@ func (d *DbPostgres) GetNoteFragmentsByNoteGuid(noteGuid string) ([]*ehrpb.NoteF
 		if err := rows.Scan(&tmp.Id, &tmp.DateCreated.Seconds, &tmp.DateCreated.Nanos, &tmp.NoteFragmentGuid,
 			&tmp.NoteGuid, &tmp.Icd_10Code, &tmp.Icd_10Long, &tmp.Description, &tmp.Status,
 			&tmp.Priority, &tmp.Topic, &tmp.Content); err != nil {
-			return nil, errors.WithMessage(err, ErrMapStr[ErrDbPostgresGetNoteFragmentsByNoteGuidFailsScan])
+			return nil, errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresGetNoteFragmentsByNoteGuidFailsScan])
 		}
 		if tmp.Tags, err = d.GetNoteFragmentTagsByNoteFragmentGuid(tmp.GetNoteFragmentGuid()); err != nil {
-			return nil, errors.WithMessage(err, ErrMapStr[ErrDbPostgresGetNoteFragmentsByNoteGuidFailsGetTags])
+			return nil, errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresGetNoteFragmentsByNoteGuidFailsGetTags])
 		}
 		noteFragments = append(noteFragments, tmp)
 	}
@@ -66,7 +66,7 @@ func (d *DbPostgres) GetNoteFragmentsByNoteGuid(noteGuid string) ([]*ehrpb.NoteF
 func (d *DbPostgres) GetNoteTagsByNoteGuid(noteGuid string) (tag []string, err error) {
 	rows, err := d.db.Query(getNoteTagByNoteGuidQuery, noteGuid)
 	if err != nil {
-		return nil, errors.WithMessage(err, ErrMapStr[ErrDbPostgresGetNoteTagsByNoteGuidQueryFails])
+		return nil, errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresGetNoteTagsByNoteGuidQueryFails])
 	}
 	defer rows.Close()
 
@@ -77,7 +77,7 @@ func (d *DbPostgres) GetNoteTagsByNoteGuid(noteGuid string) (tag []string, err e
 		var tmpString string
 		err := rows.Scan(&id, &noteGuid, &tmpString)
 		if err != nil {
-			return nil, errors.WithMessage(err, ErrMapStr[ErrDbPostgresGetNoteTagsByNoteGuidFailsRowScan])
+			return nil, errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresGetNoteTagsByNoteGuidFailsRowScan])
 		}
 		tags = append(tags, tmpString)
 	}
@@ -87,7 +87,7 @@ func (d *DbPostgres) GetNoteTagsByNoteGuid(noteGuid string) (tag []string, err e
 func (d *DbPostgres) GetNoteFragmentTagsByNoteFragmentGuid(noteFragGuid string) (tag []string, err error) {
 	rows, err := d.db.Query(getNoteFragmentTagsByNoteFragmentGuidQuery, noteFragGuid)
 	if err != nil {
-		return nil, errors.WithMessage(err, ErrMapStr[ErrDbPostgresGetNoteFragTagByNoteGuidQueryFails])
+		return nil, errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresGetNoteFragTagByNoteGuidQueryFails])
 	}
 	defer rows.Close()
 
@@ -98,7 +98,7 @@ func (d *DbPostgres) GetNoteFragmentTagsByNoteFragmentGuid(noteFragGuid string) 
 		var tmpTag string
 		err := rows.Scan(&tmpId, &tmpNoteFragmentGuid, &tmpTag)
 		if err != nil {
-			return nil, errors.WithMessage(err, ErrMapStr[ErrDbPostgresGetNoteFragTagByNoteGuidFailsRowScan])
+			return nil, errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresGetNoteFragTagByNoteGuidFailsRowScan])
 		}
 		tags = append(tags, tmpTag)
 	}
@@ -112,14 +112,14 @@ func (d *DbPostgres) AddNote(n *ehrpb.Note) (id int64, guid string, err error) {
 		n.GetStatus())
 
 	if err := row.Scan(&n.Id); err != nil {
-		return 0, "", errors.WithMessage(err, ErrMapStr[ErrDbPostgresAddNoteFailsScan])
+		return 0, "", errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresAddNoteFailsScan])
 	}
 
 	for _, v := range n.GetTags() {
 		_, err := d.AddNoteTag(n.GetNoteGuid(), v)
 
 		if err != nil {
-			return 0, "", errors.WithMessage(err, ErrMapStr[ErrDbPostgresAddNoteFailsToAddNoteTags])
+			return 0, "", errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresAddNoteFailsToAddNoteTags])
 		}
 	}
 
@@ -127,7 +127,7 @@ func (d *DbPostgres) AddNote(n *ehrpb.Note) (id int64, guid string, err error) {
 		_, _, err := d.AddNoteFragment(v)
 
 		if err != nil {
-			return 0, "", errors.WithMessage(err, ErrMapStr[ErrDbPostgresAddNoteFailsToAddNoteFragments])
+			return 0, "", errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresAddNoteFailsToAddNoteFragments])
 		}
 	}
 
@@ -137,7 +137,7 @@ func (d *DbPostgres) AddNote(n *ehrpb.Note) (id int64, guid string, err error) {
 func (d *DbPostgres) UpdateNote(n *ehrpb.Note) error {
 	err := d.DeleteNote(n.GetNoteGuid())
 	if err != nil {
-		return errors.WithMessage(err, ErrMapStr[ErrDbPostgresUpdateNoteFailsToChangeStatusToDeleted])
+		return errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresUpdateNoteFailsToChangeStatusToDeleted])
 	}
 	n.NoteGuid = uuid.New().String()
 	for _, v := range n.GetFragments() {
@@ -146,7 +146,7 @@ func (d *DbPostgres) UpdateNote(n *ehrpb.Note) error {
 	}
 	_, _, err = d.AddNote(n)
 	if err != nil {
-		return errors.WithMessage(err, ErrMapStr[ErrDbPostgresUpdateNoteFailsToChangeStatusToDeleted])
+		return errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresUpdateNoteFailsToChangeStatusToDeleted])
 	}
 	return nil
 }
@@ -174,7 +174,7 @@ func (d *DbPostgres) DeleteNote(guid string) error {
 func (d *DbPostgres) AllNotes() ([]*ehrpb.Note, error) {
 	rows, err := d.db.Query(getAllNotesQuery)
 	if err != nil {
-		return nil, errors.WithMessage(err, ErrMapStr[ErrDbPostgresAllNotesFailsQuery])
+		return nil, errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresAllNotesFailsQuery])
 	}
 	defer rows.Close()
 
@@ -185,7 +185,7 @@ func (d *DbPostgres) AllNotes() ([]*ehrpb.Note, error) {
 			&tmpNote.NoteGuid, &tmpNote.VisitGuid, &tmpNote.AuthorGuid,
 			&tmpNote.PatientGuid, &tmpNote.Type, &tmpNote.Status)
 		if err != nil {
-			return nil, errors.WithMessage(err, ErrMapStr[ErrDbPostgresAllNotesFailsScan])
+			return nil, errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresAllNotesFailsScan])
 		}
 		tmpNote.Tags, err = d.GetNoteTagsByNoteGuid(tmpNote.GetNoteGuid())
 		if err != nil {
@@ -208,7 +208,7 @@ func (d *DbPostgres) AddNoteTag(noteGuid string, tag string) (id int64, err erro
 
 	var newId int64
 	if err := row.Scan(&newId); err != nil {
-		return 0, errors.WithMessage(err, ErrMapStr[ErrDbPostgresAddNoteTagFailsScan])
+		return 0, errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresAddNoteTagFailsScan])
 	}
 
 	return newId, nil
@@ -254,7 +254,7 @@ func (d *DbPostgres) FindNotes(filter NoteFindFilter) ([]*ehrpb.Note, error) {
 
 	rows, err := d.db.Query(getNotesByFindQuery, filter.AuthorGuid, filter.VisitGuid, filter.PatientGuid)
 	if err != nil {
-		return nil, errors.WithMessage(err, ErrMapStr[ErrDbPostgresFindNotesFailsQuery])
+		return nil, errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresFindNotesFailsQuery])
 	}
 	defer rows.Close()
 
@@ -264,16 +264,16 @@ func (d *DbPostgres) FindNotes(filter NoteFindFilter) ([]*ehrpb.Note, error) {
 			&tmpNote.NoteGuid, &tmpNote.VisitGuid, &tmpNote.AuthorGuid,
 			&tmpNote.PatientGuid, &tmpNote.Type, &tmpNote.Status)
 		if err != nil {
-			return nil, errors.WithMessage(err, ErrMapStr[ErrDbPostgresFindNotesFailsScan])
+			return nil, errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresFindNotesFailsScan])
 		}
 		tmpNote.Tags, err = d.GetNoteTagsByNoteGuid(tmpNote.GetNoteGuid())
 		if err != nil {
-			return nil, errors.WithMessage(err, ErrMapStr[ErrDbPostgresFindNotesFailsGetTags])
+			return nil, errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresFindNotesFailsGetTags])
 		}
 
 		tmpNote.Fragments, err = d.GetNoteFragmentsByNoteGuid(tmpNote.GetNoteGuid())
 		if err != nil {
-			return nil, errors.WithMessage(err, ErrMapStr[ErrDbPostgresFindNotesFailsGetNoteFragments])
+			return nil, errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresFindNotesFailsGetNoteFragments])
 		}
 
 		notes = append(notes, tmpNote)
@@ -314,7 +314,7 @@ func (d *DbPostgres) AllNoteFragments() ([]*ehrpb.NoteFragment, error) {
 	rows, err := d.db.Query(getAllNoteFragmentsQuery)
 
 	if err != nil {
-		return nil, errors.WithMessage(err, ErrMapStr[ErrDbPostgresAllNoteFragmentsQueryFails])
+		return nil, errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresAllNoteFragmentsQueryFails])
 	}
 	defer rows.Close()
 
@@ -326,7 +326,7 @@ func (d *DbPostgres) AllNoteFragments() ([]*ehrpb.NoteFragment, error) {
 			&tmpFrag.Description, &tmpFrag.Status, &tmpFrag.Priority, &tmpFrag.Topic, &tmpFrag.Content)
 
 		if err != nil {
-			return nil, errors.WithMessage(err, ErrMapStr[ErrDbPostgresAllNoteFragmentsFailsScanRow])
+			return nil, errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresAllNoteFragmentsFailsScanRow])
 		}
 
 		tmpFrag.Tags, err = d.GetNoteFragmentTagsByNoteFragmentGuid(tmpFrag.GetNoteGuid())
@@ -346,13 +346,13 @@ func (d *DbPostgres) AddNoteFragment(nf *ehrpb.NoteFragment) (id int64, guid str
 		nf.GetDescription(), nf.GetStatus(), nf.GetPriority(), nf.GetTopic(), nf.GetContent())
 	scanErr := row.Scan(&nf.Id)
 	if scanErr != nil {
-		return 0, "", errors.WithMessage(scanErr, ErrMapStr[ErrDbPostgresAddNoteFragmentFailsScan])
+		return 0, "", errors.WithMessage(scanErr, NoteClerkErrToStrMap[ErrDbPostgresAddNoteFragmentFailsScan])
 	}
 
 	for _, v := range nf.GetTags() {
 		_, err := d.AddNoteFragmentTag(nf.GetNoteFragmentGuid(), v)
 		if err != nil {
-			return 0, "", errors.WithMessage(err, ErrMapStr[ErrDbPostgresAddNoteFragmentFailsAddNoteTags])
+			return 0, "", errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresAddNoteFragmentFailsAddNoteTags])
 		}
 	}
 
@@ -399,7 +399,7 @@ func (d *DbPostgres) AddNoteFragmentTag(noteGuid string, tag string) (id int64, 
 
 	var newId int64
 	if err := row.Scan(&newId); err != nil {
-		return 0, errors.WithMessage(err, ErrMapStr[ErrDbPostgresAddNoteFragmentTagFailsScan])
+		return 0, errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresAddNoteFragmentTagFailsScan])
 	}
 
 	return newId, nil
@@ -416,22 +416,22 @@ func (d *DbPostgres) createSchema() error {
 
 	err := d.createTable(createNoteTable)
 	if notNilNotTableExists(err) {
-		return errors.Wrapf(err, "%v. Target Table: note", ErrMapStr[ErrDbPostgresCreateSchemaFailsTableCreation])
+		return errors.Wrapf(err, "%v. Target Table: note", NoteClerkErrToStrMap[ErrDbPostgresCreateSchemaFailsTableCreation])
 	}
 
 	err = d.createTable(createNoteTagTable)
 	if notNilNotTableExists(err) {
-		return errors.Wrapf(err, "%v. Target Table: note_tag", ErrMapStr[ErrDbPostgresCreateSchemaFailsTableCreation])
+		return errors.Wrapf(err, "%v. Target Table: note_tag", NoteClerkErrToStrMap[ErrDbPostgresCreateSchemaFailsTableCreation])
 	}
 
 	err = d.createTable(createNoteFragmentTable)
 	if notNilNotTableExists(err) {
-		return errors.Wrapf(err, "%v. Target Table: note_fragment", ErrMapStr[ErrDbPostgresCreateSchemaFailsTableCreation])
+		return errors.Wrapf(err, "%v. Target Table: note_fragment", NoteClerkErrToStrMap[ErrDbPostgresCreateSchemaFailsTableCreation])
 	}
 
 	err = d.createTable(createNoteFragmentTagTable)
 	if notNilNotTableExists(err) {
-		return errors.Wrapf(err, "%v. Target Table: note_fragment_tag", ErrMapStr[ErrDbPostgresCreateSchemaFailsTableCreation])
+		return errors.Wrapf(err, "%v. Target Table: note_fragment_tag", NoteClerkErrToStrMap[ErrDbPostgresCreateSchemaFailsTableCreation])
 	}
 
 	return nil
@@ -442,10 +442,10 @@ func (d *DbPostgres) createTable(query string) error {
 
 	tableExistsError := strings.Contains(fmt.Sprintf("%v", err), "already exists")
 	if tableExistsError {
-		return errors.WithMessage(err, ErrMapStr[ErrDbPostgresCreateTableFailsAlreadyExists])
+		return errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresCreateTableFailsAlreadyExists])
 	}
 	if err != nil {
-		return errors.WithMessage(err, ErrMapStr[ErrDbPostgresCreateTableFailsDueToUnexpectedError])
+		return errors.WithMessage(err, NoteClerkErrToStrMap[ErrDbPostgresCreateTableFailsDueToUnexpectedError])
 	}
 	return nil
 }
