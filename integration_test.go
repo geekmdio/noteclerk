@@ -52,7 +52,7 @@ func TestCreateTable_WhichAlreadyExists_ReturnsProperError(t *testing.T) {
 	}
 
 	if err := postgresDb.createTable(createQuery); err == nil {
-		t.Fatalf("Create table should return an error. Actual error: %v", err)
+		t.Fatalf("Create table should return an error indicating the table already exists. Actual error: %v", err)
 	}
 
 	postgresDb.db.Exec(dropQuery)
@@ -101,21 +101,95 @@ func TestDbPostgres_DeleteNote(t *testing.T) {
 	tearDown(t)
 }
 
-func TestDbPostgres_FindNotes(t *testing.T) {
+func TestDbPostgres_FindNotes_ByAuthorGuid(t *testing.T) {
 	setup(t)
 
 	note := buildNote()
 	postgresDb.AddNote(note)
 
-	visitGuid := ""   // note.GetVisitGuid()
-	patientGuid := "" // note.GetPatientGuid()
 	authorGuid := note.GetAuthorGuid()
 
 	findQuery := NoteFindFilter{
-		VisitGuid:   visitGuid,
+		VisitGuid:   "",
 		AuthorGuid:  authorGuid,
+		PatientGuid: "",
+		SearchTerms: "",
+	}
+
+	notes, err := postgresDb.FindNotes(findQuery)
+	if err != nil {
+		t.Fatalf("Failed to find notes. Error: %v", err)
+	}
+
+	if len(notes) < 1 {
+		t.Fatalf("Should return at least one note, but did not.")
+	}
+	tearDown(t)
+}
+
+func TestDbPostgres_FindNotes_ByVisitGuid(t *testing.T) {
+	setup(t)
+
+	note := buildNote()
+	postgresDb.AddNote(note)
+
+	visitGuid := note.GetVisitGuid()
+
+	findQuery := NoteFindFilter{
+		VisitGuid:   visitGuid,
+		AuthorGuid:  "",
+		PatientGuid: "",
+		SearchTerms: "",
+	}
+
+	notes, err := postgresDb.FindNotes(findQuery)
+	if err != nil {
+		t.Fatalf("Failed to find notes. Error: %v", err)
+	}
+
+	if len(notes) < 1 {
+		t.Fatalf("Should return at least one note, but did not.")
+	}
+	tearDown(t)
+}
+
+func TestDbPostgres_FindNotes_ByPatientGuid(t *testing.T) {
+	setup(t)
+
+	note := buildNote()
+	postgresDb.AddNote(note)
+
+	patientGuid := note.GetPatientGuid()
+
+	findQuery := NoteFindFilter{
+		VisitGuid:   "",
+		AuthorGuid:  "",
 		PatientGuid: patientGuid,
 		SearchTerms: "",
+	}
+
+	notes, err := postgresDb.FindNotes(findQuery)
+	if err != nil {
+		t.Fatalf("Failed to find notes. Error: %v", err)
+	}
+
+	if len(notes) < 1 {
+		t.Fatalf("Should return at least one note, but did not.")
+	}
+	tearDown(t)
+}
+
+func TestDbPostgres_FindNotes_BySearchTerms(t *testing.T) {
+	setup(t)
+
+	note := buildNote()
+	postgresDb.AddNote(note)
+
+	findQuery := NoteFindFilter{
+		VisitGuid:   "",
+		AuthorGuid:  "",
+		PatientGuid: "",
+		SearchTerms: "foo bar fizz buzz",
 	}
 
 	notes, err := postgresDb.FindNotes(findQuery)

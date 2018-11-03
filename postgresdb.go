@@ -242,6 +242,11 @@ func (d *DbPostgres) GetNoteByGuid(guid string) (*ehrpb.Note, error) {
 func (d *DbPostgres) FindNotes(filter NoteFindFilter) ([]*ehrpb.Note, error) {
 
 	notes := make([]*ehrpb.Note, 0)
+
+	if filter.SearchTerms != "" {
+		return notes, errors.New("this find notes by search terms feature is not  yet implemented.")
+	}
+
 	if err := validateNoteFormFilterFields(filter); err != nil {
 		return notes, err
 	}
@@ -356,6 +361,10 @@ func (d *DbPostgres) AddNoteFragment(nf *ehrpb.NoteFragment) (id int64, guid str
 
 func (d *DbPostgres) UpdateNoteFragment(n *ehrpb.NoteFragment) error {
 	err := d.DeleteNoteFragment(n.GetNoteFragmentGuid())
+	if err != nil {
+		return err
+	}
+	_, _, err = d.AddNoteFragment(n)
 	if err != nil {
 		return err
 	}
