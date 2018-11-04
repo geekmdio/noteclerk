@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/beevik/guid"
 	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
 	"github.com/geekmdio/noted"
 	"github.com/google/uuid"
@@ -221,6 +222,55 @@ func TestDbPostgres_AllNoteFragments(t *testing.T) {
 	tearDown(t)
 }
 
+func TestDbPostgres_UpdateNoteFragment(t *testing.T) {
+	setup(t)
+
+	note := buildNote()
+
+	frag := note.GetFragments()[0]
+
+	newFrag := noted.NewNoteFragment()
+	newFrag.NoteFragmentGuid = frag.GetNoteFragmentGuid()
+	newFrag.NoteGuid = frag.GetNoteGuid()
+	newFrag.IssueGuid = frag.GetIssueGuid()
+
+	newFrag.Content = "This is an updated note fragment."
+
+	postgresDb.AddNote(note)
+	err := postgresDb.UpdateNoteFragment(newFrag)
+
+	if err != nil {
+		t.Fatalf("While attempting to update the note fragment, an error occured: %v", err)
+	}
+
+	tearDown(t)
+}
+
+func TestDbPostgres_UpdateNoteFragment_FailsWhenGuidNotExist(t *testing.T) {
+	setup(t)
+
+	note := buildNote()
+
+	frag := note.GetFragments()[0]
+	frag.NoteFragmentGuid = guid.New().String()
+
+	newFrag := noted.NewNoteFragment()
+	newFrag.NoteFragmentGuid = frag.GetNoteFragmentGuid()
+	newFrag.NoteGuid = frag.GetNoteGuid()
+	newFrag.IssueGuid = frag.GetIssueGuid()
+
+	newFrag.Content = "This is an updated note fragment."
+
+	postgresDb.AddNote(note)
+	err := postgresDb.UpdateNoteFragment(newFrag)
+
+	if err == nil {
+		t.Fatalf("While attempting to update the note fragment, an error should have occured but did not. Error: %v", err)
+	}
+
+	tearDown(t)
+}
+
 func buildNote() *ehrpb.Note {
 	nb := &noted.NoteBuilder{}
 	note := nb.Init().
@@ -276,7 +326,7 @@ func setup(t *testing.T) {
 
 	postgresDb.db = openDb
 
-	// Below here ensures that the database and it's tables are setup for the integration tests.
+	// Below ensures that the database and it's tables are setup for the integration tests.
 	server := &DbPostgres{
 		db: openDb,
 	}

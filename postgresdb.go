@@ -11,6 +11,7 @@ import (
 	"strings"
 )
 
+// DbPostgres implements RDBMSAccessor; purpose is to access the database via the Postgres driver.
 type DbPostgres struct {
 	db *sql.DB
 }
@@ -221,18 +222,17 @@ func (d *DbPostgres) GetNoteByGuid(guid string) (*ehrpb.Note, error) {
 	err := row.Scan(&newNote.Id, &newNote.DateCreated.Seconds, &newNote.DateCreated.Nanos, &newNote.NoteGuid,
 		&newNote.VisitGuid, &newNote.AuthorGuid, &newNote.PatientGuid, &newNote.Type, &newNote.Status)
 
-	//TODO: Custom errors
 	if err != nil {
 		return nil, err
 	}
 	newNote.Fragments, err = d.GetNoteFragmentsByNoteGuid(newNote.GetNoteGuid())
 	if err != nil {
-		return nil, err
+		return nil, NoteClerkErrWrap(err, ErrDbPostgresGetNoteByGuidFailsGetNote)
 	}
 
 	newNote.Tags, err = d.GetNoteTagsByNoteGuid(newNote.GetNoteGuid())
 	if err != nil {
-		return nil, err
+		return nil, NoteClerkErrWrap(err, ErrDbPostgresGetNoteByGuidFailsGetNoteFragments)
 	}
 
 	return newNote, nil
@@ -360,16 +360,35 @@ func (d *DbPostgres) AddNoteFragment(nf *ehrpb.NoteFragment) (id int64, guid str
 }
 
 func (d *DbPostgres) UpdateNoteFragment(n *ehrpb.NoteFragment) error {
-	err := d.DeleteNoteFragment(n.GetNoteFragmentGuid())
+
+	newFrag := buildNewFragmentFromOldFragment(n)
+
+	_, _, err := d.AddNoteFragment(newFrag)
 	if err != nil {
-		return err
+		return NoteClerkErrWrap(err, ErrDbPostgresUpdateNoteFragmentFailsAddNewNoteFragment)
 	}
-	_, _, err = d.AddNoteFragment(n)
+
+	err = d.DeleteNoteFragment(n.GetNoteFragmentGuid())
 	if err != nil {
-		return err
+		return NoteClerkErrWrap(err, ErrDbPostgresUpdateNoteFragmentFailsDeletePriorNoteFragment)
 	}
-	log.Fatal("Not implemented.")
+
 	return nil
+}
+
+func buildNewFragmentFromOldFragment(n *ehrpb.NoteFragment) *ehrpb.NoteFragment {
+	newFrag := noted.NewNoteFragment()
+	newFrag.Content = n.GetContent()
+	newFrag.Topic = n.GetTopic()
+	newFrag.Priority = n.GetPriority()
+	newFrag.Status = n.GetStatus()
+	newFrag.Description = n.GetDescription()
+	newFrag.Icd_10Long = n.GetIcd_10Long()
+	newFrag.Icd_10Code = n.GetIcd_10Code()
+	newFrag.IssueGuid = n.GetIssueGuid()
+	newFrag.Tags = n.GetTags()
+	newFrag.NoteGuid = n.GetNoteGuid()
+	return newFrag
 }
 
 // This is not a true delete. It changes the status of the note to DELETED. Health care
@@ -384,11 +403,13 @@ func (d *DbPostgres) DeleteNoteFragment(noteFragmentGuid string) error {
 	return nil
 }
 
+//TODO: Implement feature
 func (d *DbPostgres) GetNoteFragmentByGuid(guid string) (*ehrpb.NoteFragment, error) {
 	log.Fatal("Not implemented.")
 	return nil, nil
 }
 
+//TODO: Implement feature
 func (d *DbPostgres) FindNoteFragments(filter NoteFragmentFindFilter) ([]*ehrpb.NoteFragment, error) {
 	log.Fatal("Not implemented.")
 	return nil, nil
