@@ -391,6 +391,7 @@ func buildNewFragmentFromOldFragment(n *ehrpb.NoteFragment) *ehrpb.NoteFragment 
 	return newFrag
 }
 
+//TODO: Need to create row in table for issue_guid and set as additional foreign key.
 // This is not a true delete. It changes the status of the note to DELETED. Health care
 // records should not be deleted.
 func (d *DbPostgres) DeleteNoteFragment(noteFragmentGuid string) error {
