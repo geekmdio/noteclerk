@@ -398,6 +398,7 @@ func (d *DbPostgres) DeleteNoteFragment(noteFragmentGuid string) error {
 	row := d.db.QueryRow(updateNoteFragmentStatusToStatusByNoteFragmentGuidQuery, ehrpb.RecordStatus_DELETED, noteFragmentGuid)
 	var newId int64
 	scanErr := row.Scan(&newId)
+	//TODO: Custom error
 	if scanErr != nil {
 		return scanErr
 	}
