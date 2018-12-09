@@ -1,4 +1,4 @@
-# GeekMD: NoteClerk v0.5.1
+# GeekMD: NoteClerk v0.5.2
 NoteClerk is a micro-service dedicated to managing clinical notes from the Noted library. It uses protcol buffers and 
 gRPC and so the API is relatively language agnostic.
 
@@ -6,6 +6,9 @@ gRPC and so the API is relatively language agnostic.
 |:---:|:---:|:---:|
 |Master|![master-build](https://travis-ci.org/geekmdio/noteclerk.svg?branch=master)| [![codecov-master](https://codecov.io/gh/geekmdio/noteclerk/branch/master/graph/badge.svg)](https://codecov.io/gh/geekmdio/noteclerk) |
 |Development|![dev-build](https://travis-ci.org/geekmdio/noteclerk.svg?branch=development)| [![codecov-development](https://codecov.io/gh/geekmdio/noteclerk/branch/development/graph/badge.svg)](https://codecov.io/gh/geekmdio/noteclerk)  |
+
+### RELEASE NOTES v0.5.2
+- Expanded unit testing.
 
 ### RELEASE NOTES v0.5.1
 - Fixed bug where updating not wasn't returning an id for the note fragment.
