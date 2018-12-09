@@ -3,13 +3,22 @@ package main
 import (
 	"context"
 	"github.com/geekmdio/ehrprotorepo/v1/generated/goproto"
+	"github.com/geekmdio/noted"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/google/uuid"
 	"testing"
 )
 
+func TestDbPostgres_InitializeWithEmptyConfig_ThrowsError(t *testing.T) {
+	config := &Config{}
+	db := &DbPostgres{}
+	if err := db.Initialize(config); err == nil {
+		t.Fatalf("Initializing with a blank config should return an error, but returned %v", err)
+	}
+}
+
 func TestNoteClerkServer_CreateNote(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 	c := context.Background()
 	cnr := &ehrpb.CreateNoteRequest{
@@ -62,14 +71,36 @@ func TestNoteClerkServer_CreateNote(t *testing.T) {
 	}
 }
 
+func TestNoteClerkServer_CreateNote_WithNoteThatAlreadyHasId_ReturnsError(t *testing.T) {
+	s := &Server{}
+	s.Initialize(&Config{}, mockDb)
+	c := context.Background()
+	cnr := &ehrpb.CreateNoteRequest{
+		Note: &ehrpb.Note{
+			Id:          1, // This should throw an error
+			DateCreated: &timestamp.Timestamp{},
+			NoteGuid:    "",
+			VisitGuid:   uuid.New().String(),
+			AuthorGuid:  uuid.New().String(),
+			PatientGuid: uuid.New().String(),
+			Type:        ehrpb.NoteType_CONTINUED_CARE_DOCUMENTATION,
+		},
+	}
+	_, err := s.CreateNote(c, cnr)
+
+	if err == nil {
+		t.Fatalf("Should return an error when a note with a similar Id already exists, but error was %v", err)
+	}
+}
+
 func TestNoteClerkServer_CreateNote_WithFragmentsRetainsFragments(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
 	expectedFragId := int64(44)
-	noteFrag := NewNoteFragment()
+	noteFrag := noted.NewNoteFragment()
 	noteFrag.Id = expectedFragId
-	cnr := &ehrpb.CreateNoteRequest{Note: NewNote()}
+	cnr := &ehrpb.CreateNoteRequest{Note: noted.NewNote()}
 
 	cnr.Note.Fragments = append(cnr.Note.Fragments, noteFrag)
 	res, err := s.CreateNote(context.Background(), cnr)
@@ -88,7 +119,7 @@ func TestNoteClerkServer_CreateNote_WithFragmentsRetainsFragments(t *testing.T) 
 }
 
 func TestNoteClerkServer_CreateNote_WithTagsRetainsTags(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 	c := context.Background()
 	expectedTag := "mytag"
@@ -115,10 +146,10 @@ func TestNoteClerkServer_CreateNote_WithTagsRetainsTags(t *testing.T) {
 }
 
 func TestNoteClerkServer_CreateNote_WithNonZeroIdIsRejected(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 	cnr := &ehrpb.CreateNoteRequest{
-		Note: NewNote(),
+		Note: noted.NewNote(),
 	}
 	cnr.Note.Id = 1
 	res, err := s.CreateNote(context.Background(), cnr)
@@ -133,12 +164,14 @@ func TestNoteClerkServer_CreateNote_WithNonZeroIdIsRejected(t *testing.T) {
 }
 
 func TestNoteClerkServer_DeleteNote(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
-	idToDelete := int64(0)
+	notes, _ := s.db.AllNotes()
+
+	guidToDelete := notes[0].GetNoteGuid()
 	delReq := &ehrpb.DeleteNoteRequest{
-		Id: idToDelete,
+		Guid: guidToDelete,
 	}
 
 	res, err := s.DeleteNote(context.Background(), delReq)
@@ -153,7 +186,7 @@ func TestNoteClerkServer_DeleteNote(t *testing.T) {
 	allNotes, _ := s.db.AllNotes()
 	idPresent := false
 	for _, n := range allNotes {
-		if n.Id == idToDelete {
+		if n.GetNoteGuid() == guidToDelete {
 			idPresent = true
 		}
 	}
@@ -163,7 +196,7 @@ func TestNoteClerkServer_DeleteNote(t *testing.T) {
 }
 
 func TestNoteClerkServer_DeleteNote_WhichDoestExistReturnsError(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
 	idToDelete := int64(-1)
@@ -183,13 +216,14 @@ func TestNoteClerkServer_DeleteNote_WhichDoestExistReturnsError(t *testing.T) {
 }
 
 func TestNoteClerkServer_RetrieveNote(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
-	expectedId := int64(1)
+	notes, _ := s.db.AllNotes()
+	expectedGuid := notes[0].NoteGuid
 
 	retReq := &ehrpb.RetrieveNoteRequest{
-		Id: expectedId,
+		Guid: expectedGuid,
 	}
 
 	res, err := s.RetrieveNote(context.Background(), retReq)
@@ -205,13 +239,13 @@ func TestNoteClerkServer_RetrieveNote(t *testing.T) {
 		t.Fatalf("No note was retrieved")
 	}
 
-	if res.Note.Id != expectedId {
-		t.Fatalf("The note Id was %v, but should have been %v", res.Note.Id, expectedId)
+	if res.Note.GetNoteGuid() != expectedGuid {
+		t.Fatalf("The note Id was %v, but should have been %v", res.Note.Id, expectedGuid)
 	}
 }
 
 func TestNoteClerkServer_RetrieveNote_ByIdThatDoesntExist_ReturnsError(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
 	expectedId := int64(-1)
@@ -231,7 +265,7 @@ func TestNoteClerkServer_RetrieveNote_ByIdThatDoesntExist_ReturnsError(t *testin
 }
 
 func TestNoteClerkServer_FindNote(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
 	found, err := s.db.AllNotes()
@@ -264,7 +298,7 @@ func TestNoteClerkServer_FindNote(t *testing.T) {
 }
 
 func TestNoteClerkServer_FindNote_WithNonExistentGuid_ReturnsError(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
 	findReq := &ehrpb.SearchNotesRequest{
@@ -283,7 +317,7 @@ func TestNoteClerkServer_FindNote_WithNonExistentGuid_ReturnsError(t *testing.T)
 
 func TestNoteClerkServer_UpdateNote(t *testing.T) {
 	mockDb := mockDb
-	_, err := mockDb.Initialize(nil)
+	err := mockDb.Initialize(nil)
 	if err != nil {
 		t.Fatalf("Failed to initialize mock database.")
 	}
@@ -291,10 +325,10 @@ func TestNoteClerkServer_UpdateNote(t *testing.T) {
 	firstNote := mockDb.db[0]
 
 	retReq := &ehrpb.RetrieveNoteRequest{
-		Id: firstNote.Id,
+		Guid: firstNote.GetNoteGuid(),
 	}
 
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.db = mockDb
 	res, _ := s.RetrieveNote(context.Background(), retReq)
 
@@ -317,10 +351,10 @@ func TestNoteClerkServer_UpdateNote(t *testing.T) {
 }
 
 func TestNoteClerkServer_UpdateNote_NoteDoesNotExistReturnsError(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
-	note := NewNote()
+	note := noted.NewNote()
 	note.Id = -1
 	updateReq := &ehrpb.UpdateNoteRequest{
 		Id:   note.Id,
@@ -338,10 +372,10 @@ func TestNoteClerkServer_UpdateNote_NoteDoesNotExistReturnsError(t *testing.T) {
 }
 
 func TestNoteClerkServer_UpdateNote_NoteIdDoesntMatchUpdateId(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	s.Initialize(&Config{}, mockDb)
 
-	note := NewNote()
+	note := noted.NewNote()
 	note.Id = 0
 	updateReq := &ehrpb.UpdateNoteRequest{
 		Id:   1,
@@ -359,7 +393,7 @@ func TestNoteClerkServer_UpdateNote_NoteIdDoesntMatchUpdateId(t *testing.T) {
 }
 
 func TestNoteClerkServer_Initialize_WithNilConfig_ReturnsError(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	err := s.Initialize(nil, mockDb)
 	if err == nil {
 		t.Fatalf("Initialize should throw error with nil config file.")
@@ -367,7 +401,7 @@ func TestNoteClerkServer_Initialize_WithNilConfig_ReturnsError(t *testing.T) {
 }
 
 func TestNoteClerkServer_Initialize_WithNilDb_ReturnsError(t *testing.T) {
-	s := &NoteClerkServer{}
+	s := &Server{}
 	err := s.Initialize(&Config{}, nil)
 	if err == nil {
 		t.Fatalf("Initialize should throw error with nil database.")
