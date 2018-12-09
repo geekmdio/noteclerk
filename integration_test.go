@@ -61,6 +61,40 @@ func TestCreateTable_WhichAlreadyExists_ReturnsProperError(t *testing.T) {
 	tearDown(t)
 }
 
+func TestDbPostgres_AllNotes(t *testing.T) {
+	setup(t)
+	note1 := buildNote()
+	note2 := buildNote()
+	note3 := buildNote()
+
+	var ns []*ehrpb.Note
+	ns = append(ns, note1, note2, note3)
+
+	for _, n := range ns {
+		postgresDb.AddNote(n)
+	}
+
+
+	retrievedNotes, err := postgresDb.AllNotes()
+
+	if err != nil {
+		t.Fatalf("Failed to retrieve all retrievedNotes from database. Error: %v", err)
+	}
+
+	hitCount := 0
+	for _, rn := range retrievedNotes {
+		for _, n := range ns {
+			if rn.GetNoteGuid() == n.GetNoteGuid() {
+				hitCount++
+			}
+		}
+	}
+	if hitCount != len(ns) {
+		t.Fatalf("Failed to find all notes. Expected %v but got %v", len(ns), hitCount)
+	}
+
+}
+
 func TestDbPostgres_AddNote(t *testing.T) {
 	setup(t)
 	note := buildNote()
@@ -216,7 +250,7 @@ func TestDbPostgres_AllNoteFragments(t *testing.T) {
 	}
 
 	if len(frags) < 1 {
-		t.Fatalf("Should have at leats one note fragment.")
+		t.Fatalf("Should have at least one note fragment.")
 	}
 
 	tearDown(t)
@@ -255,7 +289,6 @@ func TestDbPostgres_UpdateNoteFragment_FailsWhenGuidNotExist(t *testing.T) {
 	frag.NoteFragmentGuid = guid.New().String()
 
 	newFrag := noted.NewNoteFragment()
-	newFrag.NoteFragmentGuid = frag.GetNoteFragmentGuid()
 	newFrag.NoteGuid = frag.GetNoteGuid()
 	newFrag.IssueGuid = frag.GetIssueGuid()
 
