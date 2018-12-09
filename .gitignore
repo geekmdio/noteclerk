@@ -5,6 +5,10 @@
 *.so
 *.dylib
 
+# Log files
+*.log
+coverage.txt
+
 # Test binary, build with `go test -c`
 *.test
 
@@ -13,3 +17,6 @@
 
 # IDE
 .idea/
+
+# Config
+config/

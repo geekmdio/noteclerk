@@ -1,82 +1,60 @@
 package main
 
 import (
-	"log"
-	"github.com/geekmdio/ehrprotorepo/goproto"
-	"github.com/golang/protobuf/ptypes/timestamp"
-	"github.com/google/uuid"
-	"time"
+	"fmt"
+	"github.com/sirupsen/logrus"
+	"io"
+	"os"
+	"strings"
 )
 
-// Pure dependency injection.
-type Dependencies struct {
-	DB  DbAccessor
-	MockDB DbAccessor
-	Log log.Logger
-	Note *ehrpb.Note
-	NoteFragment *ehrpb.NoteFragment
-	Timestamp *timestamp.Timestamp
-}
+// Inject preferred logger into the log global variable singleton. NOTE: at the time of development, this log singleton
+// is dependent upon the logrus.Logger struct which implements the logrus.FieldLogger and logrus.StdLogger interfaces.
+// custom loggers should be careful to implement these interfaces.
+var log = logrus.New()
 
-// Pure dependency injection vector.
-var pdi = Dependencies {
-	DB:  &DbPostgres{},
-	MockDB: &MockDb{},
-	Log: log.Logger{},
-	Timestamp:TimestampNow(),
-	Note: NewNoteEmpty(),
-	NoteFragment: NoteFragmentEmpty(),
-}
+// The NOTECLERK_DATA environmental variable is retrieved fromm the OS and is used to determine what the root data
+// directory is for configuration and log files.
+var NoteClerkData = os.Getenv(DataRoot)
 
-func NewNoteEmpty() *ehrpb.Note {
-	return &ehrpb.Note{
-		Id:          0,
-		DateCreated: TimestampNow(),
-		NoteGuid:    uuid.New().String(),
-		Fragments:   make([]*ehrpb.NoteFragment, 0),
-		Tags:        make([]string,0),
+// The NOTECLERK_ENVIRONMENT environmental variable is retrieved from the OS and used to determine which configuration
+// settings are to be loaded at runtime. New settings require a server restart.
+var NoteClerkEnv = os.Getenv(Environment)
+
+// Use the NOTECLERK_DATA path and the NOTECLERK_ENVIRONMENT environment type to generate a path to the preferred
+// configuration file. Of note, it is suggested that this be limited to a user scope if possible. Manual manipulation of
+// permissions may be required if moving configuration and logging files to system folders.
+var configPath = fmt.Sprintf("%v/config.%v.json", NoteClerkData, strings.ToLower(NoteClerkEnv))
+
+// This is the database implementation for the server is injected into a singleton variable. It can be exchanged so
+// long as the new database implementation interfaces with the RDBMSAccessor interface.
+var db = &DbPostgres{}
+
+// A mock Db implementation
+var mockDb = &MockDb{}
+
+// Inject server service into singleton. This can be replaced by any server that implements the NoteClerkServer
+// interfaces, which itself implements the NoteServiceServer interface, a gRPC service interface.
+var server NoteClerkServer = &Server{}
+
+// Initialize the logger with a set of default settings. Takes a path to a log file, which is set in the config above,
+// and opens the file pointed to by the log path.
+// RETURNS: error
+func InitializeLogger(logPath string) error {
+	log.Formatter = &logrus.JSONFormatter{}
+	logFile, err := os.OpenFile(logPath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	if err != nil {
+		return NoteClerkErrWrap(err, ErrInitializeLoggerFailsOpenLogFile)
 	}
-}
 
-func NewNote(visitGuid string, authorGuid string, patientGuid string, noteType ehrpb.NoteType) *ehrpb.Note {
-	note := NewNoteEmpty()
-	note.VisitGuid = visitGuid
-	note.AuthorGuid = authorGuid
-	note.PatientGuid = patientGuid
-	note.Type = noteType
-	note.NoteGuid = uuid.New().String()
-	return note
-}
-
-func NoteFragmentEmpty() *ehrpb.NoteFragment {
-	return &ehrpb.NoteFragment{
-		Id: 0,
-		DateCreated: TimestampNow(),
-		NoteFragmentGuid:     uuid.New().String(),
-		IssueGuid:            "IssueGuid not set",
-		Icd_10Code:           "Icd_10Code not set",
-		Icd_10Long:           "Icd_10Long not set",
-		Description:          "Description not set",
-		Status:               ehrpb.NoteFragmentStatus_INCOMPLETE,
-		Priority:             ehrpb.FragmentPriority_NO_PRIORITY,
-		Topic:                ehrpb.FragmentTopic_NO_TOPIC,
-		MarkdownContent:      "MarkdownContent not set",
-		Tags:                 make([]string,0),
+	log.SetLevel(logrus.InfoLevel)
+	var writer io.Writer = os.Stdout
+	if strings.ToLower(Environment) != "production" {
+		writer = io.MultiWriter(os.Stdout, logFile)
+		logrus.SetLevel(logrus.DebugLevel)
 	}
-}
 
-func NoteFragment(noteGuid string, issueGuid string) *ehrpb.NoteFragment {
-	noteFragment := NoteFragmentEmpty()
-	noteFragment.NoteGuid = noteGuid
-	noteFragment.IssueGuid = issueGuid
-	return noteFragment
-}
+	log.Out = writer
 
-func TimestampNow() *timestamp.Timestamp {
-	now := time.Now()
-	ts := &timestamp.Timestamp{
-		Seconds: now.Unix(),
-		Nanos:   int32(now.UnixNano()),
-	}
-	return ts
+	return nil
 }
