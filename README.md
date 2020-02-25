@@ -12,9 +12,6 @@ gRPC and so the API is relatively language agnostic.
 - Run `setup.sh`; not tested in Windows, but should be able to run in Windows through Bash which is available in a Linux subsystem in Windows 10, or via the various terminal emulators.
     - Of note, you may run into problems creating folders for the config files and log files if your permissions are not set properly. Recommend running this server under limited user and keeping log in default directory.
     - Additionally, please note that each time `setup.sh` is run it will create a new config file for the existing environment.
-    
-### RELEASE NOTES v0.5.2
-- Expanded unit testing.
 
 ### RELEASE NOTES v0.5.1
 - Fixed bug where updating not wasn't returning an id for the note fragment.
