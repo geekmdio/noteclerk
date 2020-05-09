@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 
-# NOTE: You must have the environmental variable NOTECLERK_ENVIRONMENT set.
-# E.g. export NOTECLERK_ENVIRONMENET=development.
+# NOTE: You must have the environmental variable NOTECLERK_ENVIRONMENT set and
+# NOTECLERK_DATA should also be set.
+# E.g. export NOTECLERK_ENVIRONMENET=development.; export NOTECLERK_DATA=$HOME/.noteclerk
 
 VERSION="$(cat VERSION)"
-LOG_DIR="${HOME}/.noteclerk/log"
-LOG_PATH="${LOG_DIR}/server.log"
+
+# Servier data
 SERVER_PROTOCOL="tcp"
 SERVER_IP="localhost"
 SERVER_PORT="50051"
+
+# Database data
 DB_IP="localhost"
 DB_PORT="5433"
 DB_USERNAME="USERNAME_REQUIRED"
@@ -16,7 +19,11 @@ DB_PASSWORD="PASSWORD_REQUIRED"
 DB_NAME="noteclerk"
 DB_SSL_MODE="disable"
 CONFIG_DIRECOTRY="config"
-CONFIG_FILE_PATH="${CONFIG_DIRECOTRY}/config.${NOTECLERK_ENVIRONMENT}.json"
+
+#Environmental data
+LOG_DIR="${NOTECLERK_DATA}/log"
+LOG_PATH="${LOG_DIR}/server.log"
+CONFIG_FILE_PATH="${NOTECLERK_DATA}/config.${NOTECLERK_ENVIRONMENT}.json"
 
 get_user_input() {
     # Generate log directory and file based on input
@@ -132,7 +139,12 @@ ensure_config_directory_exists() {
 
 ensure_env_set() {
     if [ "${NOTECLERK_ENVIRONMENT}" == "" ]; then
-        echo "NOTECLERK_ENVIRONMENT environmental variable is not set. Please set this environmental variable and run again."
+        echo "NOTECLERK_ENVIRONMENT environmental variable is not set. Please set this environmental variable to a development stage and run again."
+        exit 1
+    fi
+
+    if [ "${NOTECLERK_DATA}" == "" ]; then
+        echo "NOTECLERK_DATA environmental variable is not set. Please set this environmental variable to a directory and run again."
         exit 1
     fi
 }
